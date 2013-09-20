@@ -3,6 +3,8 @@ import os
 import tarfile
 from datetime import datetime
 
+from logger import logger
+
 
 class Bundle:
     """ Bundle object """
@@ -74,7 +76,7 @@ class Bundle:
                 if cnt == 2:
                     return False
                 else:
-                    print('[-] Excluding file {}'.format(filename))
+                    logger.debug('Excluding file {}'.format(filename))
                     return True
             else:
                 return False
@@ -84,7 +86,7 @@ class Bundle:
             self.environment,
             instance_type,
             datetime.utcnow().strftime('%Y%m%dT%H%M%S'))
-        print('[*] Bundling the backup for instance type {}'.format(
+        logger.info('Bundling the backup for instance type {}'.format(
             instance_type))
         tar = tarfile.open(bundle, 'w:bz2')
         tar.add(
