@@ -6,8 +6,8 @@ Bundles are `.tar.bz2` files.
     infrastructure/
          etc/
             applicationX/
-                app.conf.stage
-                app.conf.production
+                __ct-stage__app.conf
+                __ct-production__app.conf
                 timeouts.conf
             nginx/
                 nginx.conf
