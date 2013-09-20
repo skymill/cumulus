@@ -65,6 +65,20 @@ class Bundle:
 
             return tarinfo
 
+        def exclusion_filter(filename):
+            """ Filter excluding files for other environments """
+            if os.path.basename(filename).startswith('__sct-'):
+                cnt = len(os.path.basename(filename).split(
+                    '__sct-{}__'.format(self.environment)))
+
+                if cnt == 2:
+                    return False
+                else:
+                    print('[-] Excluding file {}'.format(filename))
+                    return True
+            else:
+                return False
+
         bundle = '{}/bundle-{}-{}-{}.tar.bz2'.format(
             self.target_path,
             self.environment,
@@ -75,5 +89,6 @@ class Bundle:
         tar = tarfile.open(bundle, 'w:bz2')
         tar.add(
             os.path.join(self.base_path, instance_type),
+            exclude=exclusion_filter,
             filter=tar_filter)
         tar.close()
