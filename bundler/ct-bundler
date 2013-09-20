@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+""" CT Bundler """
+
+import sys
+
+import bundler
+
+
+if __name__ == '__main__':
+    bundler.main()
+    sys.exit(0)
+
+sys.exit(1)
