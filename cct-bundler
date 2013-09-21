@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" SCT Bundler """
+""" Cumulus Cloud Tools Bundler """
 
 import sys
 
