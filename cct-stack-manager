@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+""" Cumulus Cloud Tools Stack Manager """
+
+import sys
+
+import stack_manager
+
+
+if __name__ == '__main__':
+    stack_manager.main()
+    sys.exit(0)
+
+sys.exit(1)
