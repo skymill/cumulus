@@ -7,7 +7,7 @@ import bundle
 def main():
     """ Main function """
     parser = argparse.ArgumentParser(
-        description='SCT Bundler')
+        description='Cumulus Cloud Tools Bundler')
     parser.add_argument(
         '-b', '--base',
         required=True,

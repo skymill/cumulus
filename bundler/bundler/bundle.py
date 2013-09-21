@@ -32,7 +32,7 @@ class Bundle:
         self.version = version
 
         for instance_type in os.listdir(base_path):
-            if (instance_type not in ['.skymill', 'target'] and
+            if (instance_type not in ['.cumulus', 'target'] and
                     os.path.isdir(os.path.join(base_path, instance_type))):
                     self.instance_types.append(instance_type)
 

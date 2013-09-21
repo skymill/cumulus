@@ -6,8 +6,8 @@ from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 from logger import logger
 
 CONF_FILES = [
-    os.path.expanduser('~/.skymill-cloud-tools/.skymill-cloud-tools.conf'),
-    '/etc/skymill-cloud-tools/skymill-cloud-tools.conf'
+    os.path.expanduser('~/.cumulus-cloud-tools.conf'),
+    '/etc/cumulus-cloud-tools.conf'
 ]
 
 # Read config file
