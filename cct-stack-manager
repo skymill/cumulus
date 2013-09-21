@@ -4,11 +4,11 @@
 
 import sys
 
-import stack_manager
+import cct_stack_manager
 
 
 if __name__ == '__main__':
-    stack_manager.main()
+    cct_stack_manager.main()
     sys.exit(0)
 
 sys.exit(1)

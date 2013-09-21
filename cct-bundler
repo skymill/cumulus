@@ -4,11 +4,11 @@
 
 import sys
 
-import bundler
+import cct_bundler
 
 
 if __name__ == '__main__':
-    bundler.main()
+    cct_bundler.main()
     sys.exit(0)
 
 sys.exit(1)
