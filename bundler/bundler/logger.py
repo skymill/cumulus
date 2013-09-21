@@ -2,11 +2,11 @@
 import logging
 import logging.config
 
-logger = logging.getLogger('SCT Bundler')
+logger = logging.getLogger('cct-bundler')
 
 logging.config.dictConfig({
     'version': 1,
-    'disable_existing_loggers': False,  # this fixes the problem
+    'disable_existing_loggers': False,
     'formatters': {
         'standard': {
             'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -22,8 +22,13 @@ logging.config.dictConfig({
     'loggers': {
         '': {
             'handlers': ['default'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True
+        },
+        'cct-bundler': {
+            'handlers': ['default'],
+            'level': 'DEBUG',
+            'propagate': False
         }
     }
 })
