@@ -48,7 +48,8 @@ class Bundle:
             for inst_type in self.instance_types:
                 self._bundle(inst_type)
 
-        self._upload_to_s3()
+        self._upload_bundles()
+        self._upload_bundle_handler()
 
     def _bundle(self, instance_type):
         """ Bundle a given instance type
@@ -105,24 +106,40 @@ class Bundle:
         self.bundle_paths.append(bundle)
         logger.info('Wrote bundle to {}'.format(bundle))
 
-    def _upload_to_s3(self):
+    def _upload_bundles(self):
         """ Upload all bundles to S3 """
         connection = connect_aws_s3(
             config_handler.get(self.environment, 'access-key-id'),
             config_handler.get(self.environment, 'secret-access-key'))
         bucket = connection.get_bucket(
             config_handler.get(self.environment, 'bucket'))
-        logger.info('Starting bundle uploads')
+        logger.info('Starting upload of bundles')
 
         for bundle in self.bundle_paths:
-            key_name = '{}/{}'.format(
+            key_name = '{}/{}/{}'.format(
                 self.environment,
+                self.version,
                 os.path.basename(bundle))
             key = bucket.new_key(key_name)
-            logger.info('Starting upload of {} to {}'.format(
-                os.path.basename(bundle),
-                key_name))
-            key.set_contents_from_filename(bundle)
-            logger.info('Completed upload of {} to {}'.format(
-                os.path.basename(bundle),
-                key_name))
+            logger.info('Starting upload of {}'.format(
+                os.path.basename(bundle)))
+            key.set_contents_from_filename(bundle, replace=True)
+            logger.info('Completed upload of {}'.format(
+                os.path.basename(bundle)))
+
+    def _upload_bundle_handler(self):
+        """ Upload the bundle handler to S3 """
+        connection = connect_aws_s3(
+            config_handler.get(self.environment, 'access-key-id'),
+            config_handler.get(self.environment, 'secret-access-key'))
+        bucket = connection.get_bucket(
+            config_handler.get(self.environment, 'bucket'))
+
+        logger.info('Uploading the cct_bundle_handler script')
+        key_name = '{}/{}/cct_bundle_handler.py'.format(
+            self.environment, self.version)
+        key = bucket.new_key(key_name)
+        key.set_contents_from_filename(
+            '{}/bundle_handler/cct_bundle_handler.py'.format(
+                os.path.dirname(os.path.realpath(__file__))),
+            replace=True)
