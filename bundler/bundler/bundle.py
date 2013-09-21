@@ -77,9 +77,9 @@ class Bundle:
 
         def exclusion_filter(filename):
             """ Filter excluding files for other environments """
-            if os.path.basename(filename).startswith('__sct-'):
+            if os.path.basename(filename).startswith('__cumulus-'):
                 cnt = len(os.path.basename(filename).split(
-                    '__sct-{}__'.format(self.environment)))
+                    '__cumulus-{}__'.format(self.environment)))
 
                 if cnt == 2:
                     return False
