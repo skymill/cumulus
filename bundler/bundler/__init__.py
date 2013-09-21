@@ -1,5 +1,4 @@
 """ Bundler init """
-
 import argparse
 
 import bundle
@@ -8,7 +7,7 @@ import bundle
 def main():
     """ Main function """
     parser = argparse.ArgumentParser(
-        description='STS Bundler')
+        description='SCT Bundler')
     parser.add_argument(
         '-b', '--base',
         required=True,
@@ -21,8 +20,15 @@ def main():
         '-i', '--instance-type',
         default=None,
         help='Instance type to bundle. All will be bundled by default')
+    parser.add_argument(
+        '-v', '--version',
+        required=True,
+        help='Version string')
     args = parser.parse_args()
 
     # Create the bundle
-    bundle_obj = bundle.Bundle(args.base, args.environment)
-    bundle_obj.create(args.instance_type)
+    bundle_obj = bundle.Bundle(
+        args.base,
+        args.environment,
+        args.version)
+    bundle_obj.create_and_upload(args.instance_type)
