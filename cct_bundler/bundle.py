@@ -89,7 +89,7 @@ class Bundle:
             else:
                 return False
 
-        bundle = '{}/bundle-{}-{}-{}.tar.bz2'.format(
+        bundle = '{}/cct-bundle-{}-{}-{}.tar.bz2'.format(
             self.target_path,
             self.environment,
             self.version,
