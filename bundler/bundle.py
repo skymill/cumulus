@@ -92,8 +92,8 @@ class Bundle:
         bundle = '{}/bundle-{}-{}-{}.tar.bz2'.format(
             self.target_path,
             self.environment,
-            instance_type,
-            self.version)
+            self.version,
+            instance_type)
         logger.info('Bundling the backup for instance type {}'.format(
             instance_type))
         tar = tarfile.open(bundle, 'w:bz2')
