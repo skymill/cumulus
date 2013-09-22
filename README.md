@@ -2,18 +2,37 @@
 
 ## Configuration
 
-All configuration is read form `/etc/cumulus-cloud-tools.conf` or `~/.cumulus-cloud-tools.conf`.  This is an example configuration:
+All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./cumulus.conf` in order. This is an example configuration:
 
     [environment: stage]
     access-key-id: <AWS ACCESS KEY>
     secret-access-key: <AWS SECRET KEY>
-    region: eu-west-1
     bucket: se.skymill.bundles
-
-    [environment: production]
-    access-id: <AWS ACCESS KEY>
-    secret-access-key: <AWS SECRET KEY>
     region: eu-west-1
-    bucket: se.skymill.bundles
+    stacks: full
+    bundles: webserver, database
+    version: 1.0.0-SNAPSHOT
 
-Each environment will require a separate configuration section. In the example above, we have one `stage` environment and one `production` environment.
+    [stack: full]
+    template: /Users/sebastian/tmp/hosts/webserver.json
+    disable-rollback: true
+
+    [bundle: webserver]
+    paths: /Users/sebastian/tmp/hosts/webserver
+
+    [bundle: database]
+    paths: /Users/sebastian/tmp/hosts/database
+
+All configuration options are required to be set.
+
+## Deployment workflow
+
+First off you need to create a bundle. Run
+
+    cumulus --environment production --bundle
+
+This will bundle and upload all your software to AWS S3. The next step is to update CloudFormation. That is done with the `--deploy` command:
+
+    cumulus --environment production --deploy
+
+Cumulus will create or update the CloudFormation stacks as needed.
