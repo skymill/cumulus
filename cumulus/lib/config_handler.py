@@ -43,8 +43,13 @@ conf = {
 
 # Options per section
 # [(option, required)]
-stack_options = [('template', True)]
-bundle_options = [('paths', True)]
+stack_options = [
+    ('template', True),
+    ('disable-rollback', True)
+]
+bundle_options = [
+    ('paths', True)
+]
 env_options = [
     ('access-key-id', True),
     ('secret-access-key', True),
@@ -111,6 +116,20 @@ def get_environment_option(option_name):
         logger.error('No option {} in environment {}'.format(
             option_name, environment))
         return None
+
+
+def get_stack_disable_rollback(stack):
+    """ See if we should disable rollback
+
+    :type stack: str
+    :param stack: Stack name
+    :returns: bool -- Disable rollback?
+    """
+    try:
+        return conf['stacks'][stack]['disable-rollback']
+    except KeyError:
+        logger.error('Stack template not found in configuration')
+        sys.exit(1)
 
 
 def get_stack_template(stack):
@@ -196,8 +215,12 @@ def _read_global_configuration_file():
 
             for option, required in stack_options:
                 try:
-                    conf['stacks'][stack][option] = config.get(
-                        section, option)
+                    if option == 'disable-rollback':
+                        conf['stacks'][stack][option] = config.getboolean(
+                            section, option)
+                    else:
+                        conf['stacks'][stack][option] = config.get(
+                            section, option)
                 except NoOptionError:
                     if required:
                         logger.error('Missing required option {}'.format(

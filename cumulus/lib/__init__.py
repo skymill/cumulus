@@ -64,4 +64,5 @@ def main():
                 stack,
                 config_handler.get_environment(),
                 config_handler.get_stack_template(stack),
-                disable_rollback=False)
+                disable_rollback=config_handler.get_stack_disable_rollback(
+                    stack))
