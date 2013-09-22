@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-""" Read arguments from the command line """
+# Read arguments from the command line
 parser = argparse.ArgumentParser(
     description='Cumulus cloud management tool')
 parser.add_argument(
@@ -19,7 +19,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 environment = args.environment
-
 
 conf = {
     'environments': {},
