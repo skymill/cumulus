@@ -28,6 +28,8 @@ def build_bundles(config):
 
         _upload_bundle(config, bundle_path)
 
+    _upload_bundle_handler(config)
+
 
 def _bundle(bundle_name, environment, version, paths):
     """ Create bundle
@@ -121,3 +123,23 @@ def _upload_bundle(config, bundle_path):
     key.set_contents_from_filename(bundle_path, replace=True)
     logger.info('Completed upload of {}'.format(
         os.path.basename(bundle_path)))
+
+
+def _upload_bundle_handler(config):
+    """ Upload the bundle handler to S3 """
+    connection = boto.connect_s3(
+        aws_access_key_id=config.get_environment_option(
+            'access-key-id'),
+        aws_secret_access_key=config.get_environment_option(
+            'secret-access-key'))
+    bucket = connection.get_bucket(config.get_environment_option('bucket'))
+
+    logger.info('Uploading the cumulus_bundle_handler.py script')
+    key_name = '{}/{}/cumulus_bundle_handler.py'.format(
+        config.get_environment(),
+        config.get_environment_option('version'))
+    key = bucket.new_key(key_name)
+    key.set_contents_from_filename(
+        '{}/bundle_handler/cumulus_bundle_handler.py'.format(
+            os.path.dirname(os.path.realpath(__file__))),
+        replace=True)
