@@ -74,12 +74,24 @@ class Configuration:
 
                 for option, required in self.env_options:
                     try:
-                        self.config['environments'][env][option] = config.get(
-                            section, option)
+                        if option == 'bundles':
+                            bundles = []
+                            for item in config.get(section, option).split(','):
+                                bundles.append(item.strip())
+                            self.config['environments'][env][option] = bundles
+                        elif option == 'stacks':
+                            stacks = []
+                            for item in config.get(section, option).split(','):
+                                stacks.append(item.strip())
+                            self.config['environments'][env][option] = stacks
+                        else:
+                            self.config['environments'][env][option] = \
+                                config.get(section, option)
                     except NoOptionError:
                         if required:
                             logger.error('Missing required option {}'.format(
                                 option))
+                            sys.exit(1)
                         else:
                             self.config['environments'][env][option] = None
 
@@ -97,6 +109,7 @@ class Configuration:
                         if required:
                             logger.error('Missing required option {}'.format(
                                 option))
+                            sys.exit(1)
                         else:
                             self.config['environments'][stack][option] = None
 
@@ -120,5 +133,6 @@ class Configuration:
                         if required:
                             logger.error('Missing required option {}'.format(
                                 option))
+                            sys.exit(1)
                         else:
                             self.config['environments'][bundle][option] = None
