@@ -1,4 +1,5 @@
 """ Configuration handler """
+import argparse
 import os
 import os.path
 import sys
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class Configuration:
     """ Configuration object """
+    environment = None
     config = {
         'environments': {},
         'stacks': {},
@@ -41,9 +43,57 @@ class Configuration:
         """
         return self.config
 
+    def get_environment(self):
+        """ Returns the environment name
+
+        :returns: str or None
+        """
+        return self.environment
+
+    def get_bundle_paths(self, bundle):
+        """ Returns a list of bundle paths for a given bundle
+
+        :type bundle: str
+        :param bundle: Bundle name
+        :returns: list
+        """
+        try:
+            return self.config['bundles'][bundle]['paths']
+        except KeyError:
+            return None
+
+    def get_bundles(self):
+        """ Returns a list of bundles"""
+        try:
+            return self.config['environments'][self.environment]['bundles']
+        except KeyError:
+            logger.warning(
+                'No bundles found for environment {}'.format(self.environment))
+            return None
+
+    def get_environment_option(self, option_name):
+        """ Returns version number
+
+        :returns: str
+        """
+        try:
+            return self.config['environments'][self.environment][option_name]
+        except KeyError:
+            logger.error('No option {} in environment {}'.format(
+                option_name, self.environment))
+            return None
+
     def _read_command_line_args(self):
         """ Read arguments from the command line """
-        pass
+        parser = argparse.ArgumentParser(
+            description='Cumulus cloud management tool')
+        parser.add_argument(
+            '-e', '--environment',
+            required=True,
+            help='Environment to use')
+        args = parser.parse_args()
+
+        self.environment = args.environment
 
     def _read_global_configuration_file(self):
         """ Read global configuration file """

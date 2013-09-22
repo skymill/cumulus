@@ -2,6 +2,8 @@
 import config_handler
 import logging.config
 
+import bundler
+
 logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': False,
@@ -28,6 +30,11 @@ logging.config.dictConfig({
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
+        },
+        'lib.bundler': {
+            'handlers': ['default'],
+            'level': 'DEBUG',
+            'propagate': False
         }
     }
 })
@@ -36,3 +43,4 @@ logging.config.dictConfig({
 def main():
     """ Main function """
     config = config_handler.Configuration()
+    bundler.build_bundles(config)
