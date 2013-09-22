@@ -1,5 +1,11 @@
 # Cumulus Cloud Tools
 
+## Requirements
+
+Cumulus requires Python 2.7 and `boto`. Please install requirements with
+
+    sudo pip install -r cumulus/requirements.txt
+
 ## Configuration
 
 All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./cumulus.conf` in order. This is an example configuration:
