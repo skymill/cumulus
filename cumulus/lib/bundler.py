@@ -4,6 +4,8 @@ import os
 import os.path
 import tarfile
 
+import boto
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,15 +16,17 @@ def build_bundles(config):
     :param config: Configuration object
     """
     for bundle in config.get_bundles():
-        for path in config.get_bundle_paths(bundle):
-            logger.info('Building bundle {}'.format(bundle))
-            logger.debug('Bundle paths: {}'.format(', '.join(
-                config.get_bundle_paths(bundle))))
-            _bundle(
-                bundle,
-                config.get_environment(),
-                config.get_environment_option('version'),
-                config.get_bundle_paths(bundle))
+        logger.info('Building bundle {}'.format(bundle))
+        logger.debug('Bundle paths: {}'.format(', '.join(
+            config.get_bundle_paths(bundle))))
+
+        bundle_path = _bundle(
+            bundle,
+            config.get_environment(),
+            config.get_environment_option('version'),
+            config.get_bundle_paths(bundle))
+
+        _upload_bundle(config, bundle_path)
 
 
 def _bundle(bundle_name, environment, version, paths):
@@ -70,7 +74,7 @@ def _bundle(bundle_name, environment, version, paths):
             else:
                 return False
 
-    bundle = '{}/target/cct-bundle-{}-{}-{}.tar.bz2'.format(
+    bundle = '{}/target/bundle-{}-{}-{}.tar.bz2'.format(
         os.curdir,
         environment,
         version,
@@ -88,3 +92,32 @@ def _bundle(bundle_name, environment, version, paths):
             filter=tar_filter)
     tar.close()
     logger.info('Wrote bundle to {}'.format(bundle))
+
+    return bundle
+
+
+def _upload_bundle(config, bundle_path):
+    """ Upload all bundles to S3
+
+    :type config: config_handler.Configuration
+    :param config: Configuration object
+    :type bundle_path: str
+    :param bundle_path: Local path to the bundle
+    """
+    connection = boto.connect_s3(
+        aws_access_key_id=config.get_environment_option(
+            'access-key-id'),
+        aws_secret_access_key=config.get_environment_option(
+            'secret-access-key'))
+    bucket = connection.get_bucket(config.get_environment_option('bucket'))
+
+    key_name = '{}/{}/{}'.format(
+        config.get_environment(),
+        config.get_environment_option('version'),
+        os.path.basename(bundle_path))
+    key = bucket.new_key(key_name)
+    logger.info('Starting upload of {}'.format(
+        os.path.basename(bundle_path)))
+    key.set_contents_from_filename(bundle_path, replace=True)
+    logger.info('Completed upload of {}'.format(
+        os.path.basename(bundle_path)))
