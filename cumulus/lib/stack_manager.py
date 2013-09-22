@@ -6,6 +6,7 @@ import sys
 
 import boto
 
+import config_handler
 import connection_handler
 
 logger = logging.getLogger(__name__)
@@ -37,19 +38,31 @@ def ensure_stack(stack, environment, template, disable_rollback=False):
     :param disable_rollback: Should rollbacks be disabled?
     """
     connection = connection_handler.connect_cloudformation()
-    logger.info('Creating stack {} with template {}'.format(
+    logger.info('Ensuring stack {} with template {}'.format(
         stack, os.path.basename(template)))
 
     try:
         if stack in connection.list_stacks():
             connection.update_stack(
                 stack,
+                parameters=[
+                    (
+                        'Version',
+                        config_handler.get_environment_option('version')
+                    )
+                ],
                 template_body=_get_json_from_template(template),
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
         else:
             connection.create_stack(
                 stack,
+                parameters=[
+                    (
+                        'Version',
+                        config_handler.get_environment_option('version')
+                    )
+                ],
                 template_body=_get_json_from_template(template),
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
