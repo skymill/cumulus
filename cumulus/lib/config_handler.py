@@ -1,31 +1,47 @@
 """ Configuration handler """
 import argparse
+import logging
 import os
 import os.path
 import sys
 from ConfigParser import SafeConfigParser, NoOptionError
 
-import logging
 logger = logging.getLogger(__name__)
-
 
 # Read arguments from the command line
 parser = argparse.ArgumentParser(
     description='Cumulus cloud management tool')
-parser.add_argument(
+general_ag = parser.add_argument_group('General options')
+general_ag.add_argument(
     '-e', '--environment',
     required=True,
     help='Environment to use')
+actions_ag = parser.add_argument_group('Actions')
+actions_ag.add_argument(
+    '--bundle',
+    action='count',
+    help='Build and upload bundles to AWS S3')
+actions_ag.add_argument(
+    '--deploy',
+    action='count',
+    help='Deploy all stacks in the environment')
+#actions_ag.add_argument(
+#    '--undeploy',
+#    action='count',
+#    help='Undeploy (DELETE) all stacks in the environment')
 args = parser.parse_args()
 
+# Environment name
 environment = args.environment
 
+# Initial configuration object
 conf = {
     'environments': {},
     'stacks': {},
     'bundles': {}
 }
 
+# Options per section
 # [(option, required)]
 stack_options = [('template', True)]
 bundle_options = [('paths', True)]
@@ -94,6 +110,30 @@ def get_environment_option(option_name):
     except KeyError:
         logger.error('No option {} in environment {}'.format(
             option_name, environment))
+        return None
+
+
+def get_stack_template(stack):
+    """ Return the path to the stack template
+
+    :type stack: str
+    :param stack: Stack name
+    :returns: str -- Stack template path
+    """
+    try:
+        return conf['stacks'][stack]['template']
+    except KeyError:
+        logger.error('Stack template not found in configuration')
+        sys.exit(1)
+
+
+def get_stacks():
+    """ Returns a list of stacks """
+    try:
+        return conf['environments'][environment]['stacks']
+    except KeyError:
+        logger.warning(
+            'No stacks found for environment {}'.format(environment))
         return None
 
 

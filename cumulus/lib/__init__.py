@@ -3,6 +3,7 @@ import config_handler
 import logging.config
 
 import bundler
+import stack_manager
 
 logging.config.dictConfig({
     'version': 1,
@@ -40,6 +41,11 @@ logging.config.dictConfig({
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
+        },
+        'lib.stack_manager': {
+            'handlers': ['default'],
+            'level': 'DEBUG',
+            'propagate': False
         }
     }
 })
@@ -48,4 +54,14 @@ logging.config.dictConfig({
 def main():
     """ Main function """
     config_handler.configure()
-    bundler.build_bundles()
+
+    if config_handler.args.bundle:
+        bundler.build_bundles()
+
+    if config_handler.args.deploy:
+        for stack in config_handler.get_stacks():
+            stack_manager.ensure_stack(
+                stack,
+                config_handler.get_environment(),
+                config_handler.get_stack_template(stack),
+                disable_rollback=False)

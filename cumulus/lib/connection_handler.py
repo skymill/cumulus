@@ -25,7 +25,7 @@ def connect_s3():
         sys.exit(1)
 
 
-def connect_cloudformation(environment):
+def connect_cloudformation():
     """ Connect to AWS CloudFormation
 
     :returns: boto.cloudformation.connection
