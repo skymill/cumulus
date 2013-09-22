@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+""" Cumulus Cloud Tool """
+
+import sys
+
+import lib
+
+
+if __name__ == '__main__':
+    lib.main()
+    sys.exit(0)
+
+sys.exit(1)
