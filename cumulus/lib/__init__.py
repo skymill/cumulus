@@ -42,5 +42,5 @@ logging.config.dictConfig({
 
 def main():
     """ Main function """
-    config = config_handler.Configuration()
-    bundler.build_bundles(config)
+    config_handler.configure()
+    bundler.build_bundles()

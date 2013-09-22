@@ -6,29 +6,27 @@ import tarfile
 
 import boto
 
+import config_handler
+
 logger = logging.getLogger(__name__)
 
 
-def build_bundles(config):
-    """ Build bundles for the environment
-
-    :type config: config_handler.Configuration
-    :param config: Configuration object
-    """
-    for bundle in config.get_bundles():
+def build_bundles():
+    """ Build bundles for the environment """
+    for bundle in config_handler.get_bundles():
         logger.info('Building bundle {}'.format(bundle))
         logger.debug('Bundle paths: {}'.format(', '.join(
-            config.get_bundle_paths(bundle))))
+            config_handler.get_bundle_paths(bundle))))
 
         bundle_path = _bundle(
             bundle,
-            config.get_environment(),
-            config.get_environment_option('version'),
-            config.get_bundle_paths(bundle))
+            config_handler.get_environment(),
+            config_handler.get_environment_option('version'),
+            config_handler.get_bundle_paths(bundle))
 
-        _upload_bundle(config, bundle_path)
+        _upload_bundle(bundle_path)
 
-    _upload_bundle_handler(config)
+    _upload_bundle_handler()
 
 
 def _bundle(bundle_name, environment, version, paths):
@@ -98,24 +96,23 @@ def _bundle(bundle_name, environment, version, paths):
     return bundle
 
 
-def _upload_bundle(config, bundle_path):
+def _upload_bundle(bundle_path):
     """ Upload all bundles to S3
 
-    :type config: config_handler.Configuration
-    :param config: Configuration object
     :type bundle_path: str
     :param bundle_path: Local path to the bundle
     """
     connection = boto.connect_s3(
-        aws_access_key_id=config.get_environment_option(
+        aws_access_key_id=config_handler.get_environment_option(
             'access-key-id'),
-        aws_secret_access_key=config.get_environment_option(
+        aws_secret_access_key=config_handler.get_environment_option(
             'secret-access-key'))
-    bucket = connection.get_bucket(config.get_environment_option('bucket'))
+    bucket = connection.get_bucket(
+        config_handler.get_environment_option('bucket'))
 
     key_name = '{}/{}/{}'.format(
-        config.get_environment(),
-        config.get_environment_option('version'),
+        config_handler.get_environment(),
+        config_handler.get_environment_option('version'),
         os.path.basename(bundle_path))
     key = bucket.new_key(key_name)
     logger.info('Starting upload of {}'.format(
@@ -125,19 +122,20 @@ def _upload_bundle(config, bundle_path):
         os.path.basename(bundle_path)))
 
 
-def _upload_bundle_handler(config):
+def _upload_bundle_handler():
     """ Upload the bundle handler to S3 """
     connection = boto.connect_s3(
-        aws_access_key_id=config.get_environment_option(
+        aws_access_key_id=config_handler.get_environment_option(
             'access-key-id'),
-        aws_secret_access_key=config.get_environment_option(
+        aws_secret_access_key=config_handler.get_environment_option(
             'secret-access-key'))
-    bucket = connection.get_bucket(config.get_environment_option('bucket'))
+    bucket = connection.get_bucket(
+        config_handler.get_environment_option('bucket'))
 
     logger.info('Uploading the cumulus_bundle_handler.py script')
     key_name = '{}/{}/cumulus_bundle_handler.py'.format(
-        config.get_environment(),
-        config.get_environment_option('version'))
+        config_handler.get_environment(),
+        config_handler.get_environment_option('version'))
     key = bucket.new_key(key_name)
     key.set_contents_from_filename(
         '{}/bundle_handler/cumulus_bundle_handler.py'.format(
