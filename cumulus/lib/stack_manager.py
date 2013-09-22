@@ -89,28 +89,15 @@ def ensure_stack(stack, environment, template, disable_rollback=False):
 #    connection = connection_handler.connect_cloudformation()
 #    logger.info('Deleting stack {}'.format(stack))
 #    connection.delete_stack()
-#
-#
-#def list_stacks(environment):
-#    """ List stacks in the environment
-#
-#    :type environment: str
-#    :param environment: Environment name
-#    """
-#    connection = connection_handler.connect_cloudformation()
-#    logger.info('Current stacks: {}'.format(
-#        ', '.join(connection.list_stacks())))
-#
-#
-#def validate_template(environment, template):
-#    """ Validate the template
-#
-#    :type environment: str
-#    :param environment: Environment name
-#    :type template: str
-#    :param template: Template path to use
-#    """
-#    connection = connection_handler.connect_cloudformation()
-#    result = connection.validate_template(_get_json_from_template(template))
-#    if result:
-#        logger.info('Template {} is valid'.format(os.path.basename(template)))
+
+
+def validate_templates():
+    """ Validate the template """
+    connection = connection_handler.connect_cloudformation()
+    for stack in config_handler.get_stacks():
+        template = config_handler.get_stack_template(stack)
+
+        result = connection.validate_template(
+            _get_json_from_template(template))
+        if result:
+            logger.info('Template {} is valid!'.format(template))

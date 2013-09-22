@@ -25,6 +25,10 @@ actions_ag.add_argument(
     '--deploy',
     action='count',
     help='Deploy all stacks in the environment')
+actions_ag.add_argument(
+    '--validate-templates',
+    action='count',
+    help='Validate all templates for the environment')
 #actions_ag.add_argument(
 #    '--undeploy',
 #    action='count',
