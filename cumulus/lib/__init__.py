@@ -26,12 +26,17 @@ logging.config.dictConfig({
             'level': 'INFO',
             'propagate': True
         },
+        'lib.bundler': {
+            'handlers': ['default'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
         'lib.config_handler': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
         },
-        'lib.bundler': {
+        'lib.connection_handler': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
