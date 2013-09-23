@@ -60,3 +60,11 @@ This will bundle and upload all your software to AWS S3. The next step is to upd
     cumulus --environment production --deploy
 
 Cumulus will create or update the CloudFormation stacks as needed.
+
+## Release notes
+
+**0.1.0 (2013-09-23)**
+
+Initial release with some basic functions and concepts.
+
+- Basic bundling and stack management features implemented
