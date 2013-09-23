@@ -61,6 +61,10 @@ This will bundle and upload all your software to AWS S3. The next step is to upd
 
 Cumulus will create or update the CloudFormation stacks as needed.
 
+## Environment specific configuration
+
+To have files that should only be included in specific environments, prefix them with `__cumulus-environment__filename`. So for example: `__cumulus-production__nginx.conf` is the `nginx.conf` for the `production` environment.
+
 ## Release notes
 
 **0.1.0 (2013-09-23)**
