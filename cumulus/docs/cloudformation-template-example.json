@@ -84,7 +84,7 @@
               "/usr/local/bin/cumulus_bundle_handler.py" : {
                 "source" : { "Fn::Join" : ["",
                   ["http://s3-", {"Ref" : "AWS::Region"},  ".amazonaws.com/",
-                  { "Ref" : "S3BundleBucket" }, "/", { "Ref" : "AWS::EnvironmentName"},
+                  { "Ref" : "S3BundleBucket" }, "/", { "Ref" : "EnvironmentName"},
                   "/", { "Ref" : "Version"}, "/cumulus_bundle_handler.py"]]},
                 "mode"  : "000755",
                 "owner" : "root",
