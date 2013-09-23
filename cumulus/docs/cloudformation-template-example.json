@@ -23,6 +23,11 @@
       "Default": "se.skymill.bundles"
     },
 
+    "EnvironmentName": {
+      "Description" : "Cumulus environment name",
+      "Type": "String"
+    },
+
     "Version": {
       "Description" : "Version of the software",
       "Type": "String"
@@ -79,7 +84,7 @@
               "/usr/local/bin/cumulus_bundle_handler.py" : {
                 "source" : { "Fn::Join" : ["",
                   ["http://s3-", {"Ref" : "AWS::Region"},  ".amazonaws.com/",
-                  { "Ref" : "S3BundleBucket" }, "/", { "Ref" : "AWS::StackName"},
+                  { "Ref" : "S3BundleBucket" }, "/", { "Ref" : "AWS::EnvironmentName"},
                   "/", { "Ref" : "Version"}, "/cumulus_bundle_handler.py"]]},
                 "mode"  : "000755",
                 "owner" : "root",

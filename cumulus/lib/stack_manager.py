@@ -47,6 +47,10 @@ def ensure_stack(stack, environment, template, disable_rollback=False):
                 stack,
                 parameters=[
                     (
+                        'EnvironmentName',
+                        config_handler.get_environment()
+                    ),
+                    (
                         'Version',
                         config_handler.get_environment_option('version')
                     )
@@ -58,6 +62,10 @@ def ensure_stack(stack, environment, template, disable_rollback=False):
             connection.create_stack(
                 stack,
                 parameters=[
+                    (
+                        'EnvironmentName',
+                        config_handler.get_environment()
+                    ),
                     (
                         'Version',
                         config_handler.get_environment_option('version')
@@ -86,7 +94,7 @@ def delete_stack(stack):
     """
     connection = connection_handler.connect_cloudformation()
     logger.info('Deleting stack {}'.format(stack))
-    connection.delete_stack()
+    connection.delete_stack(stack)
 
 
 def validate_templates():
