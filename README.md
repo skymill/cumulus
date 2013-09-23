@@ -24,7 +24,9 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     disable-rollback: true
 
     [bundle: webserver]
-    paths: /Users/sebastian/tmp/hosts/webserver
+    paths:
+        /Users/sebastian/tmp/hosts/webserver,
+        /Users/sebastian/tmp/code/wordpress
 
     [bundle: database]
     paths: /Users/sebastian/tmp/hosts/database
