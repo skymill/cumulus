@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-""" CT Bundler """
+""" Cumulus Cloud Tool """
 
 import sys
 
-import bundler
+import lib
 
 
 if __name__ == '__main__':
-    bundler.main()
+    lib.main()
     sys.exit(0)
 
 sys.exit(1)
