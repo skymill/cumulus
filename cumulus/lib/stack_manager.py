@@ -78,17 +78,15 @@ def ensure_stack(stack, environment, template, disable_rollback=False):
         logger.error("Enable debug in manage.py to see more details")
 
 
-#def delete_stack(stack, environment):
-#    """ Delete an existing stack
-#
-#    :type stack: str
-#    :param stack: Stack name
-#    :type environment: str
-#    :param environment: Environment name
-#    """
-#    connection = connection_handler.connect_cloudformation()
-#    logger.info('Deleting stack {}'.format(stack))
-#    connection.delete_stack()
+def delete_stack(stack):
+    """ Delete an existing stack
+
+    :type stack: str
+    :param stack: Stack name
+    """
+    connection = connection_handler.connect_cloudformation()
+    logger.info('Deleting stack {}'.format(stack))
+    connection.delete_stack()
 
 
 def validate_templates():

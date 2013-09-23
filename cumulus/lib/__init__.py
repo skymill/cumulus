@@ -67,5 +67,9 @@ def main():
                 disable_rollback=config_handler.get_stack_disable_rollback(
                     stack))
 
+    if config_handler.args.undeploy:
+        for stack in config_handler.get_stacks():
+            stack_manager.delete_stack(stack)
+
     if config_handler.args.validate_templates:
         stack_manager.validate_templates()

@@ -29,10 +29,10 @@ actions_ag.add_argument(
     '--validate-templates',
     action='count',
     help='Validate all templates for the environment')
-#actions_ag.add_argument(
-#    '--undeploy',
-#    action='count',
-#    help='Undeploy (DELETE) all stacks in the environment')
+actions_ag.add_argument(
+    '--undeploy',
+    action='count',
+    help='Undeploy (DELETE) all stacks in the environment')
 args = parser.parse_args()
 
 # Environment name
