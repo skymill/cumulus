@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" Script downloading and unpacking CCT bundles for the host """
+""" Script downloading and unpacking Cumulus bundles for the host """
 
 import os
 import sys
@@ -16,7 +16,7 @@ from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 def main():
     """ Main function """
     config = SafeConfigParser()
-    config.read('/etc/cumulus-cloud-tools/metadata.conf')
+    config.read('/etc/cumulus/metadata.conf')
 
     #
     # Connect to AWS S3
