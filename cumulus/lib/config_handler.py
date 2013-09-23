@@ -8,14 +8,23 @@ from ConfigParser import SafeConfigParser, NoOptionError
 
 logger = logging.getLogger(__name__)
 
+
+# Get settings.conf
+settings = SafeConfigParser()
+settings.read(
+    os.path.realpath('{}/settings.conf'.format(os.path.dirname(__file__))))
+
 # Read arguments from the command line
 parser = argparse.ArgumentParser(
     description='Cumulus cloud management tool')
 general_ag = parser.add_argument_group('General options')
 general_ag.add_argument(
     '-e', '--environment',
-    required=True,
     help='Environment to use')
+general_ag.add_argument(
+    '--version',
+    action='count',
+    help='Print cumulus version number')
 actions_ag = parser.add_argument_group('Actions')
 actions_ag.add_argument(
     '--bundle',
@@ -34,6 +43,13 @@ actions_ag.add_argument(
     action='count',
     help='Undeploy (DELETE) all stacks in the environment')
 args = parser.parse_args()
+
+if args.version:
+    print('Cumulus version {}'.format(settings.get('general', 'version')))
+    sys.exit(0)
+elif not args.environment:
+    print('--environment is required')
+    sys.exit(1)
 
 # Environment name
 environment = args.environment
