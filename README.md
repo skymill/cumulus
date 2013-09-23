@@ -1,4 +1,4 @@
-# Cumulus Cloud Tools
+# Cumulus
 
 ## Requirements
 
