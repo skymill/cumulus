@@ -1,0 +1,20 @@
+[environment: stage]
+access-key-id: <AWS ACCESS KEY>
+secret-access-key: <AWS SECRET KEY>
+bucket: se.skymill.bundles
+region: eu-west-1
+stacks: full
+bundles: webserver, database
+version: 1.0.0-SNAPSHOT
+
+[stack: full]
+template: /Users/sebastian/tmp/hosts/webserver.json
+disable-rollback: true
+
+[bundle: webserver]
+paths:
+    /Users/sebastian/tmp/hosts/webserver,
+    /Users/sebastian/tmp/code/wordpress
+
+[bundle: database]
+paths: /Users/sebastian/tmp/hosts/database
