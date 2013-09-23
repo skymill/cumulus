@@ -67,6 +67,10 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
+**0.1.1 (2013-09-23)**
+
+- [Prefixes for prefixed files is not removed in bundle #9](https://github.com/skymill/cumulus/issues/9)
+
 **0.1.0 (2013-09-23)**
 
 Initial release with some basic functions and concepts.
