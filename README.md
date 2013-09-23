@@ -8,6 +8,8 @@ Cumulus requires Python 2.7 and `boto`. Please install requirements with
 
 ## Configuration
 
+### Cumulus configuration
+
 All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./cumulus.conf` in order. This is an example configuration:
 
     [environment: stage]
@@ -32,6 +34,10 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     paths: /Users/sebastian/tmp/hosts/database
 
 All configuration options are required to be set.
+
+### CloudFormation configuration
+
+To save some space in this document, please find the example AWS CloudFormation template [here](https://github.com/skymill/cumulus/blob/master/cumulus/docs/cloudformation-template-example.json)
 
 ## Deployment workflow
 
