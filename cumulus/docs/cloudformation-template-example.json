@@ -17,18 +17,17 @@
       "ConstraintDescription" : "must be a valid EC2 instance type."
     },
 
-    "S3BundleBucket": {
-      "Description" : "S3 bucket for this stack",
-      "Type": "String",
-      "Default": "se.skymill.bundles"
-    },
-
-    "EnvironmentName": {
+    "Cumulus::Environment": {
       "Description" : "Cumulus environment name",
       "Type": "String"
     },
 
-    "Version": {
+    "Cumulus::BundleBucket": {
+      "Description" : "Cumulus bundle bucket name",
+      "Type": "String"
+    },
+
+    "Cumulus::Version": {
       "Description" : "Version of the software",
       "Type": "String"
     }
@@ -50,7 +49,7 @@
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Metadata" : {
         "Cumulus": {
-          "Version": { "Ref" : "Version" }
+          "Version": { "Ref" : "Cumulus::Version" }
         },
 
         "AWS::CloudFormation::Authentication" : {
@@ -71,10 +70,10 @@
                   "aws_access_key_id: ", { "Ref" : "WebServerKeys" }, "\n",
                   "aws_secret_access_key: ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}, "\n",
                   "region: ", {"Ref" : "AWS::Region"}, "\n",
-                  "s3_bundles_bucket: se.skymill.bundles\n",
+                  "s3_bundles_bucket: ", { "Ref" : "Cumulus::BundleBucket"}, "\n",
                   "stack: ", { "Ref" : "AWS::StackName" }, "\n",
                   "bundle_type: webserver\n",
-                  "version: ", { "Ref" : "Version" }, "\n"
+                  "version: ", { "Ref" : "Cumulus::Version" }, "\n"
                 ]]},
                 "mode"  : "000644",
                 "owner" : "root",
@@ -84,8 +83,8 @@
               "/usr/local/bin/cumulus_bundle_handler.py" : {
                 "source" : { "Fn::Join" : ["",
                   ["http://s3-", {"Ref" : "AWS::Region"},  ".amazonaws.com/",
-                  { "Ref" : "S3BundleBucket" }, "/", { "Ref" : "EnvironmentName"},
-                  "/", { "Ref" : "Version"}, "/cumulus_bundle_handler.py"]]},
+                  { "Ref" : "Cumulus::BundleBucket"}, "/", { "Ref" : "Cumulus::Environment"},
+                  "/", { "Ref" : "Cumulus::Version"}, "/cumulus_bundle_handler.py"]]},
                 "mode"  : "000755",
                 "owner" : "root",
                 "group" : "root",

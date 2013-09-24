@@ -10,6 +10,10 @@ version: 1.0.0-SNAPSHOT
 [stack: full]
 template: /Users/sebastian/tmp/hosts/webserver.json
 disable-rollback: true
+parameters:
+    version = 1.1.0,
+    test tag=my test value ,
+     key= value
 
 [bundle: webserver]
 paths:

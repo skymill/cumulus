@@ -65,7 +65,8 @@ conf = {
 # [(option, required)]
 stack_options = [
     ('template', True),
-    ('disable-rollback', True)
+    ('disable-rollback', True),
+    ('parameters', False)
 ]
 bundle_options = [
     ('paths', True)
@@ -83,7 +84,7 @@ env_options = [
 
 def configure():
     """ Constructor """
-    _read_global_configuration_file()
+    _read_configuration_files()
 
 
 def get_config():
@@ -118,11 +119,20 @@ def get_bundle_paths(bundle):
 def get_bundles():
     """ Returns a list of bundles"""
     try:
-        return conf['environments'][environment]['bundles']
+        bundles = conf['environments'][environment]['bundles']
     except KeyError:
         logger.warning(
             'No bundles found for environment {}'.format(environment))
         return None
+
+    # Check that the bundles are configured
+    for bundle in bundles:
+        if 'bundle: {}'.format(bundle) not in conf['bundles']:
+            logger.warning('No matching configuration for bundle "{}"!'.format(
+                bundle))
+            sys.exit(1)
+
+    return bundles
 
 
 def get_environment_option(option_name):
@@ -152,6 +162,19 @@ def get_stack_disable_rollback(stack):
         sys.exit(1)
 
 
+def get_stack_parameters(stack):
+    """ Return the stack parameters
+
+    :type stack: str
+    :param stack: Stack name
+    :returns: list -- All stack parameters
+    """
+    try:
+        return conf['stacks'][stack]['parameters']
+    except KeyError:
+        return []
+
+
 def get_stack_template(stack):
     """ Return the path to the stack template
 
@@ -176,7 +199,7 @@ def get_stacks():
         return None
 
 
-def _read_global_configuration_file():
+def _read_configuration_files():
     """ Read global configuration file """
     config_files = [
         '/etc/cumulus.conf',
@@ -198,7 +221,17 @@ def _read_global_configuration_file():
     config = SafeConfigParser()
     config.read(config_files)
 
-    # Populate environments
+    _populate_environments(config)
+    _populate_stacks(config)
+    _populate_bundles(config)
+
+
+def _populate_environments(config):
+    """ Populate the environments config object
+
+    :type config: ConfigParser.read
+    :param config: Config parser config object
+    """
     for section in config.sections():
         if section.startswith('environment: '):
             env = section.split(': ')[1]
@@ -224,10 +257,14 @@ def _read_global_configuration_file():
                         logger.error('Missing required option {}'.format(
                             option))
                         sys.exit(1)
-                    else:
-                        conf['environments'][env][option] = None
 
-    # Populate stacks
+
+def _populate_stacks(config):
+    """ Populate the stacks config object
+
+    :type config: ConfigParser.read
+    :param config: Config parser config object
+    """
     for section in config.sections():
         if section.startswith('stack: '):
             stack = section.split(': ')[1]
@@ -238,6 +275,24 @@ def _read_global_configuration_file():
                     if option == 'disable-rollback':
                         conf['stacks'][stack][option] = config.getboolean(
                             section, option)
+                    elif option == 'template':
+                        conf['stacks'][stack][option] = os.path.expanduser(
+                            config.get(section, option))
+                    elif option == 'parameters':
+                        try:
+                            raw_parameters = config.get(section, option)\
+                                .replace('\n', '')\
+                                .split(',')
+                            parameters = []
+                            for parameter in raw_parameters:
+                                key, value = parameter.split('=')
+                                parameters.append((key.strip(), value.strip()))
+                            conf['stacks'][stack][option] = parameters
+                        except ValueError:
+                            logger.error(
+                                'Error parsing parameters for stack {}'.format(
+                                    stack))
+                            sys.exit(1)
                     else:
                         conf['stacks'][stack][option] = config.get(
                             section, option)
@@ -246,10 +301,14 @@ def _read_global_configuration_file():
                         logger.error('Missing required option {}'.format(
                             option))
                         sys.exit(1)
-                    else:
-                        conf['environments'][stack][option] = None
 
-    # Populate bundles
+
+def _populate_bundles(config):
+    """ Populate the bundles config object
+
+    :type config: ConfigParser.read
+    :param config: Config parser config object
+    """
     for section in config.sections():
         if section.startswith('bundle: '):
             bundle = section.split(': ')[1]
@@ -262,13 +321,9 @@ def _read_global_configuration_file():
                         .split(',')
                     paths = []
                     for path in raw_paths:
-                        paths.append(path.strip())
-
-                    conf['bundles'][bundle][option] = paths
+                        paths.append(os.path.expanduser(path.strip()))
                 except NoOptionError:
                     if required:
                         logger.error('Missing required option {}'.format(
                             option))
                         sys.exit(1)
-                    else:
-                        conf['environments'][bundle][option] = None

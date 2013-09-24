@@ -34,6 +34,10 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     [stack: full]
     template: /Users/sebastian/tmp/hosts/webserver.json
     disable-rollback: true
+    parameters:
+        version = 1.1.0,
+        test tag=my test value ,
+         key= value
 
     [bundle: webserver]
     paths:
@@ -43,7 +47,7 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     [bundle: database]
     paths: /Users/sebastian/tmp/hosts/database
 
-All configuration options are required to be set.
+All configuration options are required to be set except `parameters` for bundles.
 
 ### CloudFormation configuration
 
@@ -66,6 +70,13 @@ Cumulus will create or update the CloudFormation stacks as needed.
 To have files that should only be included in specific environments, prefix them with `__cumulus-environment__filename`. So for example: `__cumulus-production__nginx.conf` is the `nginx.conf` for the `production` environment.
 
 ## Release notes
+
+**0.2.0 (2013-09-24)**
+
+- [Custom parameters in CloudFormation #14](https://github.com/skymill/cumulus/issues/14)
+- [Expand ~ in config template & bundle paths #12](https://github.com/skymill/cumulus/issues/12)
+- [Read the bucket name from configuration in CF template #11](https://github.com/skymill/cumulus/issues/11)
+- [Exception when building non-configured bundle #13](https://github.com/skymill/cumulus/issues/13)
 
 **0.1.1 (2013-09-23)**
 
