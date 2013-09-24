@@ -118,11 +118,20 @@ def get_bundle_paths(bundle):
 def get_bundles():
     """ Returns a list of bundles"""
     try:
-        return conf['environments'][environment]['bundles']
+        bundles = conf['environments'][environment]['bundles']
     except KeyError:
         logger.warning(
             'No bundles found for environment {}'.format(environment))
         return None
+
+    # Check that the bundles are configured
+    for bundle in bundles:
+        if 'bundle: {}'.format(bundle) not in conf['bundles']:
+            logger.warning('No matching configuration for bundle "{}"!'.format(
+                bundle))
+            sys.exit(1)
+
+    return bundles
 
 
 def get_environment_option(option_name):
