@@ -47,11 +47,19 @@ def ensure_stack(stack, environment, template, disable_rollback=False):
                 stack,
                 parameters=[
                     (
-                        'EnvironmentName',
+                        'Cumulus::BundleBucket',
+                        config_handler.get_environment_option('bucket')
+                    ),
+                    (
+                        'Cumulus::Environment',
                         config_handler.get_environment()
                     ),
                     (
-                        'Version',
+                        'Cumulus::Environment',
+                        config_handler.get_environment()
+                    ),
+                    (
+                        'Cumulus::Version',
                         config_handler.get_environment_option('version')
                     )
                 ],
@@ -63,11 +71,19 @@ def ensure_stack(stack, environment, template, disable_rollback=False):
                 stack,
                 parameters=[
                     (
-                        'EnvironmentName',
+                        'Cumulus::BundleBucket',
+                        config_handler.get_environment_option('bucket')
+                    ),
+                    (
+                        'Cumulus::Environment',
                         config_handler.get_environment()
                     ),
                     (
-                        'Version',
+                        'Cumulus::Environment',
+                        config_handler.get_environment()
+                    ),
+                    (
+                        'Cumulus::Version',
                         config_handler.get_environment_option('version')
                     )
                 ],
