@@ -113,7 +113,8 @@ def get_bundle_paths(bundle):
     try:
         return conf['bundles'][bundle]['paths']
     except KeyError:
-        return None
+        logger.error('No paths defined for bundle "{}"'.format(bundle))
+        sys.exit(1)
 
 
 def get_bundles():
@@ -127,7 +128,7 @@ def get_bundles():
 
     # Check that the bundles are configured
     for bundle in bundles:
-        if 'bundle: {}'.format(bundle) not in conf['bundles']:
+        if bundle not in conf['bundles']:
             logger.warning('No matching configuration for bundle "{}"!'.format(
                 bundle))
             sys.exit(1)
@@ -322,6 +323,7 @@ def _populate_bundles(config):
                     paths = []
                     for path in raw_paths:
                         paths.append(os.path.expanduser(path.strip()))
+                    conf['bundles'][bundle]['paths'] = paths
                 except NoOptionError:
                     if required:
                         logger.error('Missing required option {}'.format(
