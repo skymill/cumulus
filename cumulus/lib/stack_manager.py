@@ -25,7 +25,9 @@ def _get_json_from_template(template):
     return json_data
 
 
-def ensure_stack(stack, environment, template, disable_rollback=False):
+def ensure_stack(
+        stack, environment, template,
+        disable_rollback=False, parameters=[]):
     """ Ensure stack is up and running (create or update it)
 
     :type stack: str
@@ -36,57 +38,44 @@ def ensure_stack(stack, environment, template, disable_rollback=False):
     :param template: Template path to use
     :type disable_rollback: bool
     :param disable_rollback: Should rollbacks be disabled?
+    :type parameters: list
+    :param parameters: List of tuples with CF parameters
     """
     connection = connection_handler.connect_cloudformation()
     logger.info('Ensuring stack {} with template {}'.format(
         stack, os.path.basename(template)))
 
+    cumulus_parameters = [
+        (
+            'Cumulus::BundleBucket',
+            config_handler.get_environment_option('bucket')
+        ),
+        (
+            'Cumulus::Environment',
+            config_handler.get_environment()
+        ),
+        (
+            'Cumulus::Environment',
+            config_handler.get_environment()
+        ),
+        (
+            'Cumulus::Version',
+            config_handler.get_environment_option('version')
+        )
+    ]
+
     try:
         if stack in connection.list_stacks():
             connection.update_stack(
                 stack,
-                parameters=[
-                    (
-                        'Cumulus::BundleBucket',
-                        config_handler.get_environment_option('bucket')
-                    ),
-                    (
-                        'Cumulus::Environment',
-                        config_handler.get_environment()
-                    ),
-                    (
-                        'Cumulus::Environment',
-                        config_handler.get_environment()
-                    ),
-                    (
-                        'Cumulus::Version',
-                        config_handler.get_environment_option('version')
-                    )
-                ],
+                parameters=cumulus_parameters + parameters,
                 template_body=_get_json_from_template(template),
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
         else:
             connection.create_stack(
                 stack,
-                parameters=[
-                    (
-                        'Cumulus::BundleBucket',
-                        config_handler.get_environment_option('bucket')
-                    ),
-                    (
-                        'Cumulus::Environment',
-                        config_handler.get_environment()
-                    ),
-                    (
-                        'Cumulus::Environment',
-                        config_handler.get_environment()
-                    ),
-                    (
-                        'Cumulus::Version',
-                        config_handler.get_environment_option('version')
-                    )
-                ],
+                parameters=cumulus_parameters + parameters,
                 template_body=_get_json_from_template(template),
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])

@@ -34,6 +34,10 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     [stack: full]
     template: /Users/sebastian/tmp/hosts/webserver.json
     disable-rollback: true
+    parameters:
+        version = 1.1.0,
+        test tag=my test value ,
+         key= value
 
     [bundle: webserver]
     paths:
@@ -43,7 +47,7 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     [bundle: database]
     paths: /Users/sebastian/tmp/hosts/database
 
-All configuration options are required to be set.
+All configuration options are required to be set except `parameters` for bundles.
 
 ### CloudFormation configuration
 
