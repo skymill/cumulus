@@ -83,7 +83,7 @@ env_options = [
 
 def configure():
     """ Constructor """
-    _read_global_configuration_file()
+    _read_configuration_files()
 
 
 def get_config():
@@ -176,7 +176,7 @@ def get_stacks():
         return None
 
 
-def _read_global_configuration_file():
+def _read_configuration_files():
     """ Read global configuration file """
     config_files = [
         '/etc/cumulus.conf',
@@ -238,6 +238,9 @@ def _read_global_configuration_file():
                     if option == 'disable-rollback':
                         conf['stacks'][stack][option] = config.getboolean(
                             section, option)
+                    elif option == 'template':
+                        conf['stacks'][stack][option] = os.path.expanduser(
+                            config.get(section, option))
                     else:
                         conf['stacks'][stack][option] = config.get(
                             section, option)
@@ -262,9 +265,7 @@ def _read_global_configuration_file():
                         .split(',')
                     paths = []
                     for path in raw_paths:
-                        paths.append(path.strip())
-
-                    conf['bundles'][bundle][option] = paths
+                        paths.append(os.path.expanduser(path.strip()))
                 except NoOptionError:
                     if required:
                         logger.error('Missing required option {}'.format(
