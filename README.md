@@ -71,6 +71,13 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
+**0.2.0 (2013-09-24)**
+
+- [Custom parameters in CloudFormation #14](https://github.com/skymill/cumulus/issues/14)
+- [Expand ~ in config template & bundle paths #12](https://github.com/skymill/cumulus/issues/12)
+- [Read the bucket name from configuration in CF template #11](https://github.com/skymill/cumulus/issues/11)
+- [Exception when building non-configured bundle #13](https://github.com/skymill/cumulus/issues/13)
+
 **0.1.1 (2013-09-23)**
 
 - [Prefixes for prefixed files is not removed in bundle #9](https://github.com/skymill/cumulus/issues/9)
