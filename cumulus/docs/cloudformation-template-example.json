@@ -67,12 +67,13 @@
               "/etc/cumulus/metadata.conf" : {
                 "content" : { "Fn::Join" : ["", [
                   "[metadata]\n",
-                  "aws_access_key_id: ", { "Ref" : "WebServerKeys" }, "\n",
-                  "aws_secret_access_key: ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}, "\n",
+                  "aws-access-key-id: ", { "Ref" : "WebServerKeys" }, "\n",
+                  "aws-secret-access-key: ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}, "\n",
                   "region: ", {"Ref" : "AWS::Region"}, "\n",
-                  "s3_bundles_bucket: ", { "Ref" : "CumulusBundleBucket"}, "\n",
+                  "s3-bundles-bucket: ", { "Ref" : "CumulusBundleBucket"}, "\n",
                   "stack: ", { "Ref" : "AWS::StackName" }, "\n",
-                  "bundle_type: webserver\n",
+                  "bundle-type: webserver\n",
+                  "environment: ", { "Ref" : "CumulusEnvironment" }, "\n",
                   "version: ", { "Ref" : "CumulusVersion" }, "\n"
                 ]]},
                 "mode"  : "000644",

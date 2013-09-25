@@ -46,16 +46,16 @@ def main():
     #
     # Download the bundle
     #
-    bucket = con.get_bucket(config.get('metadata', 's3_bundles_bucket'))
-    key = bucket.get_key('{}/cct-bundle-{}-{}-{}.tar.bz2'.format(
-        config.get('metadata', 'environment'),
-        config.get('metadata', 'environment'),
-        config.get('metadata', 'version'),
-        config.get('metadata', 'instance_type')))
+    bucket = con.get_bucket(config.get('metadata', 's3-bundles-bucket'))
+    key = bucket.get_key(
+        '{env}/{version}/bundle-{env}-{version}-{bundle}.tar.bz2'.format(
+            env=config.get('metadata', 'environment'),
+            version=config.get('metadata', 'version'),
+            bundle=config.get('metadata', 'bundle-type')))
     bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
     bundle.close()
     log("Downloading s3://{}/{} to {}".format(
-        config.get('metadata', 's3_bundles_bucket'),
+        config.get('metadata', 's3-bundles-bucket'),
         key.name,
         bundle.name))
     key.get_contents_to_filename(bundle.name)
@@ -71,10 +71,11 @@ def main():
     os.remove(bundle.name)
 
     # Run the post install scripts provided by the bundle
-    log("Run all post script scripts")
-    call(
-        'run-parts -v --regex .*\\.sh /etc/cumulus-cloud-tools-init.d',
-        shell=True)
+    if os.path.exists('/etc/cumulus-init.d'):
+        log("Run all post deploy scripts in /etc/cumulus-init.d")
+        call(
+            'run-parts -v --regex ".*" /etc/cumulus-init.d',
+            shell=True)
 
     log("Done updating host")
 
