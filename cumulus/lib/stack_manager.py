@@ -47,19 +47,19 @@ def ensure_stack(
 
     cumulus_parameters = [
         (
-            'Cumulus::BundleBucket',
+            'CumulusBundleBucket',
             config_handler.get_environment_option('bucket')
         ),
         (
-            'Cumulus::Environment',
+            'CumulusEnvironment',
             config_handler.get_environment()
         ),
         (
-            'Cumulus::Environment',
+            'CumulusEnvironment',
             config_handler.get_environment()
         ),
         (
-            'Cumulus::Version',
+            'CumulusVersion',
             config_handler.get_environment_option('version')
         )
     ]
