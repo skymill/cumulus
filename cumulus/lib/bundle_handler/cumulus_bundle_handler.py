@@ -71,10 +71,10 @@ def main():
     os.remove(bundle.name)
 
     # Run the post install scripts provided by the bundle
-    if os.path.exists('/etc/cumulus-cloud-tools-init.d'):
-        log("Run all post deploy scripts in /etc/cumulus-cloud-tools-init.d")
+    if os.path.exists('/etc/cumulus-init.d'):
+        log("Run all post deploy scripts in /etc/cumulus-init.d")
         call(
-            'run-parts -v --regex ".*" /etc/cumulus-cloud-tools-init.d',
+            'run-parts -v --regex ".*" /etc/cumulus-init.d',
             shell=True)
 
     log("Done updating host")
