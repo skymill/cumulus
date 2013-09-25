@@ -51,11 +51,11 @@ def main():
         config.get('metadata', 'environment'),
         config.get('metadata', 'environment'),
         config.get('metadata', 'version'),
-        config.get('metadata', 'instance_type')))
+        config.get('metadata', 'bundle-type')))
     bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
     bundle.close()
     log("Downloading s3://{}/{} to {}".format(
-        config.get('metadata', 's3_bundles_bucket'),
+        config.get('metadata', 's3-bundles-bucket'),
         key.name,
         bundle.name))
     key.get_contents_to_filename(bundle.name)
