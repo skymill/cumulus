@@ -71,6 +71,10 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
+**0.2.1 (2013-09-25)***
+
+- [Cumulus CF namespace conflicts with some rules #15](https://github.com/skymill/cumulus/issues/15)
+
 **0.2.0 (2013-09-24)**
 
 - [Custom parameters in CloudFormation #14](https://github.com/skymill/cumulus/issues/14)
