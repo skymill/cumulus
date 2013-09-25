@@ -71,7 +71,11 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
-**0.2.1 (2013-09-25)***
+**0.2.2 (2013-09-25)**
+
+- [Mismatch in metadata and cumulus_bundle_handler.py #16](https://github.com/skymill/cumulus/issues/16)
+
+**0.2.1 (2013-09-25)**
 
 - [Cumulus CF namespace conflicts with some rules #15](https://github.com/skymill/cumulus/issues/15)
 
