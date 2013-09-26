@@ -82,7 +82,7 @@ def ensure_stack(
 
         logger.info(
             'CloudFormation is now ensuring your stack. '
-            'Please see the AWS Console for mode details.')
+            'Please see the AWS Console for more details.')
     except ValueError, error:
         logger.error('Malformatted template: {}'.format(error))
         sys.exit(1)
