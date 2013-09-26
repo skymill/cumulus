@@ -50,6 +50,9 @@ def _bundle(bundle_name, environment, version, paths):
         tarinfo.name = tarinfo.name.replace(
             '{}/'.format(path[1:]),
             '')
+        tarinfo.name = tarinfo.name.replace(
+            '{}'.format(path[1:]),
+            '')
 
         # Remove prefixes
         tarinfo.name = tarinfo.name.replace(
@@ -88,7 +91,7 @@ def _bundle(bundle_name, environment, version, paths):
     if not os.path.exists(os.path.dirname(bundle)):
         os.makedirs(os.path.dirname(bundle))
 
-    tar = tarfile.open(bundle, 'w:bz2')
+    tar = tarfile.open(bundle, 'w:bz2', dereference=True)
     for path in paths:
         tar.add(
             path,
