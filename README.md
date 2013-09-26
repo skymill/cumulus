@@ -71,6 +71,11 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
+**0.2.3 (2013-09-26)**
+
+- [Symbolic links should be dereferenced in bundles #19](https://github.com/skymill/cumulus/issues/19)
+- [Current directory is added to bundle #18](https://github.com/skymill/cumulus/issues/18)
+
 **0.2.2 (2013-09-25)**
 
 - [Mismatch in metadata and cumulus_bundle_handler.py #16](https://github.com/skymill/cumulus/issues/16)
