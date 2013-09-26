@@ -50,6 +50,9 @@ def _bundle(bundle_name, environment, version, paths):
         tarinfo.name = tarinfo.name.replace(
             '{}/'.format(path[1:]),
             '')
+        tarinfo.name = tarinfo.name.replace(
+            '{}'.format(path[1:]),
+            '')
 
         # Remove prefixes
         tarinfo.name = tarinfo.name.replace(
