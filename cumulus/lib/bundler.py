@@ -69,15 +69,17 @@ def _bundle(bundle_name, environment, version, paths):
 
     def exclusion_filter(filename):
             """ Filter excluding files for other environments """
+            prefix = '__cumulus-{}__'.format(environment)
             if os.path.basename(filename).startswith('__cumulus-'):
-                cnt = len(os.path.basename(filename).split(
-                    '__cumulus-{}__'.format(environment)))
-
+                cnt = len(os.path.basename(filename).split(prefix))
                 if cnt == 2:
                     return False
                 else:
                     logger.debug('Excluding file {}'.format(filename))
                     return True
+            elif prefix in filename.split(os.path.sep):
+                logger.debug('Excluding file {}'.format(filename))
+                return True
             else:
                 return False
 
