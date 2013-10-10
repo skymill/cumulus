@@ -71,7 +71,6 @@
                   "aws-secret-access-key: ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}, "\n",
                   "region: ", {"Ref" : "AWS::Region"}, "\n",
                   "s3-bundles-bucket: ", { "Ref" : "CumulusBundleBucket"}, "\n",
-                  "stack: ", { "Ref" : "AWS::StackName" }, "\n",
                   "environment: ", { "Ref" : "CumulusEnvironment" }, "\n",
                   "version: ", { "Ref" : "CumulusVersion" }, "\n"
                 ]]},
