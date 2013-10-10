@@ -6,7 +6,7 @@
     "KeyName" : {
       "Description" : "AWS key to use",
       "Type" : "String",
-      "Default": "skymill-prod"
+      "Default": "cumulus-prod"
     },
 
     "InstanceType" : {
@@ -115,7 +115,7 @@
 
               "/etc/cfn/hooks.d/cfn-update-host.conf" : {
                 "content": { "Fn::Join" : ["", [
-                  "[skymill-host-update]","\n",
+                  "[cumulus-host-update]","\n",
                   "triggers=post.add, post.update","\n",
                   "path=Resources.WebServer.Metadata.Cumulus","\n",
                   "action=/usr/local/bin/cumulus_bundle_handler.py","\n",
