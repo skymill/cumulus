@@ -69,8 +69,16 @@ def main():
                 parameters=config_handler.get_stack_parameters(stack))
 
     if config_handler.args.undeploy:
-        for stack in config_handler.get_stacks():
-            stack_manager.delete_stack(stack)
+        message = (
+            'This will DELETE all stacks in the environment. '
+            'This action cannot be undone. '
+            'Are you sure you want to do continue? [N/y] ')
+        choice = raw_input(message).lower()
+        if choice in ['yes', 'y']:
+            for stack in config_handler.get_stacks():
+                stack_manager.delete_stack(stack)
+        else:
+            print('Skipping undeployment.')
 
     if config_handler.args.validate_templates:
         stack_manager.validate_templates()
