@@ -6,11 +6,15 @@ import os
 import sys
 import tarfile
 import tempfile
-
-from boto import s3
 from subprocess import call
 from datetime import datetime
 from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
+
+try:
+    from boto import s3
+except ImportError:
+    print('Could not import boto. Try installing it with "pip install boto"')
+    sys.exit(1)
 
 
 def main():
