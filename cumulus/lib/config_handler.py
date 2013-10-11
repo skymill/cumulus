@@ -41,7 +41,11 @@ actions_ag.add_argument(
 actions_ag.add_argument(
     '--deploy',
     action='count',
-    help='Deploy all stacks in the environment')
+    help='Bundle and deploy all stacks in the environment')
+actions_ag.add_argument(
+    '--deploy-without-bundling',
+    action='count',
+    help='Deploy all stacks in the environment, without bundling first')
 actions_ag.add_argument(
     '--validate-templates',
     action='count',

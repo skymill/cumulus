@@ -59,6 +59,10 @@ def main():
         bundle_manager.build_bundles()
 
     if config_handler.args.deploy:
+        bundle_manager.build_bundles()
+        deployment_manager.deploy()
+
+    if config_handler.args.deploy_without_bundling:
         deployment_manager.deploy()
 
     if config_handler.args.undeploy:
