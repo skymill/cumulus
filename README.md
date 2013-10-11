@@ -65,6 +65,20 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
+**0.3.0 (2013-10-11)**
+
+- [Write hooks for Cumulus deployments #26](https://github.com/skymill/cumulus/issues/26)
+- [Wait until stack is done updating/creating #20](https://github.com/skymill/cumulus/issues/20)
+- [Specify config file location as input parameter #30](https://github.com/skymill/cumulus/issues/30)
+- [Set environment version as input parameter #28](https://github.com/skymill/cumulus/issues/28)
+- [Make it possible to environment prefix whole directories #10](https://github.com/skymill/cumulus/issues/10)
+- [Create shortcut for both bundling and deploying #27](https://github.com/skymill/cumulus/issues/27)
+- [Ask before delete when running `--undeploy` #24](https://github.com/skymill/cumulus/issues/24)
+- [Ensure that boto is available for cumulus bundle handler #25](https://github.com/skymill/cumulus/issues/25)
+- [Remove skymill reference from JSON template #23](https://github.com/skymill/cumulus/issues/23)
+- [Remove unnecessary stack name in metadata #22](https://github.com/skymill/cumulus/issues/22)
+- [Remove unnecessary bundle-type in metadata #21](https://github.com/skymill/cumulus/issues/21)
+
 **0.2.3 (2013-09-26)**
 
 - [Symbolic links should be dereferenced in bundles #19](https://github.com/skymill/cumulus/issues/19)
