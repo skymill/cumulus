@@ -23,6 +23,14 @@ general_ag.add_argument(
     help='Environment to use')
 general_ag.add_argument(
     '--version',
+    help=(
+        'Environment version number. '
+        'Overrides the version value from the configuration file'))
+general_ag.add_argument(
+    '--config',
+    help='Path to configuration file.')
+general_ag.add_argument(
+    '--cumulus-version',
     action='count',
     help='Print cumulus version number')
 actions_ag = parser.add_argument_group('Actions')
@@ -33,7 +41,11 @@ actions_ag.add_argument(
 actions_ag.add_argument(
     '--deploy',
     action='count',
-    help='Deploy all stacks in the environment')
+    help='Bundle and deploy all stacks in the environment')
+actions_ag.add_argument(
+    '--deploy-without-bundling',
+    action='count',
+    help='Deploy all stacks in the environment, without bundling first')
 actions_ag.add_argument(
     '--validate-templates',
     action='count',
@@ -44,7 +56,7 @@ actions_ag.add_argument(
     help='Undeploy (DELETE) all stacks in the environment')
 args = parser.parse_args()
 
-if args.version:
+if args.cumulus_version:
     print('Cumulus version {}'.format(settings.get('general', 'version')))
     sys.exit(0)
 elif not args.environment:
@@ -69,7 +81,9 @@ stack_options = [
     ('parameters', False)
 ]
 bundle_options = [
-    ('paths', True)
+    ('paths', True),
+    ('pre-bundle-hook', False),
+    ('post-bundle-hook', False)
 ]
 env_options = [
     ('access-key-id', True),
@@ -78,7 +92,9 @@ env_options = [
     ('region', True),
     ('stacks', True),
     ('bundles', True),
-    ('version', True),
+    ('version', False),
+    ('pre-deploy-hook', False),
+    ('post-deploy-hook', False)
 ]
 
 
@@ -149,6 +165,54 @@ def get_environment_option(option_name):
         return None
 
 
+def get_post_bundle_hook(bundle):
+    """ Returns the post bundle hook command or None
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: str or None
+    """
+    try:
+        return conf['bundles'][bundle]['post-bundle-hook']
+    except KeyError:
+        return None
+
+
+def get_post_deploy_hook():
+    """ Returns the post deploy hook command or None
+
+    :returns: str or None
+    """
+    try:
+        return conf['environments'][environment]['post-deploy-hook']
+    except KeyError:
+        return None
+
+
+def get_pre_deploy_hook():
+    """ Returns the pre deploy hook command or None
+
+    :returns: str or None
+    """
+    try:
+        return conf['environments'][environment]['pre-deploy-hook']
+    except KeyError:
+        return None
+
+
+def get_pre_bundle_hook(bundle):
+    """ Returns the pre bundle hook command or None
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: str or None
+    """
+    try:
+        return conf['bundles'][bundle]['pre-bundle-hook']
+    except KeyError:
+        return None
+
+
 def get_stack_disable_rollback(stack):
     """ See if we should disable rollback
 
@@ -208,6 +272,14 @@ def _read_configuration_files():
         '{}/cumulus.conf'.format(os.curdir)
     ]
 
+    # Add custom configuration file path
+    if args.config:
+        if os.path.exists(os.path.expanduser(args.config)):
+            config_files.append(os.path.expanduser(args.config))
+        else:
+            logger.warning('Configuration file {} not found.'.format(
+                os.path.expanduser(args.config)))
+
     # Read config file
     conf_file_found = False
     for conf_file in config_files:
@@ -250,6 +322,12 @@ def _populate_environments(config):
                         for item in config.get(section, option).split(','):
                             stacks.append(item.strip())
                         conf['environments'][env][option] = stacks
+                    elif option == 'version':
+                        if args.version:
+                            conf['environments'][env][option] = args.version
+                        else:
+                            conf['environments'][env][option] = config.get(
+                                section, option)
                     else:
                         conf['environments'][env][option] = \
                             config.get(section, option)
@@ -317,13 +395,17 @@ def _populate_bundles(config):
 
             for option, required in bundle_options:
                 try:
-                    raw_paths = config.get(section, option)\
-                        .replace('\n', '')\
-                        .split(',')
-                    paths = []
-                    for path in raw_paths:
-                        paths.append(os.path.expanduser(path.strip()))
-                    conf['bundles'][bundle]['paths'] = paths
+                    if option == 'paths':
+                        raw_paths = config.get(section, option)\
+                            .replace('\n', '')\
+                            .split(',')
+                        paths = []
+                        for path in raw_paths:
+                            paths.append(os.path.expanduser(path.strip()))
+                        conf['bundles'][bundle]['paths'] = paths
+                    else:
+                        conf['bundles'][bundle][option] = config.get(
+                            section, option)
                 except NoOptionError:
                     if required:
                         logger.error('Missing required option {}'.format(

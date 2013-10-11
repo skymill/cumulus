@@ -55,21 +55,29 @@ To save some space in this document, please find the example AWS CloudFormation 
 
 ## Deployment workflow
 
-First off you need to create a bundle. Run
-
-    cumulus --environment production --bundle
-
-This will bundle and upload all your software to AWS S3. The next step is to update CloudFormation. That is done with the `--deploy` command:
+All you need to do is to run the command below. This will bundle and upload all your software to AWS S3. It will then trigger an create or update at AWS CloudFormation.
 
     cumulus --environment production --deploy
-
-Cumulus will create or update the CloudFormation stacks as needed.
 
 ## Environment specific configuration
 
 To have files that should only be included in specific environments, prefix them with `__cumulus-environment__filename`. So for example: `__cumulus-production__nginx.conf` is the `nginx.conf` for the `production` environment.
 
 ## Release notes
+
+**0.3.0 (2013-10-11)**
+
+- [Write hooks for Cumulus deployments #26](https://github.com/skymill/cumulus/issues/26)
+- [Wait until stack is done updating/creating #20](https://github.com/skymill/cumulus/issues/20)
+- [Specify config file location as input parameter #30](https://github.com/skymill/cumulus/issues/30)
+- [Set environment version as input parameter #28](https://github.com/skymill/cumulus/issues/28)
+- [Make it possible to environment prefix whole directories #10](https://github.com/skymill/cumulus/issues/10)
+- [Create shortcut for both bundling and deploying #27](https://github.com/skymill/cumulus/issues/27)
+- [Ask before delete when running `--undeploy` #24](https://github.com/skymill/cumulus/issues/24)
+- [Ensure that boto is available for cumulus bundle handler #25](https://github.com/skymill/cumulus/issues/25)
+- [Remove skymill reference from JSON template #23](https://github.com/skymill/cumulus/issues/23)
+- [Remove unnecessary stack name in metadata #22](https://github.com/skymill/cumulus/issues/22)
+- [Remove unnecessary bundle-type in metadata #21](https://github.com/skymill/cumulus/issues/21)
 
 **0.2.3 (2013-09-26)**
 

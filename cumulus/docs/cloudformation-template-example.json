@@ -6,7 +6,7 @@
     "KeyName" : {
       "Description" : "AWS key to use",
       "Type" : "String",
-      "Default": "skymill-prod"
+      "Default": "cumulus-prod"
     },
 
     "InstanceType" : {
@@ -71,8 +71,6 @@
                   "aws-secret-access-key: ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}, "\n",
                   "region: ", {"Ref" : "AWS::Region"}, "\n",
                   "s3-bundles-bucket: ", { "Ref" : "CumulusBundleBucket"}, "\n",
-                  "stack: ", { "Ref" : "AWS::StackName" }, "\n",
-                  "bundle-type: webserver\n",
                   "environment: ", { "Ref" : "CumulusEnvironment" }, "\n",
                   "version: ", { "Ref" : "CumulusVersion" }, "\n"
                 ]]},
@@ -117,7 +115,7 @@
 
               "/etc/cfn/hooks.d/cfn-update-host.conf" : {
                 "content": { "Fn::Join" : ["", [
-                  "[skymill-host-update]","\n",
+                  "[cumulus-host-update]","\n",
                   "triggers=post.add, post.update","\n",
                   "path=Resources.WebServer.Metadata.Cumulus","\n",
                   "action=/usr/local/bin/cumulus_bundle_handler.py","\n",
