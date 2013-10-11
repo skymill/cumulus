@@ -59,14 +59,7 @@ def main():
         bundle_manager.build_bundles()
 
     if config_handler.args.deploy:
-        for stack in config_handler.get_stacks():
-            deployment_manager.ensure_stack(
-                stack,
-                config_handler.get_environment(),
-                config_handler.get_stack_template(stack),
-                disable_rollback=config_handler.get_stack_disable_rollback(
-                    stack),
-                parameters=config_handler.get_stack_parameters(stack))
+        deployment_manager.deploy()
 
     if config_handler.args.undeploy:
         deployment_manager.undeploy()
