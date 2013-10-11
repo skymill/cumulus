@@ -55,15 +55,9 @@ To save some space in this document, please find the example AWS CloudFormation 
 
 ## Deployment workflow
 
-First off you need to create a bundle. Run
-
-    cumulus --environment production --bundle
-
-This will bundle and upload all your software to AWS S3. The next step is to update CloudFormation. That is done with the `--deploy` command:
+All you need to do is to run the command below. This will bundle and upload all your software to AWS S3. It will then trigger an create or update at AWS CloudFormation.
 
     cumulus --environment production --deploy
-
-Cumulus will create or update the CloudFormation stacks as needed.
 
 ## Environment specific configuration
 
