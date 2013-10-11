@@ -27,6 +27,9 @@ general_ag.add_argument(
         'Environment version number. '
         'Overrides the version value from the configuration file'))
 general_ag.add_argument(
+    '--config',
+    help='Path to configuration file.')
+general_ag.add_argument(
     '--cumulus-version',
     action='count',
     help='Print cumulus version number')
@@ -212,6 +215,14 @@ def _read_configuration_files():
         os.path.expanduser('~/.cumulus.conf'),
         '{}/cumulus.conf'.format(os.curdir)
     ]
+
+    # Add custom configuration file path
+    if args.config:
+        if os.path.exists(os.path.expanduser(args.config)):
+            config_files.append(os.path.expanduser(args.config))
+        else:
+            logger.warning('Configuration file {} not found.'.format(
+                os.path.expanduser(args.config)))
 
     # Read config file
     conf_file_found = False
