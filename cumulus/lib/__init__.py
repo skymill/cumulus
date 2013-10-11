@@ -2,8 +2,8 @@
 import config_handler
 import logging.config
 
-import bundler
-import stack_manager
+import bundle_manager
+import deployment_manager
 
 logging.config.dictConfig({
     'version': 1,
@@ -27,7 +27,7 @@ logging.config.dictConfig({
             'level': 'INFO',
             'propagate': True
         },
-        'lib.bundler': {
+        'lib.bundle_manager': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
@@ -42,7 +42,7 @@ logging.config.dictConfig({
             'level': 'DEBUG',
             'propagate': False
         },
-        'lib.stack_manager': {
+        'lib.deployment_manager': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
@@ -56,29 +56,13 @@ def main():
     config_handler.configure()
 
     if config_handler.args.bundle:
-        bundler.build_bundles()
+        bundle_manager.build_bundles()
 
     if config_handler.args.deploy:
-        for stack in config_handler.get_stacks():
-            stack_manager.ensure_stack(
-                stack,
-                config_handler.get_environment(),
-                config_handler.get_stack_template(stack),
-                disable_rollback=config_handler.get_stack_disable_rollback(
-                    stack),
-                parameters=config_handler.get_stack_parameters(stack))
+        deployment_manager.deploy()
 
     if config_handler.args.undeploy:
-        message = (
-            'This will DELETE all stacks in the environment. '
-            'This action cannot be undone. '
-            'Are you sure you want to do continue? [N/y] ')
-        choice = raw_input(message).lower()
-        if choice in ['yes', 'y']:
-            for stack in config_handler.get_stacks():
-                stack_manager.delete_stack(stack)
-        else:
-            print('Skipping undeployment.')
+        deployment_manager.undeploy()
 
     if config_handler.args.validate_templates:
-        stack_manager.validate_templates()
+        deployment_manager.validate_templates()
