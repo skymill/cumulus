@@ -2,7 +2,7 @@
 import config_handler
 import logging.config
 
-import bundler
+import bundle_manager
 import deployment_manager
 
 logging.config.dictConfig({
@@ -27,7 +27,7 @@ logging.config.dictConfig({
             'level': 'INFO',
             'propagate': True
         },
-        'lib.bundler': {
+        'lib.bundle_manager': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
@@ -56,7 +56,7 @@ def main():
     config_handler.configure()
 
     if config_handler.args.bundle:
-        bundler.build_bundles()
+        bundle_manager.build_bundles()
 
     if config_handler.args.deploy:
         for stack in config_handler.get_stacks():
