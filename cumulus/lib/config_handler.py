@@ -23,6 +23,11 @@ general_ag.add_argument(
     help='Environment to use')
 general_ag.add_argument(
     '--version',
+    help=(
+        'Environment version number. '
+        'Overrides the version value from the configuration file'))
+general_ag.add_argument(
+    '--cumulus-version',
     action='count',
     help='Print cumulus version number')
 actions_ag = parser.add_argument_group('Actions')
@@ -44,7 +49,7 @@ actions_ag.add_argument(
     help='Undeploy (DELETE) all stacks in the environment')
 args = parser.parse_args()
 
-if args.version:
+if args.cumulus_version:
     print('Cumulus version {}'.format(settings.get('general', 'version')))
     sys.exit(0)
 elif not args.environment:
@@ -78,7 +83,7 @@ env_options = [
     ('region', True),
     ('stacks', True),
     ('bundles', True),
-    ('version', True),
+    ('version', False),
 ]
 
 
@@ -250,6 +255,12 @@ def _populate_environments(config):
                         for item in config.get(section, option).split(','):
                             stacks.append(item.strip())
                         conf['environments'][env][option] = stacks
+                    elif option == 'version':
+                        if args.version:
+                            conf['environments'][env][option] = args.version
+                        else:
+                            conf['environments'][env][option] = config.get(
+                                section, option)
                     else:
                         conf['environments'][env][option] = \
                             config.get(section, option)
