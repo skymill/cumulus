@@ -12,20 +12,45 @@ import connection_handler
 logger = logging.getLogger(__name__)
 
 
-def _get_json_from_template(template):
-    """ Returns a JSON string given a template file path
+def deploy():
+    """ Ensure stack is up and running (create or update it) """
+    for stack in config_handler.get_stacks():
+            _ensure_stack(
+                stack,
+                config_handler.get_environment(),
+                config_handler.get_stack_template(stack),
+                disable_rollback=config_handler.get_stack_disable_rollback(
+                    stack),
+                parameters=config_handler.get_stack_parameters(stack))
 
-    :type template: str
-    :param template: Template path to use
-    :returns: JSON object
-    """
-    file_handle = open(template)
-    json_data = json.dumps(json.loads(file_handle.read()))
-    file_handle.close()
-    return json_data
+
+def undeploy():
+    """ Undeploy an environment """
+    message = (
+        'This will DELETE all stacks in the environment. '
+        'This action cannot be undone. '
+        'Are you sure you want to do continue? [N/y] ')
+    choice = raw_input(message).lower()
+    if choice in ['yes', 'y']:
+        for stack in config_handler.get_stacks():
+            _delete_stack(stack)
+    else:
+        print('Skipping undeployment.')
 
 
-def ensure_stack(
+def validate_templates():
+    """ Validate the template """
+    connection = connection_handler.connect_cloudformation()
+    for stack in config_handler.get_stacks():
+        template = config_handler.get_stack_template(stack)
+
+        result = connection.validate_template(
+            _get_json_from_template(template))
+        if result:
+            logger.info('Template {} is valid!'.format(template))
+
+
+def _ensure_stack(
         stack, environment, template,
         disable_rollback=False, parameters=[]):
     """ Ensure stack is up and running (create or update it)
@@ -91,7 +116,7 @@ def ensure_stack(
         logger.error("Enable debug in manage.py to see more details")
 
 
-def delete_stack(stack):
+def _delete_stack(stack):
     """ Delete an existing stack
 
     :type stack: str
@@ -102,13 +127,14 @@ def delete_stack(stack):
     connection.delete_stack(stack)
 
 
-def validate_templates():
-    """ Validate the template """
-    connection = connection_handler.connect_cloudformation()
-    for stack in config_handler.get_stacks():
-        template = config_handler.get_stack_template(stack)
+def _get_json_from_template(template):
+    """ Returns a JSON string given a template file path
 
-        result = connection.validate_template(
-            _get_json_from_template(template))
-        if result:
-            logger.info('Template {} is valid!'.format(template))
+    :type template: str
+    :param template: Template path to use
+    :returns: JSON object
+    """
+    file_handle = open(template)
+    json_data = json.dumps(json.loads(file_handle.read()))
+    file_handle.close()
+    return json_data
