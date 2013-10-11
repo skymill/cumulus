@@ -129,32 +129,6 @@ def get_bundle_paths(bundle):
         sys.exit(1)
 
 
-def get_bundle_post_bundle_hook(bundle):
-    """ Returns the post bundle hook command or None
-
-    :type bundle: str
-    :param bundle: Bundle name
-    :returns: str or None
-    """
-    try:
-        return conf['bundles'][bundle]['post-bundle-hook']
-    except KeyError:
-        return None
-
-
-def get_bundle_pre_bundle_hook(bundle):
-    """ Returns the pre bundle hook command or None
-
-    :type bundle: str
-    :param bundle: Bundle name
-    :returns: str or None
-    """
-    try:
-        return conf['bundles'][bundle]['pre-bundle-hook']
-    except KeyError:
-        return None
-
-
 def get_bundles():
     """ Returns a list of bundles"""
     try:
@@ -184,6 +158,54 @@ def get_environment_option(option_name):
     except KeyError:
         logger.error('No option {} in environment {}'.format(
             option_name, environment))
+        return None
+
+
+def get_post_bundle_hook(bundle):
+    """ Returns the post bundle hook command or None
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: str or None
+    """
+    try:
+        return conf['bundles'][bundle]['post-bundle-hook']
+    except KeyError:
+        return None
+
+
+def get_post_deploy_hook():
+    """ Returns the post deploy hook command or None
+
+    :returns: str or None
+    """
+    try:
+        return conf['environments'][environment]['post-deploy-hook']
+    except KeyError:
+        return None
+
+
+def get_pre_deploy_hook():
+    """ Returns the pre deploy hook command or None
+
+    :returns: str or None
+    """
+    try:
+        return conf['environments'][environment]['pre-deploy-hook']
+    except KeyError:
+        return None
+
+
+def get_pre_bundle_hook(bundle):
+    """ Returns the pre bundle hook command or None
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: str or None
+    """
+    try:
+        return conf['bundles'][bundle]['pre-bundle-hook']
+    except KeyError:
         return None
 
 

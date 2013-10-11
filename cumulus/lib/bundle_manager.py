@@ -119,12 +119,12 @@ def _post_bundle_hook(bundle_name):
     :type bundle: str
     :param bundle: Bundle name
     """
-    command = config_handler.get_bundle_post_bundle_hook(bundle_name)
-    logger.info('Running post-bundle-hook command: "{}"'.format(command))
+    command = config_handler.get_post_bundle_hook(bundle_name)
 
     if not command:
         return None
 
+    logger.info('Running post-bundle-hook command: "{}"'.format(command))
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
@@ -140,12 +140,12 @@ def _pre_bundle_hook(bundle_name):
     :type bundle: str
     :param bundle: Bundle name
     """
-    command = config_handler.get_bundle_pre_bundle_hook(bundle_name)
-    logger.info('Running pre-bundle-hook command: "{}"'.format(command))
+    command = config_handler.get_pre_bundle_hook(bundle_name)
 
     if not command:
         return None
 
+    logger.info('Running pre-bundle-hook command: "{}"'.format(command))
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:

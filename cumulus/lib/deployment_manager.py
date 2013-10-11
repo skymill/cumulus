@@ -2,6 +2,7 @@
 import json
 import logging
 import os.path
+import subprocess
 import sys
 
 import boto
@@ -14,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 def deploy():
     """ Ensure stack is up and running (create or update it) """
+    # Run pre-deploy-hook
+    _pre_deploy_hook()
+
     for stack in config_handler.get_stacks():
             _ensure_stack(
                 stack,
@@ -22,6 +26,9 @@ def deploy():
                 disable_rollback=config_handler.get_stack_disable_rollback(
                     stack),
                 parameters=config_handler.get_stack_parameters(stack))
+
+    # Run post-deploy-hook
+    _post_deploy_hook()
 
 
 def undeploy():
@@ -138,3 +145,37 @@ def _get_json_from_template(template):
     json_data = json.dumps(json.loads(file_handle.read()))
     file_handle.close()
     return json_data
+
+
+def _pre_deploy_hook():
+    """ Execute a pre-deploy-hook """
+    command = config_handler.get_pre_deploy_hook()
+
+    if not command:
+        return None
+
+    logger.info('Running pre-deploy-hook command: "{}"'.format(command))
+    try:
+        subprocess.check_call(command, shell=True)
+    except subprocess.CalledProcessError, error:
+        logger.error(
+            'The pre-deploy-hook returned a non-zero exit code: {}'.format(
+                error))
+        sys.exit(1)
+
+
+def _post_deploy_hook():
+    """ Execute a post-deploy-hook """
+    command = config_handler.get_post_deploy_hook()
+
+    if not command:
+        return None
+
+    logger.info('Running post-deploy-hook command: "{}"'.format(command))
+    try:
+        subprocess.check_call(command, shell=True)
+    except subprocess.CalledProcessError, error:
+        logger.error(
+            'The post-deploy-hook returned a non-zero exit code: {}'.format(
+                error))
+        sys.exit(1)
