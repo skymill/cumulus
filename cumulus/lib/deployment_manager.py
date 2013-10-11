@@ -4,6 +4,7 @@ import logging
 import os.path
 import subprocess
 import sys
+import time
 
 import boto
 
@@ -112,9 +113,8 @@ def _ensure_stack(
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
 
-        logger.info(
-            'CloudFormation is now ensuring your stack. '
-            'Please see the AWS Console for more details.')
+        _wait_for_stack_complete(stack)
+
     except ValueError, error:
         logger.error('Malformatted template: {}'.format(error))
         sys.exit(1)
@@ -132,6 +132,7 @@ def _delete_stack(stack):
     connection = connection_handler.connect_cloudformation()
     logger.info('Deleting stack {}'.format(stack))
     connection.delete_stack(stack)
+    _wait_for_stack_complete(stack)
 
 
 def _get_json_from_template(template):
@@ -145,6 +146,22 @@ def _get_json_from_template(template):
     json_data = json.dumps(json.loads(file_handle.read()))
     file_handle.close()
     return json_data
+
+
+def _get_stack_by_name(stack_name):
+    """ Returns a stack given its name
+
+    :type stack_name: str
+    :param stack_name: Stack name
+    :returns: stack or None
+    """
+    connection = connection_handler.connect_cloudformation()
+    for stack in connection.list_stacks():
+        if (stack.stack_status != 'DELETE_COMPLETE' and
+                stack.stack_name == stack_name):
+            return stack
+
+    return None
 
 
 def _pre_deploy_hook():
@@ -179,3 +196,44 @@ def _post_deploy_hook():
             'The post-deploy-hook returned a non-zero exit code: {}'.format(
                 error))
         sys.exit(1)
+
+
+def _wait_for_stack_complete(stack_name, check_interval=5):
+    """ Wait until the stack create/update has been completed
+
+    :type stack_name: str
+    :param stack_name: Stack name
+    :type check_interval: int
+    :param check_interval: Seconds between each console update
+    """
+    complete = False
+    complete_statuses = [
+        'CREATE_FAILED',
+        'CREATE_COMPLETE',
+        'ROLLBACK_FAILED',
+        'ROLLBACK_COMPLETE',
+        'DELETE_FAILED',
+        'DELETE_COMPLETE',
+        'UPDATE_COMPLETE',
+        'UPDATE_ROLLBACK_FAILED',
+        'UPDATE_ROLLBACK_COMPLETE'
+    ]
+    connection = connection_handler.connect_cloudformation()
+    written_events = []
+
+    while not complete:
+        stack = _get_stack_by_name(stack_name)
+        if stack.stack_status in complete_statuses:
+            logger.info('Stack completed with status {}'.format(
+                stack.stack_status))
+            complete = True
+        else:
+            for event in connection.describe_stack_events(stack.stack_id):
+                if event.event_id not in written_events:
+                    written_events.append(event.event_id)
+                    logger.info('Stack {} - {} - {}'.format(
+                        event.stack_name,
+                        event.resource_type,
+                        event.resource_status))
+
+        time.sleep(check_interval)
