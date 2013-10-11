@@ -77,7 +77,9 @@ stack_options = [
     ('parameters', False)
 ]
 bundle_options = [
-    ('paths', True)
+    ('paths', True),
+    ('pre-bundle-hook', False),
+    ('post-bundle-hook', False)
 ]
 env_options = [
     ('access-key-id', True),
@@ -87,6 +89,8 @@ env_options = [
     ('stacks', True),
     ('bundles', True),
     ('version', False),
+    ('pre-deploy-hook', False),
+    ('post-deploy-hook', False)
 ]
 
 
@@ -123,6 +127,32 @@ def get_bundle_paths(bundle):
     except KeyError:
         logger.error('No paths defined for bundle "{}"'.format(bundle))
         sys.exit(1)
+
+
+def get_bundle_post_bundle_hook(bundle):
+    """ Returns the post bundle hook command or None
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: str or None
+    """
+    try:
+        return conf['bundles'][bundle]['post-bundle-hook']
+    except KeyError:
+        return None
+
+
+def get_bundle_pre_bundle_hook(bundle):
+    """ Returns the pre bundle hook command or None
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: str or None
+    """
+    try:
+        return conf['bundles'][bundle]['pre-bundle-hook']
+    except KeyError:
+        return None
 
 
 def get_bundles():
@@ -339,13 +369,17 @@ def _populate_bundles(config):
 
             for option, required in bundle_options:
                 try:
-                    raw_paths = config.get(section, option)\
-                        .replace('\n', '')\
-                        .split(',')
-                    paths = []
-                    for path in raw_paths:
-                        paths.append(os.path.expanduser(path.strip()))
-                    conf['bundles'][bundle]['paths'] = paths
+                    if option == 'paths':
+                        raw_paths = config.get(section, option)\
+                            .replace('\n', '')\
+                            .split(',')
+                        paths = []
+                        for path in raw_paths:
+                            paths.append(os.path.expanduser(path.strip()))
+                        conf['bundles'][bundle]['paths'] = paths
+                    else:
+                        conf['bundles'][bundle][option] = config.get(
+                            section, option)
                 except NoOptionError:
                     if required:
                         logger.error('Missing required option {}'.format(

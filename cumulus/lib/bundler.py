@@ -2,6 +2,8 @@
 import logging
 import os
 import os.path
+import subprocess
+import sys
 import tarfile
 
 import config_handler
@@ -17,11 +19,17 @@ def build_bundles():
         logger.debug('Bundle paths: {}'.format(', '.join(
             config_handler.get_bundle_paths(bundle))))
 
+        # Run pre-bundle-hook
+        _pre_bundle_hook(bundle)
+
         bundle_path = _bundle(
             bundle,
             config_handler.get_environment(),
             config_handler.get_environment_option('version'),
             config_handler.get_bundle_paths(bundle))
+
+        # Run post-bundle-hook
+        _post_bundle_hook(bundle)
 
         _upload_bundle(bundle_path)
 
@@ -103,6 +111,48 @@ def _bundle(bundle_name, environment, version, paths):
     logger.info('Wrote bundle to {}'.format(bundle))
 
     return bundle
+
+
+def _post_bundle_hook(bundle_name):
+    """ Execute a post-bundle-hook
+
+    :type bundle: str
+    :param bundle: Bundle name
+    """
+    command = config_handler.get_bundle_post_bundle_hook(bundle_name)
+    logger.info('Running post-bundle-hook command: "{}"'.format(command))
+
+    if not command:
+        return None
+
+    try:
+        subprocess.check_call(command, shell=True)
+    except subprocess.CalledProcessError, error:
+        logger.error(
+            'The post-bundle-hook returned a non-zero exit code: {}'.format(
+                error))
+        sys.exit(1)
+
+
+def _pre_bundle_hook(bundle_name):
+    """ Execute a pre-bundle-hook
+
+    :type bundle: str
+    :param bundle: Bundle name
+    """
+    command = config_handler.get_bundle_pre_bundle_hook(bundle_name)
+    logger.info('Running pre-bundle-hook command: "{}"'.format(command))
+
+    if not command:
+        return None
+
+    try:
+        subprocess.check_call(command, shell=True)
+    except subprocess.CalledProcessError, error:
+        logger.error(
+            'The pre-bundle-hook returned a non-zero exit code: {}'.format(
+                error))
+        sys.exit(1)
 
 
 def _upload_bundle(bundle_path):
