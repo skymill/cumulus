@@ -30,6 +30,8 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     stacks: full
     bundles: webserver, database
     version: 1.0.0-SNAPSHOT
+    pre-deploy-hook: /path/to/script
+    post-deploy-hook: echo "Yay" > ~/test.log
 
     [stack: full]
     template: /Users/sebastian/tmp/hosts/webserver.json
@@ -40,11 +42,14 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
          key= value
 
     [bundle: webserver]
+    pre-bundle-hook: git clone git://git.example.com/my.git
+    post-bundle-hook: rm -rf my
     paths:
         /Users/sebastian/tmp/hosts/webserver,
         /Users/sebastian/tmp/code/wordpress
 
     [bundle: database]
+    pre-bundle-hook: /path/to/script
     paths: /Users/sebastian/tmp/hosts/database
 
 All configuration options are required to be set except `parameters` for bundles.
