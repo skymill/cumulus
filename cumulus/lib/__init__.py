@@ -65,6 +65,9 @@ def main():
     if config_handler.args.deploy_without_bundling:
         deployment_manager.deploy()
 
+    if config_handler.args.list:
+        deployment_manager.list_stacks()
+
     if config_handler.args.undeploy:
         deployment_manager.undeploy()
 

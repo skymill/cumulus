@@ -32,6 +32,15 @@ def deploy():
     _post_deploy_hook()
 
 
+def list_stacks():
+    """ List stacks and their statuses """
+    connection = connection_handler.connect_cloudformation()
+    for stack in connection.list_stacks():
+        if (stack.stack_status != 'DELETE_COMPLETE' and
+                stack.stack_name in config_handler.get_stacks()):
+            print('{:<30}{}'.format(stack.stack_name, stack.stack_status))
+
+
 def undeploy():
     """ Undeploy an environment """
     message = (
