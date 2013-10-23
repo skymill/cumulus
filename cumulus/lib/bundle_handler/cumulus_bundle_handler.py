@@ -50,12 +50,19 @@ def main():
     #
     # Download the bundle
     #
-    bucket = con.get_bucket(config.get('metadata', 's3-bundles-bucket'))
-    key = bucket.get_key(
+    key_name = (
         '{env}/{version}/bundle-{env}-{version}-{bundle}.tar.bz2'.format(
             env=config.get('metadata', 'environment'),
             version=config.get('metadata', 'version'),
             bundle=config.get('metadata', 'bundle-type')))
+    bucket = con.get_bucket(config.get('metadata', 's3-bundles-bucket'))
+    key = bucket.get_key(key_name)
+
+    # If the bundle does not exist
+    if not key:
+        log('No bundle matching {} found'.format(key_name))
+        return
+
     bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
     bundle.close()
     log("Downloading s3://{}/{} to {}".format(
