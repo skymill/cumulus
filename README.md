@@ -70,6 +70,11 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
+**0.3.1 (2013-10-23)**
+
+- [Error handling stack delete status #34](https://github.com/skymill/cumulus/issues/34)
+- [Initial stack creation fails when using `--deploy-without-bundling` #33](https://github.com/skymill/cumulus/issues/33)
+
 **0.3.0 (2013-10-11)**
 
 - [Write hooks for Cumulus deployments #26](https://github.com/skymill/cumulus/issues/26)
