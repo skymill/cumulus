@@ -223,6 +223,9 @@ def _wait_for_stack_complete(stack_name, check_interval=5):
 
     while not complete:
         stack = _get_stack_by_name(stack_name)
+        if not stack:
+            break
+
         if stack.stack_status in complete_statuses:
             logger.info('Stack completed with status {}'.format(
                 stack.stack_status))
