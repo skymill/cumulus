@@ -75,6 +75,7 @@ To have files that should only be included in specific environments, prefix them
 - [Error handling stack delete status #34](https://github.com/skymill/cumulus/issues/34)
 - [Running `--deploy` on existing stack fails #35](https://github.com/skymill/cumulus/issues/35)
 - [Initial stack creation fails when using `--deploy-without-bundling` #33](https://github.com/skymill/cumulus/issues/33)
+- [Bundle type missing in Cumulus metadata #37](https://github.com/skymill/cumulus/issues/37)
 
 **0.3.0 (2013-10-11)**
 
