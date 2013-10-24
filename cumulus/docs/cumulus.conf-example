@@ -13,9 +13,9 @@ post-deploy-hook: echo "Yay" > ~/test.log
 template: /Users/sebastian/tmp/hosts/webserver.json
 disable-rollback: true
 parameters:
-    version = 1.1.0,
-    test tag=my test value ,
-     key= value
+    version = 1.1.0
+    test tag = my test value
+    key = value
 
 [bundle: webserver]
 pre-bundle-hook: git clone git://git.example.com/my.git
