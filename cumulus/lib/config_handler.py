@@ -86,6 +86,7 @@ stack_options = [
 ]
 bundle_options = [
     ('paths', True),
+    ('path-rewrites', False),
     ('pre-bundle-hook', False),
     ('post-bundle-hook', False)
 ]
@@ -407,6 +408,21 @@ def _populate_bundles(config):
                         for path in raw_paths:
                             paths.append(os.path.expanduser(path.strip()))
                         conf['bundles'][bundle]['paths'] = paths
+                    elif option == 'path-rewrites':
+                        try:
+                            target, destination = config.get(
+                                section, option).split('->')
+                        except ValueError:
+                            logger.error(
+                                'Invalid path-rewrites for bundle {}'.format(
+                                    bundle))
+                            sys.exit(1)
+
+                        conf['bundles'][bundle]['path-rewrites'] = {
+                            'target': target.strip(),
+                            'destination': destination.strip()
+                        }
+
                     else:
                         conf['bundles'][bundle][option] = config.get(
                             section, option)
