@@ -59,12 +59,12 @@ def validate_templates():
 
 
 def _ensure_stack(
-        stack, environment, template,
+        stack_name, environment, template,
         disable_rollback=False, parameters=[]):
     """ Ensure stack is up and running (create or update it)
 
-    :type stack: str
-    :param stack: Stack name
+    :type stack_name: str
+    :param stack_name: Stack name
     :type environment: str
     :param environment: Environment name
     :type template: str
@@ -76,7 +76,7 @@ def _ensure_stack(
     """
     connection = connection_handler.connect_cloudformation()
     logger.info('Ensuring stack {} with template {}'.format(
-        stack, os.path.basename(template)))
+        stack_name, os.path.basename(template)))
 
     cumulus_parameters = [
         (
@@ -98,22 +98,24 @@ def _ensure_stack(
     ]
 
     try:
-        if stack in connection.list_stacks():
+        if _stack_exists(stack_name):
+            logger.debug('Updating existing stack')
             connection.update_stack(
-                stack,
+                stack_name,
                 parameters=cumulus_parameters + parameters,
                 template_body=_get_json_from_template(template),
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
         else:
+            logger.debug('Creating new stack')
             connection.create_stack(
-                stack,
+                stack_name,
                 parameters=cumulus_parameters + parameters,
                 template_body=_get_json_from_template(template),
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
 
-        _wait_for_stack_complete(stack)
+        _wait_for_stack_complete(stack_name)
 
     except ValueError, error:
         logger.error('Malformatted template: {}'.format(error))
@@ -196,6 +198,22 @@ def _post_deploy_hook():
             'The post-deploy-hook returned a non-zero exit code: {}'.format(
                 error))
         sys.exit(1)
+
+
+def _stack_exists(stack_name):
+    """ Check if a stack exists
+
+    :type stack_name: str
+    :param stack_name: Stack name
+    :returns: bool
+    """
+    connection = connection_handler.connect_cloudformation()
+    for stack in connection.list_stacks():
+        if (stack.stack_status != 'DELETE_COMPLETE' and
+                stack.stack_name == stack_name):
+            return True
+
+    return False
 
 
 def _wait_for_stack_complete(stack_name, check_interval=5):
