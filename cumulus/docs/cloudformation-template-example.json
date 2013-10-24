@@ -72,6 +72,7 @@
                   "region: ", {"Ref" : "AWS::Region"}, "\n",
                   "s3-bundles-bucket: ", { "Ref" : "CumulusBundleBucket"}, "\n",
                   "environment: ", { "Ref" : "CumulusEnvironment" }, "\n",
+                  "bundle-type: webserver\n",
                   "version: ", { "Ref" : "CumulusVersion" }, "\n"
                 ]]},
                 "mode"  : "000644",
