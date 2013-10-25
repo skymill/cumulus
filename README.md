@@ -38,8 +38,8 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     disable-rollback: true
     parameters:
         version = 1.1.0,
-        test tag=my test value ,
-         key= value
+        test tag = my test value
+        key = value
 
     [bundle: webserver]
     pre-bundle-hook: git clone git://git.example.com/my.git
@@ -51,6 +51,9 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     [bundle: database]
     pre-bundle-hook: /path/to/script
     paths: /Users/sebastian/tmp/hosts/database
+    path-rewrites:
+        /wordpress -> /var/www/wordpress
+        /nginx -> /etc/nginx
 
 All configuration options are required to be set except `parameters` for bundles.
 
