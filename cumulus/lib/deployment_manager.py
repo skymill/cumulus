@@ -108,7 +108,8 @@ def _ensure_stack(
 
     try:
         if _stack_exists(stack_name):
-            logger.debug('Updating existing stack')
+            logger.debug('Updating existing stack to version {}'.format(
+                config_handler.get_environment_option('version')))
             connection.update_stack(
                 stack_name,
                 parameters=cumulus_parameters + parameters,
@@ -116,7 +117,8 @@ def _ensure_stack(
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
         else:
-            logger.debug('Creating new stack')
+            logger.debug('Creating new stack in version {}'.format(
+                config_handler.get_environment_option('version')))
             connection.create_stack(
                 stack_name,
                 parameters=cumulus_parameters + parameters,
