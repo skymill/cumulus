@@ -62,6 +62,17 @@ def _bundle(bundle_name, environment, version, paths):
             '{}'.format(path[1:]),
             '')
 
+        for rewrite in path_rewrites:
+            try:
+                if tarinfo.name[:len(rewrite['target'])] == rewrite['target']:
+                    tarinfo.name = tarinfo.name.replace(
+                        rewrite['target'],
+                        rewrite['destination'])
+                    logger.debug('Replaced {} with {}'.format(
+                        rewrite['target'], rewrite['destination']))
+            except IndexError:
+                pass
+
         # Remove prefixes
         tarinfo.name = tarinfo.name.replace(
             '__cumulus-{}__'.format(environment),
@@ -96,6 +107,8 @@ def _bundle(bundle_name, environment, version, paths):
         environment,
         version,
         bundle_name)
+
+    path_rewrites = config_handler.get_bundle_path_rewrites(bundle_name)
 
     # Ensure that the bundle target exists
     if not os.path.exists(os.path.dirname(bundle)):
