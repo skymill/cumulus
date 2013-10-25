@@ -73,6 +73,10 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
+**0.4.0 (2013-10-25)**
+
+- [Path prefix in bundles #36](https://github.com/skymill/cumulus/issues/36)
+
 **0.3.1 (2013-10-24)**
 
 - [Error handling stack delete status #34](https://github.com/skymill/cumulus/issues/34)
