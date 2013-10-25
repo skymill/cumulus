@@ -118,7 +118,7 @@
                 "content": { "Fn::Join" : ["", [
                   "[cumulus-host-update]","\n",
                   "triggers=post.add, post.update","\n",
-                  "path=Resources.WebServer.Metadata.Cumulus","\n",
+                  "path=Resources.WebServerLaunchConfiguration.Metadata.Cumulus","\n",
                   "action=/usr/local/bin/cumulus_bundle_handler.py","\n",
                   "runas=root","\n"
                 ]]},
@@ -131,7 +131,7 @@
                 "content": { "Fn::Join" : ["", [
                   "[cfn-auto-reloader-hook]\n",
                   "triggers=post.update\n",
-                  "path=Resources.WebServer.Metadata.AWS::CloudFormation::Init\n",
+                  "path=Resources.WebServerLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
                   "action=/usr/local/bin/cfn-init -s ",
                       { "Ref" : "AWS::StackName" }, " -r WebServerLaunchConfiguration ",
                        " --credential-file /etc/cfn/cfn-credentials ",
