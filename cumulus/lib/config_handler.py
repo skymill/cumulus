@@ -124,6 +124,19 @@ def get_environment():
     return environment
 
 
+def get_bundle_path_rewrites(bundle):
+    """ Returns a dict with all path rewrites
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: dict
+    """
+    try:
+        return conf['bundles'][bundle]['path-rewrites']
+    except KeyError:
+        return {}
+
+
 def get_bundle_paths(bundle):
     """ Returns a list of bundle paths for a given bundle
 
@@ -409,19 +422,28 @@ def _populate_bundles(config):
                             paths.append(os.path.expanduser(path.strip()))
                         conf['bundles'][bundle]['paths'] = paths
                     elif option == 'path-rewrites':
-                        try:
-                            target, destination = config.get(
-                                section, option).split('->')
-                        except ValueError:
-                            logger.error(
-                                'Invalid path-rewrites for bundle {}'.format(
-                                    bundle))
-                            sys.exit(1)
+                        conf['bundles'][bundle]['path-rewrites'] = []
+                        lines = config.get(section, option).strip().split('\n')
 
-                        conf['bundles'][bundle]['path-rewrites'] = {
-                            'target': target.strip(),
-                            'destination': destination.strip()
-                        }
+                        for line in lines:
+                            try:
+                                target, destination = line.split('->')
+                            except ValueError:
+                                logger.error(
+                                    'Invalid path-rewrites for '
+                                    'bundle {}'.format(bundle))
+                                sys.exit(1)
+
+                            # Clean the target and destination from initial /
+                            if target[0] == '/':
+                                target = target[1:]
+                            if destination[0] == '/':
+                                destination = destination[1:]
+
+                            conf['bundles'][bundle]['path-rewrites'].append({
+                                'target': target.strip(),
+                                'destination': destination.strip()
+                            })
 
                     else:
                         conf['bundles'][bundle][option] = config.get(
