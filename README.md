@@ -38,8 +38,8 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     disable-rollback: true
     parameters:
         version = 1.1.0,
-        test tag=my test value ,
-         key= value
+        test tag = my test value
+        key = value
 
     [bundle: webserver]
     pre-bundle-hook: git clone git://git.example.com/my.git
@@ -51,6 +51,9 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     [bundle: database]
     pre-bundle-hook: /path/to/script
     paths: /Users/sebastian/tmp/hosts/database
+    path-rewrites:
+        /wordpress -> /var/www/wordpress
+        /nginx -> /etc/nginx
 
 All configuration options are required to be set except `parameters` for bundles.
 
@@ -69,6 +72,10 @@ All you need to do is to run the command below. This will bundle and upload all 
 To have files that should only be included in specific environments, prefix them with `__cumulus-environment__filename`. So for example: `__cumulus-production__nginx.conf` is the `nginx.conf` for the `production` environment.
 
 ## Release notes
+
+**0.4.0 (2013-10-25)**
+
+- [Path prefix in bundles #36](https://github.com/skymill/cumulus/issues/36)
 
 **0.3.1 (2013-10-24)**
 
