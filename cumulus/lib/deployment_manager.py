@@ -117,7 +117,7 @@ def _ensure_stack(
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
         else:
-            logger.debug('Creating new stack in version {}'.format(
+            logger.debug('Creating new stack with version {}'.format(
                 config_handler.get_environment_option('version')))
             connection.create_stack(
                 stack_name,
