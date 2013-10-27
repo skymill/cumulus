@@ -4,10 +4,10 @@
 
 import os
 import sys
+import logging
 import tarfile
 import tempfile
 from subprocess import call
-from datetime import datetime
 from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 
 try:
@@ -15,6 +15,46 @@ try:
 except ImportError:
     print('Could not import boto. Try installing it with "pip install boto"')
     sys.exit(1)
+
+
+# Configure logging
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': (
+                '%(asctime)s - cumulus-bundle-handler - '
+                '%(levelname)s - %(message)s'
+            )
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard'
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'standard',
+            'filename': '/var/log/cumulus-bundle-handler.log',
+            'mode': 'a',
+            'maxbytes': 10485760,  # 10 MB
+            'backupCount': 5
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
+    }
+})
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -25,7 +65,7 @@ def main():
     #
     # Connect to AWS S3
     #
-    log("Connecting to AWS S3")
+    logger.debug("Connecting to AWS S3")
     try:
         con = s3.connect_to_region(
             config.get('metadata', 'region'),
@@ -33,18 +73,18 @@ def main():
             aws_secret_access_key=config.get(
                 'metadata', 'aws-secret-access-key'))
     except NoSectionError, error:
-        log('Missing config section: {}'.format(error))
+        logger.error('Missing config section: {}'.format(error))
         sys.exit(1)
     except NoOptionError, error:
-        log('Missing config option: {}'.format(error))
+        logger.error('Missing config option: {}'.format(error))
         sys.exit(1)
     except AttributeError:
-        log(
+        logger.error(
             'It seems like boto is outdated. Please upgrade '
             'by running \"pip install --upgrade boto\"')
         sys.exit(1)
     except:
-        log('Unhandled exception when connecting to S3.')
+        logger.error('Unhandled exception when connecting to S3.')
         sys.exit(1)
 
     #
@@ -60,44 +100,35 @@ def main():
 
     # If the bundle does not exist
     if not key:
-        log('No bundle matching {} found'.format(key_name))
+        logger.error('No bundle matching {} found'.format(key_name))
         return
 
     bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
     bundle.close()
-    log("Downloading s3://{}/{} to {}".format(
+    logger.info("Downloading s3://{}/{} to {}".format(
         config.get('metadata', 's3-bundles-bucket'),
         key.name,
         bundle.name))
     key.get_contents_to_filename(bundle.name)
 
     # Unpack the bundle
-    log("Unpacking {}".format(bundle.name))
+    logger.info("Unpacking {}".format(bundle.name))
     tar = tarfile.open(bundle.name, 'r:bz2')
     tar.extractall()
     tar.close()
 
     # Remove the downloaded package
-    log("Removing temporary file {}".format(bundle.name))
+    logger.info("Removing temporary file {}".format(bundle.name))
     os.remove(bundle.name)
 
     # Run the post install scripts provided by the bundle
     if os.path.exists('/etc/cumulus-init.d'):
-        log("Run all post deploy scripts in /etc/cumulus-init.d")
+        logger.info("Run all post deploy scripts in /etc/cumulus-init.d")
         call(
             'run-parts -v --regex ".*" /etc/cumulus-init.d',
             shell=True)
 
-    log("Done updating host")
-
-
-def log(message):
-    """ Print a message with a timestamp
-
-    :type message: str
-    :param message: Log message to print
-    """
-    print '{} - {}'.format(datetime.utcnow().isoformat(), message)
+    logger.info("Done updating host")
 
 
 if __name__ == '__main__':
