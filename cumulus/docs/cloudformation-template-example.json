@@ -48,10 +48,6 @@
     "WebServerLaunchConfiguration" : {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Metadata" : {
-        "Cumulus": {
-          "Version": { "Ref" : "CumulusVersion" }
-        },
-
         "AWS::CloudFormation::Authentication" : {
           "S3Access" : {
             "type" : "S3",
@@ -61,8 +57,11 @@
         },
 
         "AWS::CloudFormation::Init" : {
-          "config" : {
+          "configSets" : {
+            "cumulus": [ "fileConfig", "commandConfig" ]
+          },
 
+          "fileConfig" : {
             "files" : {
               "/etc/cumulus/metadata.conf" : {
                 "content" : { "Fn::Join" : ["", [
@@ -72,7 +71,7 @@
                   "region: ", {"Ref" : "AWS::Region"}, "\n",
                   "s3-bundles-bucket: ", { "Ref" : "CumulusBundleBucket"}, "\n",
                   "environment: ", { "Ref" : "CumulusEnvironment" }, "\n",
-                  "bundle-type: webserver\n",
+		              "bundle-type: webserver\n",
                   "version: ", { "Ref" : "CumulusVersion" }, "\n"
                 ]]},
                 "mode"  : "000644",
@@ -107,24 +106,11 @@
                   "stack=", { "Ref" : "AWS::StackName" }, "\n",
                   "credential-file=/etc/cfn/cfn-credentials\n",
                   "region=", { "Ref" : "AWS::Region" }, "\n",
-                  "interval=10\n"
+                  "interval=1\n"
                 ]]},
                 "mode"    : "000400",
                 "owner"   : "root",
                 "group"   : "root"
-              },
-
-              "/etc/cfn/hooks.d/cfn-update-host.conf" : {
-                "content": { "Fn::Join" : ["", [
-                  "[cumulus-host-update]","\n",
-                  "triggers=post.add, post.update","\n",
-                  "path=Resources.WebServerLaunchConfiguration.Metadata.Cumulus","\n",
-                  "action=/usr/local/bin/cumulus_bundle_handler.py","\n",
-                  "runas=root","\n"
-                ]]},
-                "mode"  : "000644",
-                "owner" : "root",
-                "group" : "root"
               },
 
               "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
@@ -132,12 +118,21 @@
                   "[cfn-auto-reloader-hook]\n",
                   "triggers=post.update\n",
                   "path=Resources.WebServerLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
-                  "action=/usr/local/bin/cfn-init -s ",
+                  "action=/usr/local/bin/cfn-init -c cumulus -s ",
                       { "Ref" : "AWS::StackName" }, " -r WebServerLaunchConfiguration ",
                        " --credential-file /etc/cfn/cfn-credentials ",
                        " --region ", { "Ref" : "AWS::Region" }, "\n",
                   "runas=root\n"
                 ]]}
+              }
+            }
+          },
+
+          "commandConfig" : {
+            "commands" : {
+              "cumulus_bundle_handler" : {
+                "command" : "/usr/local/bin/cumulus_bundle_handler.py >> /var/log/cumulus_bundle_handler.log",
+                "ignoreErrors" : "false"
               }
             }
           }
@@ -174,17 +169,17 @@
           "  exit 1\n",
           "}\n",
 
+          "# Make sure we have the latest boto\n",
+          "pip install --upgrade boto || error_exit 'Failed upgrading boto to the latest version'\n",
+
           "# Install software\n",
-          "/usr/local/bin/cfn-init -v -s ", { "Ref" : "AWS::StackName" }, " -r WebServerLaunchConfiguration ",
+          "/usr/local/bin/cfn-init -v -c cumulus -s ", { "Ref" : "AWS::StackName" }, " -r WebServerLaunchConfiguration ",
           "    --access-key ",  { "Ref" : "WebServerKeys" },
           "    --secret-key ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]},
           "    --region ", { "Ref" : "AWS::Region" }, " >> /var/log/cfn-init.log || error_exit 'Failed to run cfn-init'\n",
 
-          "# Make sure we have the latest boto\n",
-          "pip install --upgrade boto || error_exit 'Failed upgrading boto to the latest version'\n",
-
           "# Run Cumulus bundle handler\n",
-          "/usr/local/bin/cumulus_bundle_handler.py >> /var/log/cumulus_bundle_handler.log\n",
+          "#/usr/local/bin/cumulus_bundle_handler.py >> /var/log/cumulus_bundle_handler.log\n",
 
           "# Start up the cfn-hup daemon to listen for changes to the Web Server metadata\n",
           "/usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'\n",
