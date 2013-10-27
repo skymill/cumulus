@@ -41,7 +41,7 @@ logging.config.dictConfig({
             'formatter': 'standard',
             'filename': '/var/log/cumulus-bundle-handler.log',
             'mode': 'a',
-            'maxbytes': 10485760,  # 10 MB
+            'maxBytes': 10485760,  # 10 MB
             'backupCount': 5
         }
     },
