@@ -11,7 +11,7 @@ logging.config.dictConfig({
     'formatters': {
         'standard': {
             'format':
-            '%(asctime)s - cumulus - %(name)s - %(levelname)s - %(message)s'
+            '%(asctime)s - cumulus - %(levelname)s - %(message)s'
         },
     },
     'handlers': {
