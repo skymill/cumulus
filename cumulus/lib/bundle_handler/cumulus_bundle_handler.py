@@ -101,7 +101,7 @@ def main():
     # If the bundle does not exist
     if not key:
         logger.error('No bundle matching {} found'.format(key_name))
-        return
+        sys.exit(1)
 
     bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
     bundle.close()
