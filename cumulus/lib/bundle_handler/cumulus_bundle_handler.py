@@ -56,18 +56,26 @@ logging.config.dictConfig({
 
 logger = logging.getLogger(__name__)
 
+config = SafeConfigParser()
+config.read('/etc/cumulus/metadata.conf')
+
 
 def main():
     """ Main function """
-    config = SafeConfigParser()
-    config.read('/etc/cumulus/metadata.conf')
+    _download_and_unpack_bundle()
+    _run_init_scripts()
 
-    #
-    # Connect to AWS S3
-    #
+    logger.info("Done updating host")
+
+
+def _connect_to_s3():
+    """ Connect to AWS S3
+
+    :returns: boto.s3.connection
+    """
     logger.debug("Connecting to AWS S3")
     try:
-        con = s3.connect_to_region(
+        connection = s3.connect_to_region(
             config.get('metadata', 'region'),
             aws_access_key_id=config.get('metadata', 'aws-access-key-id'),
             aws_secret_access_key=config.get(
@@ -87,15 +95,20 @@ def main():
         logger.error('Unhandled exception when connecting to S3.')
         sys.exit(1)
 
-    #
+    return connection
+
+
+def _download_and_unpack_bundle():
+    """ Download the bundle from AWS S3 """
+    connection = _connect_to_s3()
+
     # Download the bundle
-    #
     key_name = (
         '{env}/{version}/bundle-{env}-{version}-{bundle}.tar.bz2'.format(
             env=config.get('metadata', 'environment'),
             version=config.get('metadata', 'version'),
             bundle=config.get('metadata', 'bundle-type')))
-    bucket = con.get_bucket(config.get('metadata', 's3-bundles-bucket'))
+    bucket = connection.get_bucket(config.get('metadata', 's3-bundles-bucket'))
     key = bucket.get_key(key_name)
 
     # If the bundle does not exist
@@ -121,14 +134,15 @@ def main():
     logger.info("Removing temporary file {}".format(bundle.name))
     os.remove(bundle.name)
 
+
+def _run_init_scripts():
+    """ Execute scripts in /etc/cumulus-init.d """
     # Run the post install scripts provided by the bundle
     if os.path.exists('/etc/cumulus-init.d'):
         logger.info("Run all post deploy scripts in /etc/cumulus-init.d")
         call(
             'run-parts -v --regex ".*" /etc/cumulus-init.d',
             shell=True)
-
-    logger.info("Done updating host")
 
 
 if __name__ == '__main__':
