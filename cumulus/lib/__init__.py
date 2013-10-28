@@ -11,7 +11,7 @@ logging.config.dictConfig({
     'formatters': {
         'standard': {
             'format':
-            '%(asctime)s - cumulus - %(name)s - %(levelname)s - %(message)s'
+            '%(asctime)s - cumulus - %(levelname)s - %(message)s'
         },
     },
     'handlers': {
@@ -73,3 +73,6 @@ def main():
 
     if config_handler.args.validate_templates:
         deployment_manager.validate_templates()
+
+    if config_handler.args.events:
+        deployment_manager.list_events()
