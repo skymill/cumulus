@@ -116,6 +116,8 @@ def _ensure_stack(
                 template_body=_get_json_from_template(template),
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
+
+            _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
             logger.debug('Creating new stack with version {}'.format(
                 config_handler.get_environment_option('version')))
@@ -126,7 +128,7 @@ def _ensure_stack(
                 disable_rollback=disable_rollback,
                 capabilities=['CAPABILITY_IAM'])
 
-        _wait_for_stack_complete(stack_name)
+            _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
     except ValueError, error:
         logger.error('Malformatted template: {}'.format(error))
@@ -145,7 +147,7 @@ def _delete_stack(stack):
     connection = connection_handler.connect_cloudformation()
     logger.info('Deleting stack {}'.format(stack))
     connection.delete_stack(stack)
-    _wait_for_stack_complete(stack)
+    _wait_for_stack_complete(stack, filter_type='DELETE')
 
 
 def _get_json_from_template(template):
@@ -227,13 +229,16 @@ def _stack_exists(stack_name):
     return False
 
 
-def _wait_for_stack_complete(stack_name, check_interval=5):
+def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
     """ Wait until the stack create/update has been completed
 
     :type stack_name: str
     :param stack_name: Stack name
     :type check_interval: int
     :param check_interval: Seconds between each console update
+    :type filter_type: str
+    :param filter_type: Filter events by type. Supported values are None,
+        CREATE, DELETE, UPDATE. Rollback events are always shown.
     """
     complete = False
     complete_statuses = [
@@ -256,16 +261,38 @@ def _wait_for_stack_complete(stack_name, check_interval=5):
             break
 
         if stack.stack_status in complete_statuses:
-            logger.info('Stack completed with status {}'.format(
+            logger.info('Stack {} - Stack completed with status {}'.format(
+                stack.stack_name,
                 stack.stack_status))
             complete = True
         else:
             for event in connection.describe_stack_events(stack.stack_id):
                 if event.event_id not in written_events:
                     written_events.append(event.event_id)
-                    logger.info('Stack {} - {} - {}'.format(
-                        event.stack_name,
-                        event.resource_type,
-                        event.resource_status))
+
+                    event_type, _ = event.resource_status.split('_', 1)
+                    if not filter_type:
+                        logger.info('Stack {} - {} - {}'.format(
+                            event.stack_name,
+                            event.resource_type,
+                            event.resource_status))
+                    elif (filter_type == 'CREATE'
+                            and event_type in ['CREATE', 'ROLLBACK']):
+                        logger.info('Stack {} - {} - {}'.format(
+                            event.stack_name,
+                            event.resource_type,
+                            event.resource_status))
+                    elif (filter_type == 'DELETE'
+                            and event_type in ['DELETE', 'ROLLBACK']):
+                        logger.info('Stack {} - {} - {}'.format(
+                            event.stack_name,
+                            event.resource_type,
+                            event.resource_status))
+                    elif (filter_type == 'UPDATE'
+                            and event_type in ['UPDATE', 'ROLLBACK']):
+                        logger.info('Stack {} - {} - {}'.format(
+                            event.stack_name,
+                            event.resource_type,
+                            event.resource_status))
 
         time.sleep(check_interval)
