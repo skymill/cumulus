@@ -2,13 +2,14 @@
 
 """ Script downloading and unpacking Cumulus bundles for the host """
 
-import os
-import sys
 import logging
+import os
+import shutil
+import sys
 import tarfile
 import tempfile
 from subprocess import call
-from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
+from ConfigParser import SafeConfigParser
 
 try:
     from boto import s3
@@ -31,12 +32,12 @@ logging.config.dictConfig({
     },
     'handlers': {
         'console': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'standard'
         },
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'standard',
             'filename': '/var/log/cumulus-bundle-handler.log',
@@ -48,13 +49,18 @@ logging.config.dictConfig({
     'loggers': {
         '': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'propagate': True
+        },
+        'cumulus_bundle_handler': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False
         }
     }
 })
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('cumulus_bundle_handler')
 
 config = SafeConfigParser()
 config.read('/etc/cumulus/metadata.conf')
@@ -62,45 +68,21 @@ config.read('/etc/cumulus/metadata.conf')
 
 def main():
     """ Main function """
+    _remove_old_files()
     _download_and_unpack_bundle()
     _run_init_scripts()
 
     logger.info("Done updating host")
 
 
-def _connect_to_s3():
-    """ Connect to AWS S3
-
-    :returns: boto.s3.connection
-    """
-    logger.debug("Connecting to AWS S3")
-    try:
-        connection = s3.connect_to_region(
-            config.get('metadata', 'region'),
-            aws_access_key_id=config.get('metadata', 'aws-access-key-id'),
-            aws_secret_access_key=config.get(
-                'metadata', 'aws-secret-access-key'))
-    except NoSectionError, error:
-        logger.error('Missing config section: {}'.format(error))
-        sys.exit(1)
-    except NoOptionError, error:
-        logger.error('Missing config option: {}'.format(error))
-        sys.exit(1)
-    except AttributeError:
-        logger.error(
-            'It seems like boto is outdated. Please upgrade '
-            'by running \"pip install --upgrade boto\"')
-        sys.exit(1)
-    except:
-        logger.error('Unhandled exception when connecting to S3.')
-        sys.exit(1)
-
-    return connection
-
-
 def _download_and_unpack_bundle():
     """ Download the bundle from AWS S3 """
-    connection = _connect_to_s3()
+    logger.debug("Connecting to AWS S3")
+    connection = s3.connect_to_region(
+        config.get('metadata', 'region'),
+        aws_access_key_id=config.get('metadata', 'aws-access-key-id'),
+        aws_secret_access_key=config.get(
+            'metadata', 'aws-secret-access-key'))
 
     # Download the bundle
     key_name = (
@@ -127,6 +109,7 @@ def _download_and_unpack_bundle():
     # Unpack the bundle
     logger.info("Unpacking {}".format(bundle.name))
     tar = tarfile.open(bundle.name, 'r:bz2')
+    _store_bundle_files(tar.getnames())
     tar.extractall()
     tar.close()
 
@@ -135,14 +118,80 @@ def _download_and_unpack_bundle():
     os.remove(bundle.name)
 
 
+def _remove_old_files():
+    """ Remove files from previous bundle """
+    cache_file = '/var/local/cumulus-bundle-handler.cache'
+
+    if not os.path.exists(cache_file):
+        logger.info('No previous bundle files to clean up')
+        return
+
+    with open(cache_file, 'r') as file_handle:
+        for line in file_handle.readlines():
+            line = line.replace('\n', '')
+
+            if not os.path.exists(line):
+                continue
+
+            if os.path.isdir(line):
+                if os.listdir(line) == []:
+                    logger.info('Removing empty directory {}'.format(line))
+                    shutil.rmtree(line)
+            elif os.path.isfile(line):
+                logger.info('Removing file {}'.format(line))
+                os.remove(line)
+
+                if os.listdir(os.path.dirname(line)) == []:
+                    logger.info('Removing empty directory {}'.format(
+                        os.path.dirname(line)))
+                    shutil.rmtree(os.path.dirname(line))
+
+            elif os.path.islink(line):
+                logger.info('Removing link {}'.format(line))
+
+                if os.listdir(os.path.dirname(line)) == []:
+                    logger.info('Removing empty directory {}'.format(
+                        os.path.dirname(line)))
+                    shutil.rmtree(os.path.dirname(line))
+            else:
+                logger.warning('Unknown file type {}'.format(line))
+
+
 def _run_init_scripts():
     """ Execute scripts in /etc/cumulus-init.d """
     # Run the post install scripts provided by the bundle
     if os.path.exists('/etc/cumulus-init.d'):
-        logger.info("Run all post deploy scripts in /etc/cumulus-init.d")
+        logger.info("Running all post deploy scripts in /etc/cumulus-init.d")
         call(
             'run-parts -v --regex ".*" /etc/cumulus-init.d',
             shell=True)
+
+
+def _store_bundle_files(filenames):
+    """ Store a list of bundle paths
+
+    :type filenames: list
+    :param filenames: List of full paths for all paths in the bundle
+    """
+    cache_file = '/var/local/cumulus-bundle-handler.cache'
+
+    if os.path.exists(cache_file):
+        os.remove(cache_file)
+
+    file_handle = open(cache_file, 'w')
+    try:
+        for filename in filenames:
+            if not filename:
+                continue
+
+            if filename[0] != '/':
+                filename = '/{}'.format(filename)
+
+            file_handle.write('{}\n'.format(filename))
+
+        logger.debug('Stored bundle information in {}'.format(cache_file))
+    finally:
+        file_handle.close()
 
 
 if __name__ == '__main__':
