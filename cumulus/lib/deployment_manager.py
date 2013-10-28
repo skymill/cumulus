@@ -14,11 +14,6 @@ import connection_handler
 
 logger = logging.getLogger(__name__)
 
-BLUE = '\033[94m'
-GREEN = '\033[92m'
-RED = '\033[91m'
-ENDC = '\033[0m'
-
 
 def deploy():
     """ Ensure stack is up and running (create or update it) """
@@ -230,11 +225,14 @@ def _print_event_log_event(event):
     # Colorize status
     event_status = event.resource_status.split('_')
     if event_status[len(event_status) - 1] == 'COMPLETE':
-        status = GREEN + event.resource_status + ENDC
+        # Green text
+        status = '\033[92m' + event.resource_status + '\033[0m'
     elif event_status[len(event_status) - 1] == 'PROGRESS':
-        status = BLUE + event.resource_status + ENDC
+        # Blue text
+        status = '\033[94m' + event.resource_status + '\033[0m'
     elif event_status[len(event_status) - 1] == 'FAILED':
-        status = RED + event.resource_status + ENDC
+        # Red text
+        status = '\033[91m' + event.resource_status + '\033[0m'
     else:
         status = event.resource_status
 
