@@ -73,6 +73,16 @@ To have files that should only be included in specific environments, prefix them
 
 ## Release notes
 
+**0.5.0 (2013-10-28)**
+
+- [Clean up host on bundle update #38](https://github.com/skymill/cumulus/issues/38)
+- [Cumulus bundle handler should use Python logging #40](https://github.com/skymill/cumulus/issues/40)
+- [Get rid of Cumulus metadata.conf and make the bundle handler self-contained #41](https://github.com/skymill/cumulus/issues/41)
+- [Remove __name__ from logging output #42](https://github.com/skymill/cumulus/issues/42)
+- [Filter events when creating/updating/deleting stacks #43](https://github.com/skymill/cumulus/issues/43)
+- [Add function for listing stack events on command line #45](https://github.com/skymill/cumulus/issues/45)
+- [Enhance status output when waiting for stack change to complete #46](https://github.com/skymill/cumulus/issues/46)
+
 **0.4.0 (2013-10-25)**
 
 - [Path prefix in bundles #36](https://github.com/skymill/cumulus/issues/36)
