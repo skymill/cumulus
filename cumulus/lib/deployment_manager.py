@@ -49,44 +49,12 @@ def list_events():
         if not stack:
             break
 
-        print('Stack: {}'.format(stack_name))
-        print((
-            '{timestamp:<20} | {type:<45} | '
-            '{logical_id:<30} | {status:<25}'.format(
-                timestamp='Timestamp',
-                type='Resource type',
-                logical_id='Logical ID',
-                status='Status')))
-        print((
-            '---------------------+---------------'
-            '--------------------------------+----'
-            '----------------------------+--------'
-            '-------------------'))
+        _print_event_log_title()
 
         for event in reversed(con.describe_stack_events(stack.stack_id)):
             if event.event_id not in written_events:
                 written_events.append(event.event_id)
-
-                # Colorize status
-                event_status = event.resource_status.split('_')
-                if event_status[len(event_status) - 1] == 'COMPLETE':
-                    status = GREEN + event.resource_status + ENDC
-                elif event_status[len(event_status) - 1] == 'PROGRESS':
-                    status = BLUE + event.resource_status + ENDC
-                elif event_status[len(event_status) - 1] == 'FAILED':
-                    status = RED + event.resource_status + ENDC
-                else:
-                    status = event.resource_status
-
-                print((
-                    '{timestamp:<20} | {type:<45} | '
-                    '{logical_id:<30} | {status:<25}').format(
-                        timestamp=datetime.strftime(
-                            event.timestamp,
-                            '%Y-%m-%dT%H:%M:%S'),
-                        type=event.resource_type,
-                        logical_id=event.logical_resource_id,
-                        status=status))
+                _print_event_log_event(event)
 
 
 def list_stacks():
@@ -253,6 +221,50 @@ def _pre_deploy_hook():
         sys.exit(1)
 
 
+def _print_event_log_event(event):
+    """ Print event log row to stdout
+
+    :type event: event object
+    :param event: CloudFormation event object
+    """
+    # Colorize status
+    event_status = event.resource_status.split('_')
+    if event_status[len(event_status) - 1] == 'COMPLETE':
+        status = GREEN + event.resource_status + ENDC
+    elif event_status[len(event_status) - 1] == 'PROGRESS':
+        status = BLUE + event.resource_status + ENDC
+    elif event_status[len(event_status) - 1] == 'FAILED':
+        status = RED + event.resource_status + ENDC
+    else:
+        status = event.resource_status
+
+    print((
+        '{timestamp:<20} | {type:<45} | '
+        '{logical_id:<30} | {status:<25}').format(
+            timestamp=datetime.strftime(
+                event.timestamp,
+                '%Y-%m-%dT%H:%M:%S'),
+            type=event.resource_type,
+            logical_id=event.logical_resource_id,
+            status=status))
+
+
+def _print_event_log_title():
+    """ Print event log title row on stdout """
+    print((
+        '{timestamp:<20} | {type:<45} | '
+        '{logical_id:<30} | {status:<25}'.format(
+            timestamp='Timestamp',
+            type='Resource type',
+            logical_id='Logical ID',
+            status='Status')))
+    print((
+        '---------------------+---------------'
+        '--------------------------------+----'
+        '----------------------------+--------'
+        '-------------------'))
+
+
 def _post_deploy_hook():
     """ Execute a post-deploy-hook """
     command = config_handler.get_post_deploy_hook()
@@ -309,7 +321,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
         'UPDATE_ROLLBACK_FAILED',
         'UPDATE_ROLLBACK_COMPLETE'
     ]
-    connection = connection_handler.connect_cloudformation()
+    con = connection_handler.connect_cloudformation()
     written_events = []
 
     while not complete:
@@ -323,33 +335,32 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
                 stack.stack_status))
             complete = True
         else:
-            for event in connection.describe_stack_events(stack.stack_id):
-                if event.event_id not in written_events:
-                    written_events.append(event.event_id)
+            if written_events == []:
+                _print_event_log_title()
 
-                    event_type, _ = event.resource_status.split('_', 1)
-                    if not filter_type:
-                        logger.info('Stack {} - {} - {}'.format(
-                            event.stack_name,
-                            event.resource_type,
-                            event.resource_status))
-                    elif (filter_type == 'CREATE'
-                            and event_type in ['CREATE', 'ROLLBACK']):
-                        logger.info('Stack {} - {} - {}'.format(
-                            event.stack_name,
-                            event.resource_type,
-                            event.resource_status))
-                    elif (filter_type == 'DELETE'
-                            and event_type in ['DELETE', 'ROLLBACK']):
-                        logger.info('Stack {} - {} - {}'.format(
-                            event.stack_name,
-                            event.resource_type,
-                            event.resource_status))
-                    elif (filter_type == 'UPDATE'
-                            and event_type in ['UPDATE', 'ROLLBACK']):
-                        logger.info('Stack {} - {} - {}'.format(
-                            event.stack_name,
-                            event.resource_type,
-                            event.resource_status))
+            for event in reversed(con.describe_stack_events(stack.stack_id)):
+                if event.event_id in written_events:
+                    continue
+
+                written_events.append(event.event_id)
+
+                event_type, _ = event.resource_status.split('_', 1)
+                log = False
+                if not filter_type:
+                    log = True
+                elif (filter_type == 'CREATE'
+                        and event_type in ['CREATE', 'ROLLBACK']):
+                    log = True
+                elif (filter_type == 'DELETE'
+                        and event_type in ['DELETE', 'ROLLBACK']):
+                    log = True
+                elif (filter_type == 'UPDATE'
+                        and event_type in ['UPDATE', 'ROLLBACK']):
+                    log = True
+
+                if not log:
+                    continue
+
+                _print_event_log_event(event)
 
         time.sleep(check_interval)
