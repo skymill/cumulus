@@ -5,6 +5,7 @@ import os.path
 import subprocess
 import sys
 import time
+from datetime import datetime
 
 import boto
 
@@ -12,6 +13,11 @@ import config_handler
 import connection_handler
 
 logger = logging.getLogger(__name__)
+
+BLUE = '\033[94m'
+GREEN = '\033[92m'
+RED = '\033[91m'
+ENDC = '\033[0m'
 
 
 def deploy():
@@ -30,6 +36,57 @@ def deploy():
 
     # Run post-deploy-hook
     _post_deploy_hook()
+
+
+def list_events():
+    """ List events """
+    con = connection_handler.connect_cloudformation()
+
+    for stack_name in config_handler.get_stacks():
+        stack = _get_stack_by_name(stack_name)
+        written_events = []
+
+        if not stack:
+            break
+
+        print('Stack: {}'.format(stack_name))
+        print((
+            '{timestamp:<20} | {type:<45} | '
+            '{logical_id:<30} | {status:<25}'.format(
+                timestamp='Timestamp',
+                type='Resource type',
+                logical_id='Logical ID',
+                status='Status')))
+        print((
+            '---------------------+---------------'
+            '--------------------------------+----'
+            '----------------------------+--------'
+            '-------------------'))
+
+        for event in reversed(con.describe_stack_events(stack.stack_id)):
+            if event.event_id not in written_events:
+                written_events.append(event.event_id)
+
+                # Colorize status
+                event_status = event.resource_status.split('_')
+                if event_status[len(event_status) - 1] == 'COMPLETE':
+                    status = GREEN + event.resource_status + ENDC
+                elif event_status[len(event_status) - 1] == 'PROGRESS':
+                    status = BLUE + event.resource_status + ENDC
+                elif event_status[len(event_status) - 1] == 'FAILED':
+                    status = RED + event.resource_status + ENDC
+                else:
+                    status = event.resource_status
+
+                print((
+                    '{timestamp:<20} | {type:<45} | '
+                    '{logical_id:<30} | {status:<25}').format(
+                        timestamp=datetime.strftime(
+                            event.timestamp,
+                            '%Y-%m-%dT%H:%M:%S'),
+                        type=event.resource_type,
+                        logical_id=event.logical_resource_id,
+                        status=status))
 
 
 def list_stacks():

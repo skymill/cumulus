@@ -73,3 +73,6 @@ def main():
 
     if config_handler.args.validate_templates:
         deployment_manager.validate_templates()
+
+    if config_handler.args.events:
+        deployment_manager.list_events()
