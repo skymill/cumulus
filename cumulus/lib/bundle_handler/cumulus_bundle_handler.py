@@ -68,9 +68,10 @@ config.read('/etc/cumulus/metadata.conf')
 
 def main():
     """ Main function """
+    _run_init_scripts(kill=True, start=False, other=True)
     _remove_old_files()
     _download_and_unpack_bundle()
-    _run_init_scripts()
+    _run_init_scripts(kill=False, start=True, other=True)
 
     logger.info("Done updating host")
 
@@ -157,14 +158,45 @@ def _remove_old_files():
                 logger.warning('Unknown file type {}'.format(line))
 
 
-def _run_init_scripts():
-    """ Execute scripts in /etc/cumulus-init.d """
+def _run_init_scripts(start=False, kill=False, other=False):
+    """ Execute scripts in /etc/cumulus-init.d
+
+    :type start: bool
+    :param start: Run scripts starting with S
+    :type kill: bool
+    :param kill: Run scripts starting with K
+    :type others: bool
+    :param others: Run scripts not starting with S or K
+    """
     # Run the post install scripts provided by the bundle
-    if os.path.exists('/etc/cumulus-init.d'):
-        logger.info("Running all post deploy scripts in /etc/cumulus-init.d")
-        call(
-            'run-parts -v --regex ".*" /etc/cumulus-init.d',
-            shell=True)
+    if not os.path.exists('/etc/cumulus-init.d'):
+        return
+
+    filenames = []
+    for filename in os.listdir(os.path.dirname(os.path.realpath(__file__))):
+        if os.path.isfile(filename):
+            filenames.append(filename)
+
+    if start:
+        for filename in filenames:
+            if filename[0] == 'S':
+                logger.info(
+                    'Executing script: {}'.format(os.path.abspath(filename)))
+                call(os.path.abspath(filename), shell=True)
+
+    if kill:
+        for filename in filenames:
+            if filename[0] == 'K':
+                logger.info(
+                    'Executing script: {}'.format(os.path.abspath(filename)))
+                call(os.path.abspath(filename), shell=True)
+
+    if other:
+        for filename in filenames:
+            if filename[0] not in ['K', 'S']:
+                logger.debug(
+                    'Executing script: {}'.format(os.path.abspath(filename)))
+                call(os.path.abspath(filename), shell=True)
 
 
 def _store_bundle_files(filenames):
