@@ -88,9 +88,8 @@ def _download_and_unpack_bundle():
     logger.debug("Connecting to AWS S3")
     connection = s3.connect_to_region(
         config.get('metadata', 'region'),
-        aws_access_key_id=config.get('metadata', 'aws-access-key-id'),
-        aws_secret_access_key=config.get(
-            'metadata', 'aws-secret-access-key'))
+        aws_access_key_id=config.get('metadata', 'access-key-id'),
+        aws_secret_access_key=config.get('metadata', 'secret-access-key'))
 
     # Download the bundle
     key_name = (
@@ -98,7 +97,7 @@ def _download_and_unpack_bundle():
             env=config.get('metadata', 'environment'),
             version=config.get('metadata', 'version'),
             bundle=config.get('metadata', 'bundle-type')))
-    bucket = connection.get_bucket(config.get('metadata', 's3-bundles-bucket'))
+    bucket = connection.get_bucket(config.get('metadata', 'bundle-bucket'))
     key = bucket.get_key(key_name)
 
     # If the bundle does not exist
