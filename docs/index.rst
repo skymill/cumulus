@@ -1,22 +1,27 @@
-.. Cumulus documentation master file, created by
-   sphinx-quickstart on Fri Nov  1 19:36:18 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to Cumulus's documentation!
-===================================
-
-Contents:
-
+Table of contents
+=================
 .. toctree::
-   :maxdepth: 2
 
+   configuration
 
+Cumulus
+=======
 
-Indices and tables
-==================
+Cumulus is a deployment tool used to deploy and maintain environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Basic concepts
+==============
 
+Cumulus is built around three main concepts:
+
+* An **environment** references a whole environment and all it's CloudFormation stacks. It holds together information about the AWS account, which stacks to deploy and in which version.
+* A *stack* is simply a CloudFormation stack.
+* And a **bundle** is a `tar.bz2` file with code and configuration to unpack to instances.
+
+Requirements
+============
+
+Cumulus requires Python 2.7 and ``boto``. Please install requirements with
+::
+
+    pip install -r cumulus/requirements.txt
