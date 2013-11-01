@@ -4,11 +4,10 @@
 
 import logging
 import os
-import shutil
+import subprocess
 import sys
 import tarfile
 import tempfile
-from subprocess import call
 from ConfigParser import SafeConfigParser
 
 try:
@@ -68,9 +67,10 @@ config.read('/etc/cumulus/metadata.conf')
 
 def main():
     """ Main function """
+    _run_init_scripts(kill=True, start=False, other=True)
     _remove_old_files()
     _download_and_unpack_bundle()
-    _run_init_scripts()
+    _run_init_scripts(kill=False, start=True, other=True)
 
     logger.info("Done updating host")
 
@@ -110,8 +110,11 @@ def _download_and_unpack_bundle():
     logger.info("Unpacking {}".format(bundle.name))
     tar = tarfile.open(bundle.name, 'r:bz2')
     _store_bundle_files(tar.getnames())
+    pwd = os.getcwd()
+    os.chdir('/')
     tar.extractall()
     tar.close()
+    os.chdir(pwd)
 
     # Remove the downloaded package
     logger.info("Removing temporary file {}".format(bundle.name))
@@ -134,37 +137,98 @@ def _remove_old_files():
                 continue
 
             if os.path.isdir(line):
-                if os.listdir(line) == []:
-                    logger.info('Removing empty directory {}'.format(line))
-                    shutil.rmtree(line)
+                try:
+                    os.removedirs(line)
+                    logger.info('Removing directory {}'.format(line))
+                except OSError:
+                    pass
             elif os.path.isfile(line):
                 logger.info('Removing file {}'.format(line))
                 os.remove(line)
 
-                if os.listdir(os.path.dirname(line)) == []:
-                    logger.info('Removing empty directory {}'.format(
-                        os.path.dirname(line)))
-                    shutil.rmtree(os.path.dirname(line))
-
+                try:
+                    os.removedirs(os.path.dirname(line))
+                except OSError:
+                    pass
             elif os.path.islink(line):
                 logger.info('Removing link {}'.format(line))
+                os.remove(line)
 
-                if os.listdir(os.path.dirname(line)) == []:
-                    logger.info('Removing empty directory {}'.format(
-                        os.path.dirname(line)))
-                    shutil.rmtree(os.path.dirname(line))
+                try:
+                    os.removedirs(os.path.dirname(line))
+                except OSError:
+                    pass
             else:
                 logger.warning('Unknown file type {}'.format(line))
 
 
-def _run_init_scripts():
-    """ Execute scripts in /etc/cumulus-init.d """
+def _run_command(command):
+    """ Run arbitary command
+
+    :type command: str
+    :param command: Command to execute
+    """
+    logger.info('Executing command: {}'.format(command))
+
+    cmd = subprocess.Popen(
+        command,
+        shell=True,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE)
+
+    stdout, stderr = cmd.communicate()
+    if stdout:
+        print(stdout)
+    if stderr:
+        print(stderr)
+
+    if cmd.returncode != 0:
+        logger.error('Command "{}" returned non-zero exit code {}'.format(
+            command,
+            cmd.returncode))
+        sys.exit(cmd.returncode)
+
+
+def _run_init_scripts(start=False, kill=False, other=False):
+    """ Execute scripts in /etc/cumulus-init.d
+
+    :type start: bool
+    :param start: Run scripts starting with S
+    :type kill: bool
+    :param kill: Run scripts starting with K
+    :type others: bool
+    :param others: Run scripts not starting with S or K
+    """
+    init_dir = '/etc/cumulus-init.d'
+
     # Run the post install scripts provided by the bundle
-    if os.path.exists('/etc/cumulus-init.d'):
-        logger.info("Running all post deploy scripts in /etc/cumulus-init.d")
-        call(
-            'run-parts -v --regex ".*" /etc/cumulus-init.d',
-            shell=True)
+    if not os.path.exists(init_dir):
+        logger.info('No init scripts found in {}'.format(init_dir))
+        return
+
+    logger.info('Running init scripts from {}'.format(init_dir))
+
+    filenames = []
+    for filename in os.listdir(init_dir):
+        if os.path.isfile(os.path.join(init_dir, filename)):
+            logger.debug('Found init script {}'.format(
+                os.path.join(init_dir, filename)))
+            filenames.append(os.path.join(init_dir, filename))
+
+    if start:
+        for filename in filenames:
+            if filename[0] == 'S':
+                _run_command(os.path.abspath(filename))
+
+    if kill:
+        for filename in filenames:
+            if filename[0] == 'K':
+                _run_command(os.path.abspath(filename))
+
+    if other:
+        for filename in filenames:
+            if filename[0] not in ['K', 'S']:
+                _run_command(os.path.abspath(filename))
 
 
 def _store_bundle_files(filenames):
