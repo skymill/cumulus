@@ -45,7 +45,7 @@ All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./c
     pre-bundle-hook: git clone git://git.example.com/my.git
     post-bundle-hook: rm -rf my
     paths:
-        /Users/sebastian/tmp/hosts/webserver,
+        /Users/sebastian/tmp/hosts/webserver
         /Users/sebastian/tmp/code/wordpress
 
     [bundle: database]

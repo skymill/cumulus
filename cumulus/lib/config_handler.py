@@ -418,11 +418,9 @@ def _populate_bundles(config):
             for option, required in bundle_options:
                 try:
                     if option == 'paths':
-                        raw_paths = config.get(section, option)\
-                            .replace('\n', '')\
-                            .split(',')
+                        lines = config.get(section, option).strip().split('\n')
                         paths = []
-                        for path in raw_paths:
+                        for path in lines:
                             paths.append(os.path.expanduser(path.strip()))
                         conf['bundles'][bundle]['paths'] = paths
                     elif option == 'path-rewrites':
