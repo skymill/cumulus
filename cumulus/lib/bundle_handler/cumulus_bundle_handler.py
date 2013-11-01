@@ -5,10 +5,10 @@
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import tarfile
 import tempfile
-from subprocess import call
 from ConfigParser import SafeConfigParser
 
 try:
@@ -158,6 +158,28 @@ def _remove_old_files():
                 logger.warning('Unknown file type {}'.format(line))
 
 
+def _run_command(command):
+    """ Run arbitary command
+
+    :type command: str
+    :param command: Command to execute
+    """
+    logger.info('Executing command: {}'.format(command))
+
+    cmd = subprocess.Popen(
+        command,
+        shell=True,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE)
+    print(cmd.communicate())
+
+    if cmd.returncode != 0:
+        logger.error('Command "{}" returned non-zero exit code {}'.format(
+            command,
+            cmd.returncode))
+        sys.exit(cmd.returncode)
+
+
 def _run_init_scripts(start=False, kill=False, other=False):
     """ Execute scripts in /etc/cumulus-init.d
 
@@ -168,35 +190,34 @@ def _run_init_scripts(start=False, kill=False, other=False):
     :type others: bool
     :param others: Run scripts not starting with S or K
     """
+    init_dir = '/etc/cumulus-init.d'
+
     # Run the post install scripts provided by the bundle
-    if not os.path.exists('/etc/cumulus-init.d'):
+    if not os.path.exists(init_dir):
+        logger.info('No init scripts found in {}'.format(init_dir))
         return
 
+    logger.info('Running init scripts from {}'.format(init_dir))
+
     filenames = []
-    for filename in os.listdir(os.path.dirname(os.path.realpath(__file__))):
+    for filename in os.listdir(init_dir):
         if os.path.isfile(filename):
             filenames.append(filename)
 
     if start:
         for filename in filenames:
             if filename[0] == 'S':
-                logger.info(
-                    'Executing script: {}'.format(os.path.abspath(filename)))
-                call(os.path.abspath(filename), shell=True)
+                _run_command(os.path.abspath(filename))
 
     if kill:
         for filename in filenames:
             if filename[0] == 'K':
-                logger.info(
-                    'Executing script: {}'.format(os.path.abspath(filename)))
-                call(os.path.abspath(filename), shell=True)
+                _run_command(os.path.abspath(filename))
 
     if other:
         for filename in filenames:
             if filename[0] not in ['K', 'S']:
-                logger.debug(
-                    'Executing script: {}'.format(os.path.abspath(filename)))
-                call(os.path.abspath(filename), shell=True)
+                _run_command(os.path.abspath(filename))
 
 
 def _store_bundle_files(filenames):
