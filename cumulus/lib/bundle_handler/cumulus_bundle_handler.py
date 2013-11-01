@@ -69,22 +69,26 @@ def main():
     """ Main function """
     _run_init_scripts(kill=True, start=False, other=True)
 
-    bundle_types = config.get('metadata', 'bundle-type').split(',')
+    bundle_types = config.get('metadata', 'bundle-types').split(',')
     if not bundle_types:
         logger.error('Missing "bundle-type" in metadata.conf')
         sys.exit(1)
 
     for bundle_type in bundle_types:
         _remove_old_files()
-        _download_and_unpack_bundle()
+        _download_and_unpack_bundle(bundle_type)
 
     _run_init_scripts(kill=False, start=True, other=True)
 
     logger.info("Done updating host")
 
 
-def _download_and_unpack_bundle():
-    """ Download the bundle from AWS S3 """
+def _download_and_unpack_bundle(bundle_type):
+    """ Download the bundle from AWS S3
+
+    :type bundle_type: str
+    :param bundle_type: Bundle type to download
+    """
     logger.debug("Connecting to AWS S3")
     connection = s3.connect_to_region(
         config.get('metadata', 'region'),
@@ -96,7 +100,7 @@ def _download_and_unpack_bundle():
         '{env}/{version}/bundle-{env}-{version}-{bundle}.tar.bz2'.format(
             env=config.get('metadata', 'environment'),
             version=config.get('metadata', 'version'),
-            bundle=config.get('metadata', 'bundle-type')))
+            bundle=bundle_type))
     bucket = connection.get_bucket(config.get('metadata', 'bundle-bucket'))
     key = bucket.get_key(key_name)
 
@@ -108,7 +112,7 @@ def _download_and_unpack_bundle():
     bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
     bundle.close()
     logger.info("Downloading s3://{}/{} to {}".format(
-        config.get('metadata', 's3-bundles-bucket'),
+        config.get('metadata', 'bundles-bucket'),
         key.name,
         bundle.name))
     key.get_contents_to_filename(bundle.name)
