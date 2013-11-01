@@ -4,7 +4,6 @@
 
 import logging
 import os
-import shutil
 import subprocess
 import sys
 import tarfile
@@ -111,8 +110,11 @@ def _download_and_unpack_bundle():
     logger.info("Unpacking {}".format(bundle.name))
     tar = tarfile.open(bundle.name, 'r:bz2')
     _store_bundle_files(tar.getnames())
+    pwd = os.getcwd()
+    os.chdir('/')
     tar.extractall()
     tar.close()
+    os.chdir(pwd)
 
     # Remove the downloaded package
     logger.info("Removing temporary file {}".format(bundle.name))
@@ -135,25 +137,27 @@ def _remove_old_files():
                 continue
 
             if os.path.isdir(line):
-                if os.listdir(line) == []:
-                    logger.info('Removing empty directory {}'.format(line))
-                    shutil.rmtree(line)
+                try:
+                    os.removedirs(line)
+                    logger.info('Removing directory {}'.format(line))
+                except OSError:
+                    pass
             elif os.path.isfile(line):
                 logger.info('Removing file {}'.format(line))
                 os.remove(line)
 
-                if os.listdir(os.path.dirname(line)) == []:
-                    logger.info('Removing empty directory {}'.format(
-                        os.path.dirname(line)))
-                    shutil.rmtree(os.path.dirname(line))
-
+                try:
+                    os.removedirs(os.path.dirname(line))
+                except OSError:
+                    pass
             elif os.path.islink(line):
                 logger.info('Removing link {}'.format(line))
+                os.remove(line)
 
-                if os.listdir(os.path.dirname(line)) == []:
-                    logger.info('Removing empty directory {}'.format(
-                        os.path.dirname(line)))
-                    shutil.rmtree(os.path.dirname(line))
+                try:
+                    os.removedirs(os.path.dirname(line))
+                except OSError:
+                    pass
             else:
                 logger.warning('Unknown file type {}'.format(line))
 
@@ -171,7 +175,12 @@ def _run_command(command):
         shell=True,
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE)
-    print(cmd.communicate())
+
+    stdout, stderr = cmd.communicate()
+    if stdout:
+        print(stdout)
+    if stderr:
+        print(stderr)
 
     if cmd.returncode != 0:
         logger.error('Command "{}" returned non-zero exit code {}'.format(
@@ -201,8 +210,10 @@ def _run_init_scripts(start=False, kill=False, other=False):
 
     filenames = []
     for filename in os.listdir(init_dir):
-        if os.path.isfile(filename):
-            filenames.append(filename)
+        if os.path.isfile(os.path.join(init_dir, filename)):
+            logger.debug('Found init script {}'.format(
+                os.path.join(init_dir, filename)))
+            filenames.append(os.path.join(init_dir, filename))
 
     if start:
         for filename in filenames:
