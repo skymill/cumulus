@@ -68,8 +68,16 @@ config.read('/etc/cumulus/metadata.conf')
 def main():
     """ Main function """
     _run_init_scripts(kill=True, start=False, other=True)
-    _remove_old_files()
-    _download_and_unpack_bundle()
+
+    bundle_types = config.get('metadata', 'bundle-type').split(',')
+    if not bundle_types:
+        logger.error('Missing "bundle-type" in metadata.conf')
+        sys.exit(1)
+
+    for bundle_type in bundle_types:
+        _remove_old_files()
+        _download_and_unpack_bundle()
+
     _run_init_scripts(kill=False, start=True, other=True)
 
     logger.info("Done updating host")
@@ -161,6 +169,9 @@ def _remove_old_files():
             else:
                 logger.warning('Unknown file type {}'.format(line))
 
+    # Remove the cache file when done
+    os.remove(cache_file)
+
 
 def _run_command(command):
     """ Run arbitary command
@@ -242,7 +253,7 @@ def _store_bundle_files(filenames):
     if os.path.exists(cache_file):
         os.remove(cache_file)
 
-    file_handle = open(cache_file, 'w')
+    file_handle = open(cache_file, 'a')
     try:
         for filename in filenames:
             if not filename:
