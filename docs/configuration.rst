@@ -117,5 +117,5 @@ Option                  Type               Required Comment
 ``bucket``              String             Yes      AWS S3 bucket to fetch bundles from
 ``environment``         String             Yes      Environment name
 ``version``             String             Yes      Environment version to apply
-``bundle-types`         CSV                Yes      Bundle names to apply to this host
+``bundle-types``        CSV                Yes      Bundle names to apply to this host
 ======================= ================== ======== ==========================================
