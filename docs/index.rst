@@ -13,3 +13,4 @@ Table of contents
     overview
     configuration
     cf_example
+    sc_lib_init
