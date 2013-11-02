@@ -105,7 +105,7 @@ def _ensure_stack(
     """
     connection = connection_handler.connect_cloudformation()
     logger.info('Ensuring stack {} with template {}'.format(
-        stack_name, os.path.basename(template)))
+        stack_name, template))
 
     cumulus_parameters = [
         (
@@ -130,25 +130,42 @@ def _ensure_stack(
         if _stack_exists(stack_name):
             logger.debug('Updating existing stack to version {}'.format(
                 config_handler.get_environment_option('version')))
-            connection.update_stack(
-                stack_name,
-                parameters=cumulus_parameters + parameters,
-                template_body=_get_json_from_template(template),
-                disable_rollback=disable_rollback,
-                capabilities=['CAPABILITY_IAM'])
+
+            if template[0:4] == 'http':
+                connection.update_stack(
+                    stack_name,
+                    parameters=cumulus_parameters + parameters,
+                    template_url=template,
+                    disable_rollback=disable_rollback,
+                    capabilities=['CAPABILITY_IAM'])
+            else:
+                connection.update_stack(
+                    stack_name,
+                    parameters=cumulus_parameters + parameters,
+                    template_body=_get_json_from_template(template),
+                    disable_rollback=disable_rollback,
+                    capabilities=['CAPABILITY_IAM'])
 
             _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
             logger.debug('Creating new stack with version {}'.format(
                 config_handler.get_environment_option('version')))
-            connection.create_stack(
-                stack_name,
-                parameters=cumulus_parameters + parameters,
-                template_body=_get_json_from_template(template),
-                disable_rollback=disable_rollback,
-                capabilities=['CAPABILITY_IAM'])
+            if template[0:4] == 'http':
+                connection.create_stack(
+                    stack_name,
+                    parameters=cumulus_parameters + parameters,
+                    template_url=template,
+                    disable_rollback=disable_rollback,
+                    capabilities=['CAPABILITY_IAM'])
+            else:
+                connection.create_stack(
+                    stack_name,
+                    parameters=cumulus_parameters + parameters,
+                    template_body=_get_json_from_template(template),
+                    disable_rollback=disable_rollback,
+                    capabilities=['CAPABILITY_IAM'])
 
-            _wait_for_stack_complete(stack_name, filter_type='CREATE')
+        _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
     except ValueError, error:
         logger.error('Malformatted template: {}'.format(error))
