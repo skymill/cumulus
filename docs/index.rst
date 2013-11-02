@@ -11,6 +11,7 @@ Table of contents
     :maxdepth: 3
 
     overview
+    installation
     configuration
     cf_example
     sc_lib_init
