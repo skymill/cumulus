@@ -4,7 +4,6 @@ import logging
 
 import bundle_manager
 import deployment_manager
-from exceptions import ConfigurationException, HookExecutionException
 
 logging.config.dictConfig({
     'version': 1,
