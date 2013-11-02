@@ -2,6 +2,24 @@
 
 Cumulus is a deployment tool used to deploy and maintain environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
 
+## Installation
+
+Checkout the code and run
+
+    make install
+
+`cumulus` will now be available as a global command
+
+
+## Generate documentation
+
+Cumulus docs are generated using Sphinx. Generate documentation using
+
+
+    make gen-docs
+
+The HTML output is stored under `docs/_build/html`.
+
 
 ## Release notes
 
