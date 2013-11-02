@@ -8,7 +8,11 @@ import lib
 
 
 if __name__ == '__main__':
-    lib.main()
+    try:
+        lib.main()
+    except lib.exceptions.ConfigurationException:
+        sys.exit(1)
+
     sys.exit(0)
 
 sys.exit(1)

@@ -6,73 +6,17 @@ import os.path
 import sys
 from ConfigParser import SafeConfigParser, NoOptionError
 
-logger = logging.getLogger(__name__)
+from exceptions import ConfigurationException
 
+logger = logging.getLogger(__name__)
 
 # Get settings.conf
 settings = SafeConfigParser()
 settings.read(
     os.path.realpath('{}/settings.conf'.format(os.path.dirname(__file__))))
 
-# Read arguments from the command line
-parser = argparse.ArgumentParser(
-    description='Cumulus cloud management tool')
-general_ag = parser.add_argument_group('General options')
-general_ag.add_argument(
-    '-e', '--environment',
-    help='Environment to use')
-general_ag.add_argument(
-    '--version',
-    help=(
-        'Environment version number. '
-        'Overrides the version value from the configuration file'))
-general_ag.add_argument(
-    '--config',
-    help='Path to configuration file.')
-general_ag.add_argument(
-    '--cumulus-version',
-    action='count',
-    help='Print cumulus version number')
-actions_ag = parser.add_argument_group('Actions')
-actions_ag.add_argument(
-    '--bundle',
-    action='count',
-    help='Build and upload bundles to AWS S3')
-actions_ag.add_argument(
-    '--deploy',
-    action='count',
-    help='Bundle and deploy all stacks in the environment')
-actions_ag.add_argument(
-    '--deploy-without-bundling',
-    action='count',
-    help='Deploy all stacks in the environment, without bundling first')
-actions_ag.add_argument(
-    '--events',
-    action='count',
-    help='List events for the stack')
-actions_ag.add_argument(
-    '--list',
-    action='count',
-    help='List stacks for each environment')
-actions_ag.add_argument(
-    '--validate-templates',
-    action='count',
-    help='Validate all templates for the environment')
-actions_ag.add_argument(
-    '--undeploy',
-    action='count',
-    help='Undeploy (DELETE) all stacks in the environment')
-args = parser.parse_args()
-
-if args.cumulus_version:
-    print('Cumulus version {}'.format(settings.get('general', 'version')))
-    sys.exit(0)
-elif not args.environment:
-    print('--environment is required')
-    sys.exit(1)
-
-# Environment name
-environment = args.environment
+environment = None
+args = None
 
 # Initial configuration object
 conf = {
@@ -105,6 +49,70 @@ env_options = [
     ('pre-deploy-hook', False),
     ('post-deploy-hook', False)
 ]
+
+
+def command_line_options():
+    """ Parse command line options """
+    global args
+    global environment
+
+    # Read arguments from the command line
+    parser = argparse.ArgumentParser(
+        description='Cumulus cloud management tool')
+    general_ag = parser.add_argument_group('General options')
+    general_ag.add_argument(
+        '-e', '--environment',
+        help='Environment to use')
+    general_ag.add_argument(
+        '--version',
+        help=(
+            'Environment version number. '
+            'Overrides the version value from the configuration file'))
+    general_ag.add_argument(
+        '--config',
+        help='Path to configuration file.')
+    general_ag.add_argument(
+        '--cumulus-version',
+        action='count',
+        help='Print cumulus version number')
+    actions_ag = parser.add_argument_group('Actions')
+    actions_ag.add_argument(
+        '--bundle',
+        action='count',
+        help='Build and upload bundles to AWS S3')
+    actions_ag.add_argument(
+        '--deploy',
+        action='count',
+        help='Bundle and deploy all stacks in the environment')
+    actions_ag.add_argument(
+        '--deploy-without-bundling',
+        action='count',
+        help='Deploy all stacks in the environment, without bundling first')
+    actions_ag.add_argument(
+        '--events',
+        action='count',
+        help='List events for the stack')
+    actions_ag.add_argument(
+        '--list',
+        action='count',
+        help='List stacks for each environment')
+    actions_ag.add_argument(
+        '--validate-templates',
+        action='count',
+        help='Validate all templates for the environment')
+    actions_ag.add_argument(
+        '--undeploy',
+        action='count',
+        help='Undeploy (DELETE) all stacks in the environment')
+    args = parser.parse_args()
+
+    if args.cumulus_version:
+        print('Cumulus version {}'.format(settings.get('general', 'version')))
+        sys.exit(0)
+    elif not args.environment:
+        raise ConfigurationException('--environment is required')
+
+    environment = args.environment
 
 
 def configure():
@@ -152,7 +160,8 @@ def get_bundle_paths(bundle):
         return conf['bundles'][bundle]['paths']
     except KeyError:
         logger.error('No paths defined for bundle "{}"'.format(bundle))
-        sys.exit(1)
+        raise ConfigurationException(
+            'No paths defined for bundle "{}"'.format(bundle))
 
 
 def get_bundles():
@@ -167,9 +176,8 @@ def get_bundles():
     # Check that the bundles are configured
     for bundle in bundles:
         if bundle not in conf['bundles']:
-            logger.warning('No matching configuration for bundle "{}"!'.format(
-                bundle))
-            sys.exit(1)
+            raise ConfigurationException(
+                'No matching configuration for bundle "{}"!'.format(bundle))
 
     return bundles
 
@@ -245,8 +253,8 @@ def get_stack_disable_rollback(stack):
     try:
         return conf['stacks'][stack]['disable-rollback']
     except KeyError:
-        logger.error('Stack template not found in configuration')
-        sys.exit(1)
+        raise ConfigurationException(
+            'Stack template not found in configuration')
 
 
 def get_stack_parameters(stack):
@@ -272,8 +280,8 @@ def get_stack_template(stack):
     try:
         return conf['stacks'][stack]['template']
     except KeyError:
-        logger.error('Stack template not found in configuration')
-        sys.exit(1)
+        raise ConfigurationException(
+            'Stack template not found in configuration')
 
 
 def get_stacks():
@@ -309,9 +317,9 @@ def _read_configuration_files():
             conf_file_found = True
             logger.info('Reading configuration from {}'.format(conf_file))
     if not conf_file_found:
-        logger.error('No configuration file found. Looked for {}'.format(
-            ', '.join(config_files)))
-        sys.exit(1)
+        raise ConfigurationException(
+            'No configuration file found. Looked for {}'.format(
+                ', '.join(config_files)))
 
     config = SafeConfigParser()
     config.read(config_files)
@@ -355,9 +363,8 @@ def _populate_environments(config):
                             config.get(section, option)
                 except NoOptionError:
                     if required:
-                        logger.error('Missing required option {}'.format(
-                            option))
-                        sys.exit(1)
+                        raise ConfigurationException(
+                            'Missing required option {}'.format(option))
 
 
 def _populate_stacks(config):
@@ -390,18 +397,17 @@ def _populate_stacks(config):
                                 parameters.append((key.strip(), value.strip()))
                             conf['stacks'][stack][option] = parameters
                         except ValueError:
-                            logger.error(
+                            raise ConfigurationException(
                                 'Error parsing parameters for stack {}'.format(
                                     stack))
-                            sys.exit(1)
                     else:
                         conf['stacks'][stack][option] = config.get(
                             section, option)
                 except NoOptionError:
                     if required:
-                        logger.error('Missing required option {}'.format(
-                            option))
-                        sys.exit(1)
+                        raise ConfigurationException(
+                            'Missing required option {}'.format(
+                                option))
 
 
 def _populate_bundles(config):
@@ -431,10 +437,9 @@ def _populate_bundles(config):
                             try:
                                 target, destination = line.split('->')
                             except ValueError:
-                                logger.error(
+                                raise ConfigurationException(
                                     'Invalid path-rewrites for '
                                     'bundle {}'.format(bundle))
-                                sys.exit(1)
 
                             # Clean the target and destination from initial /
                             if target[0] == '/':
@@ -452,6 +457,5 @@ def _populate_bundles(config):
                             section, option)
                 except NoOptionError:
                     if required:
-                        logger.error('Missing required option {}'.format(
-                            option))
-                        sys.exit(1)
+                        raise ConfigurationException(
+                            'Missing required option {}'.format(option))

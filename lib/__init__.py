@@ -1,9 +1,10 @@
 """ Cumulus init """
 import config_handler
-import logging.config
+import logging
 
 import bundle_manager
 import deployment_manager
+from exceptions import ConfigurationException
 
 logging.config.dictConfig({
     'version': 1,
@@ -50,10 +51,17 @@ logging.config.dictConfig({
     }
 })
 
+logger = logging.getLogger(__name__)
+
 
 def main():
     """ Main function """
-    config_handler.configure()
+    try:
+        config_handler.command_line_options()
+        config_handler.configure()
+    except ConfigurationException as error:
+        logger.error(error)
+        raise
 
     if config_handler.args.bundle:
         bundle_manager.build_bundles()

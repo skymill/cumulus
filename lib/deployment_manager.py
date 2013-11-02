@@ -1,7 +1,6 @@
 """ Manager """
 import json
 import logging
-import os.path
 import subprocess
 import sys
 import time
