@@ -12,6 +12,7 @@ Table of contents
 
     overview
     installation
-    configuration
+    cumulus_configuration
+    cumulus_bundle_handler
     cf_example
     sc_lib_init
