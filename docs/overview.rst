@@ -21,10 +21,20 @@ Cumulus requires Python 2.7 and ``boto``. Please install requirements with
 Deployment workflow
 -------------------
 
+The deployment workflow is roughly as follows
+
+1. Bundle your software
+2. Upload the bundle to AWS S3
+3. Trigger a ``create`` or ``update`` of your CloudFormation template
+4. The :ref:`cumulus-bundle-handler` will then download and extract the bundle on each host
+5. Deployment complete
+
 All you need to do is to run the command below. This will bundle and upload all your software to AWS S3. It will then trigger an create or update at AWS CloudFormation.
 ::
 
     cumulus --environment production --deploy
+
+The rest of the work is down within the AWS CloudFormation template. Please have a look at our :ref:`cloudformation-template-example`.
 
 Environment specific configuration
 ----------------------------------

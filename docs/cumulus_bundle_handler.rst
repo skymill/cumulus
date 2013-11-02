@@ -1,10 +1,12 @@
+.. _cumulus-bundle-handler:
+
 Cumulus Bundle Handler
 ======================
 
 The **Cumulus Bundle Handler (CBH)** is a Python script that should reside on each host in the system. The script is responsible for
 
-# Downloading and extracting the correct bundles for the host
-# Running pre and post deployment scripts on the host
+* Downloading and extracting the correct bundles for the host
+* Running pre and post deployment scripts on the host
 
 The bundles are generated via the ``cumulus`` command and uploaded to S3. CBH will then download the bundle when the script is triggered (usually by a CloudFormation ``create`` or ``update``).
 

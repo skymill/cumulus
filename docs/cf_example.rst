@@ -1,3 +1,5 @@
+.. _cloudformation-template-example:
+
 CloudFormation template example
 ===============================
 
