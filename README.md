@@ -23,6 +23,24 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
+**0.6.0 ()**
+
+Major features:
+- [Global `cumulus` command and documentation generation #56](https://github.com/skymill/cumulus/issues/56)
+- [Support multiple bundle types on hosts #52](https://github.com/skymill/cumulus/issues/52)
+- [Support CloudFormation templates served from S3 #58](https://github.com/skymill/cumulus/issues/58)
+- [Cumulus bundle handler should support both start and kill scripts in init.d #49](https://github.com/skymill/cumulus/issues/49)
+- [Generate Python docs with autodoc #59](https://github.com/skymill/cumulus/issues/59)
+- [Added Sphinx documentation #48](https://github.com/skymill/cumulus/issues/48)
+
+Minor improvements:
+- [Harmonize CBH option names #53](https://github.com/skymill/cumulus/issues/53)
+- [Restructured project folders #54](https://github.com/skymill/cumulus/issues/54)
+- [Bundle Cumlus in a Python egg #55](https://github.com/skymill/cumulus/issues/55)
+- [Remove docs from README #57](https://github.com/skymill/cumulus/issues/57)
+- [Read versions from one place #60](https://github.com/skymill/cumulus/issues/60)
+- [Bug: paths should be \n separated, not comma separated #51](https://github.com/skymill/cumulus/issues/51)
+
 **0.5.0 (2013-10-28)**
 
 - [Clean up host on bundle update #38](https://github.com/skymill/cumulus/issues/38)
