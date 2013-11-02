@@ -6,4 +6,4 @@ Install Cumulus by checking out the source code to your machine, then go to the 
 
     make install
 
-That should install `cumulus` as a global command on your machine.
+That should install ``cumulus`` as a global command on your machine.
