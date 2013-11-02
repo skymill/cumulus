@@ -4,7 +4,7 @@ import logging
 
 import bundle_manager
 import deployment_manager
-from exceptions import ConfigurationException
+from exceptions import ConfigurationException, HookExecutionException
 
 logging.config.dictConfig({
     'version': 1,
@@ -64,7 +64,11 @@ def main():
         raise
 
     if config_handler.args.bundle:
-        bundle_manager.build_bundles()
+        try:
+            bundle_manager.build_bundles()
+        except HookExecutionException as error:
+            logger.error(error)
+            raise
 
     if config_handler.args.deploy:
         bundle_manager.build_bundles()

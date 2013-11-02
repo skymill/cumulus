@@ -3,11 +3,11 @@ import logging
 import os
 import os.path
 import subprocess
-import sys
 import tarfile
 
 import config_handler
 import connection_handler
+from exceptions import HookExecutionException
 
 logger = logging.getLogger(__name__)
 
@@ -141,10 +141,9 @@ def _post_bundle_hook(bundle_name):
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
-        logger.error(
+        raise HookExecutionException(
             'The post-bundle-hook returned a non-zero exit code: {}'.format(
                 error))
-        sys.exit(1)
 
 
 def _pre_bundle_hook(bundle_name):
@@ -162,10 +161,9 @@ def _pre_bundle_hook(bundle_name):
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
-        logger.error(
+        raise HookExecutionException(
             'The pre-bundle-hook returned a non-zero exit code: {}'.format(
                 error))
-        sys.exit(1)
 
 
 def _upload_bundle(bundle_path):

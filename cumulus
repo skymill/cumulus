@@ -12,6 +12,8 @@ if __name__ == '__main__':
         lib.main()
     except lib.exceptions.ConfigurationException:
         sys.exit(1)
+    except lib.exceptions.HookExecutionException:
+        sys.exit(1)
 
     sys.exit(0)
 
