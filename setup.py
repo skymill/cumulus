@@ -4,8 +4,7 @@ from setuptools import setup
 from ConfigParser import SafeConfigParser
 
 settings = SafeConfigParser()
-settings.read(
-    os.path.realpath('{}/settings.conf'.format(os.path.dirname(__file__))))
+settings.read(os.path.realpath('lib/settings.conf'))
 
 
 setup(

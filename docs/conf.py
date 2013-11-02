@@ -18,8 +18,7 @@ import os
 from ConfigParser import SafeConfigParser
 
 settings = SafeConfigParser()
-settings.read(
-    os.path.realpath('{}/settings.conf'.format(os.path.dirname(__file__))))
+settings.read(os.path.realpath('../lib/settings.conf'))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
