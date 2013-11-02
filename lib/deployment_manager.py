@@ -2,7 +2,6 @@
 import json
 import logging
 import subprocess
-import sys
 import time
 from datetime import datetime
 
@@ -10,6 +9,7 @@ import boto
 
 import config_handler
 import connection_handler
+from exceptions import InvalidTemplateException, HookExecutionException
 
 logger = logging.getLogger(__name__)
 
@@ -182,11 +182,10 @@ def _ensure_stack(
         _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
     except ValueError, error:
-        logger.error('Malformatted template: {}'.format(error))
-        sys.exit(1)
+        raise InvalidTemplateException(
+            'Malformatted template: {}'.format(error))
     except boto.exception.BotoServerError, error:
-        logger.error("ERROR - Boto exception: {}".format(error))
-        logger.error("Enable debug in manage.py to see more details")
+        raise
 
 
 def _delete_stack(stack):
@@ -249,10 +248,9 @@ def _pre_deploy_hook():
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
-        logger.error(
+        raise HookExecutionException(
             'The pre-deploy-hook returned a non-zero exit code: {}'.format(
                 error))
-        sys.exit(1)
 
 
 def _print_event_log_event(event):
@@ -313,10 +311,9 @@ def _post_deploy_hook():
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
-        logger.error(
+        raise HookExecutionException(
             'The post-deploy-hook returned a non-zero exit code: {}'.format(
                 error))
-        sys.exit(1)
 
 
 def _stack_exists(stack_name):
