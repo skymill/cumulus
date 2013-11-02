@@ -59,32 +59,29 @@ def main():
     try:
         config_handler.command_line_options()
         config_handler.configure()
-    except ConfigurationException as error:
+
+        if config_handler.args.bundle:
+            bundle_manager.build_bundles()
+
+        if config_handler.args.deploy:
+            bundle_manager.build_bundles()
+            deployment_manager.deploy()
+
+        if config_handler.args.deploy_without_bundling:
+            deployment_manager.deploy()
+
+        if config_handler.args.list:
+            deployment_manager.list_stacks()
+
+        if config_handler.args.undeploy:
+            deployment_manager.undeploy()
+
+        if config_handler.args.validate_templates:
+            deployment_manager.validate_templates()
+
+        if config_handler.args.events:
+            deployment_manager.list_events()
+
+    except Exception as error:
         logger.error(error)
         raise
-
-    if config_handler.args.bundle:
-        try:
-            bundle_manager.build_bundles()
-        except HookExecutionException as error:
-            logger.error(error)
-            raise
-
-    if config_handler.args.deploy:
-        bundle_manager.build_bundles()
-        deployment_manager.deploy()
-
-    if config_handler.args.deploy_without_bundling:
-        deployment_manager.deploy()
-
-    if config_handler.args.list:
-        deployment_manager.list_stacks()
-
-    if config_handler.args.undeploy:
-        deployment_manager.undeploy()
-
-    if config_handler.args.validate_templates:
-        deployment_manager.validate_templates()
-
-    if config_handler.args.events:
-        deployment_manager.list_events()

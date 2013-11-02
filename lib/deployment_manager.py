@@ -34,7 +34,10 @@ def deploy():
 
 def list_events():
     """ List events """
-    con = connection_handler.connect_cloudformation()
+    try:
+        con = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
 
     for stack_name in config_handler.get_stacks():
         stack = _get_stack_by_name(stack_name)
@@ -53,7 +56,11 @@ def list_events():
 
 def list_stacks():
     """ List stacks and their statuses """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     for stack in connection.list_stacks():
         if (stack.stack_status != 'DELETE_COMPLETE' and
                 stack.stack_name in config_handler.get_stacks()):
@@ -76,7 +83,11 @@ def undeploy():
 
 def validate_templates():
     """ Validate the template """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     for stack in config_handler.get_stacks():
         template = config_handler.get_stack_template(stack)
 
@@ -102,7 +113,11 @@ def _ensure_stack(
     :type parameters: list
     :param parameters: List of tuples with CF parameters
     """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     logger.info('Ensuring stack {} with template {}'.format(
         stack_name, template))
 
@@ -180,7 +195,11 @@ def _delete_stack(stack):
     :type stack: str
     :param stack: Stack name
     """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     logger.info('Deleting stack {}'.format(stack))
     connection.delete_stack(stack)
     _wait_for_stack_complete(stack, filter_type='DELETE')
@@ -206,7 +225,11 @@ def _get_stack_by_name(stack_name):
     :param stack_name: Stack name
     :returns: stack or None
     """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     for stack in connection.list_stacks():
         if (stack.stack_status != 'DELETE_COMPLETE' and
                 stack.stack_name == stack_name):
@@ -303,7 +326,11 @@ def _stack_exists(stack_name):
     :param stack_name: Stack name
     :returns: bool
     """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     for stack in connection.list_stacks():
         if (stack.stack_status != 'DELETE_COMPLETE' and
                 stack.stack_name == stack_name):
@@ -335,7 +362,11 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
         'UPDATE_ROLLBACK_FAILED',
         'UPDATE_ROLLBACK_COMPLETE'
     ]
-    con = connection_handler.connect_cloudformation()
+    try:
+        con = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     written_events = []
 
     while not complete:

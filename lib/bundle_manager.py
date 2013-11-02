@@ -172,7 +172,11 @@ def _upload_bundle(bundle_path):
     :type bundle_path: str
     :param bundle_path: Local path to the bundle
     """
-    connection = connection_handler.connect_s3()
+    try:
+        connection = connection_handler.connect_s3()
+    except Exception:
+        raise
+
     bucket = connection.get_bucket(
         config_handler.get_environment_option('bucket'))
 
@@ -190,7 +194,10 @@ def _upload_bundle(bundle_path):
 
 def _upload_bundle_handler():
     """ Upload the bundle handler to S3 """
-    connection = connection_handler.connect_s3()
+    try:
+        connection = connection_handler.connect_s3()
+    except Exception:
+        raise
     bucket = connection.get_bucket(
         config_handler.get_environment_option('bucket'))
 
