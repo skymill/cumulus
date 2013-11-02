@@ -1,10 +1,16 @@
 """ Setup script for PyPI """
+import os
 from setuptools import setup
+from ConfigParser import SafeConfigParser
+
+settings = SafeConfigParser()
+settings.read(
+    os.path.realpath('{}/settings.conf'.format(os.path.dirname(__file__))))
 
 
 setup(
     name='cumulus',
-    version='0.6.0-SNAPSHOT',
+    version=settings.get('general', 'version'),
     license='Proprietary',
     description='Cumulus AWS deployment tools',
     author='Sebastian Dahlgren',
