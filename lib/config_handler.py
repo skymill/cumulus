@@ -69,6 +69,12 @@ def command_line_options():
             'Environment version number. '
             'Overrides the version value from the configuration file'))
     general_ag.add_argument(
+        '--parameters',
+        help=(
+            'CloudFormation parameters. On the form: '
+            'stack_name:parameter_name=value,stack_name=parameter_name=value'
+        ))
+    general_ag.add_argument(
         '--config',
         help='Path to configuration file.')
     general_ag.add_argument(
@@ -408,6 +414,21 @@ def _populate_stacks(config):
                         raise ConfigurationException(
                             'Missing required option {}'.format(
                                 option))
+
+            # Add command line parameters
+            try:
+                if args.parameters:
+                    if not 'parameters' in conf['stacks'][stack]:
+                        conf['stacks'][stack]['parameters'] = []
+
+                    for raw_parameter in args.parameters.split(','):
+                        stack_name, keyvalue = raw_parameter.split(':')
+                        key, value = keyvalue.split('=')
+                        if stack_name == stack:
+                            conf['stacks'][stack]['parameters'].append(
+                                (key, value))
+            except ValueError:
+                raise ConfigurationException('Error parsing --parameters')
 
 
 def _populate_bundles(config):

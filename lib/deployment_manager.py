@@ -140,6 +140,14 @@ def _ensure_stack(
         )
     ]
 
+    for parameter in cumulus_parameters + parameters:
+        logger.debug(
+            'Adding parameter {} with value {} to CF template'.format(
+                parameter[0], parameter[1]))
+
+    import sys
+    sys.exit(1)
+
     try:
         if _stack_exists(stack_name):
             logger.debug('Updating existing stack to version {}'.format(
