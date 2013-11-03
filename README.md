@@ -32,6 +32,7 @@ Major features:
 - [Cumulus bundle handler should support both start and kill scripts in init.d #49](https://github.com/skymill/cumulus/issues/49)
 - [Generate Python docs with autodoc #59](https://github.com/skymill/cumulus/issues/59)
 - [Added Sphinx documentation #48](https://github.com/skymill/cumulus/issues/48)
+- [Set CF parameters on command line #61](https://github.com/skymill/cumulus/issues/61)
 
 Minor improvements:
 - [Harmonize CBH option names #53](https://github.com/skymill/cumulus/issues/53)
