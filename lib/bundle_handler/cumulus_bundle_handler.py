@@ -112,7 +112,7 @@ def _download_and_unpack_bundle(bundle_type):
     bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
     bundle.close()
     logger.info("Downloading s3://{}/{} to {}".format(
-        config.get('metadata', 'bundles-bucket'),
+        config.get('metadata', 'bundle-bucket'),
         key.name,
         bundle.name))
     key.get_contents_to_filename(bundle.name)
