@@ -35,6 +35,7 @@ Major features:
 - [Set CF parameters on command line #61](https://github.com/skymill/cumulus/issues/61)
 
 Minor improvements:
+- [Stop writing to `target` dir, use `tempfile` instead #62](https://github.com/skymill/cumulus/issues/62)
 - [Harmonize CBH option names #53](https://github.com/skymill/cumulus/issues/53)
 - [Restructured project folders #54](https://github.com/skymill/cumulus/issues/54)
 - [Bundle Cumlus in a Python egg #55](https://github.com/skymill/cumulus/issues/55)
