@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 def build_bundles():
     """ Build bundles for the environment """
-    for bundle in config_handler.get_bundles():
-        logger.info('Building bundle {}'.format(bundle))
+    for bundle_type in config_handler.get_bundles():
+        logger.info('Building bundle {}'.format(bundle_type))
         logger.debug('Bundle paths: {}'.format(', '.join(
-            config_handler.get_bundle_paths(bundle))))
+            config_handler.get_bundle_paths(bundle_type))))
 
         # Run pre-bundle-hook
-        _pre_bundle_hook(bundle)
+        _pre_bundle_hook(bundle_type)
 
         tmptar = tempfile.NamedTemporaryFile(
             suffix='.tar.bz2',
@@ -30,15 +30,14 @@ def build_bundles():
         try:
             _bundle(
                 tmptar,
-                bundle,
+                bundle_type,
                 config_handler.get_environment(),
-                config_handler.get_environment_option('version'),
-                config_handler.get_bundle_paths(bundle))
+                config_handler.get_bundle_paths(bundle_type))
 
             # Run post-bundle-hook
-            _post_bundle_hook(bundle)
+            _post_bundle_hook(bundle_type)
 
-            _upload_bundle(tmptar.name)
+            _upload_bundle(tmptar.name, bundle_type)
         finally:
             logger.debug('Removing temporary tar file {}'.format(tmptar.name))
             os.remove(tmptar.name)
@@ -46,17 +45,15 @@ def build_bundles():
     _upload_bundle_handler()
 
 
-def _bundle(tmpfile, bundle_name, environment, version, paths):
+def _bundle(tmpfile, bundle_type, environment, paths):
     """ Create bundle
 
     :type tmpfile: tempfile instance
     :param tmpfile: Tempfile object
-    :type bundle: str
-    :param bundle: Bundle name
+    :type bundle_type: str
+    :param bundle_type: Bundle name
     :type environment: str
     :param environment: Environment name
-    :type version: str
-    :param version: Version number
     :type paths: list
     :param paths: List of paths to include
     """
@@ -114,13 +111,7 @@ def _bundle(tmpfile, bundle_name, environment, version, paths):
             else:
                 return False
 
-    #bundle = '{}/target/bundle-{}-{}-{}.tar.bz2'.format(
-    #    os.curdir,
-    #    environment,
-    #    version,
-    #    bundle_name)
-
-    path_rewrites = config_handler.get_bundle_path_rewrites(bundle_name)
+    path_rewrites = config_handler.get_bundle_path_rewrites(bundle_type)
 
     tar = tarfile.open(
         fileobj=tmpfile,
@@ -175,11 +166,13 @@ def _pre_bundle_hook(bundle_name):
                 error))
 
 
-def _upload_bundle(bundle_path):
+def _upload_bundle(bundle_path, bundle_type):
     """ Upload all bundles to S3
 
     :type bundle_path: str
     :param bundle_path: Local path to the bundle
+    :type bundle_type: str
+    :param bundle_type: Bundle type
     """
     try:
         connection = connection_handler.connect_s3()
@@ -189,14 +182,19 @@ def _upload_bundle(bundle_path):
     bucket = connection.get_bucket(
         config_handler.get_environment_option('bucket'))
 
-    key_name = '{}/{}/{}'.format(
-        config_handler.get_environment(),
-        config_handler.get_environment_option('version'),
-        os.path.basename(bundle_path))
+    key_name = (
+        '{environment}/{version}/'
+        'bundle-{environment}-{version}-{bundle_type}.tar.bz2').format(
+            environment=config_handler.get_environment(),
+            version=config_handler.get_environment_option('version'),
+            bundle_type=bundle_type)
     key = bucket.new_key(key_name)
+
     logger.info('Starting upload of {} to s3://{}'.format(
         os.path.basename(bundle_path), key_name))
+
     key.set_contents_from_filename(bundle_path, replace=True)
+
     logger.info('Completed upload of {} to s3://{}'.format(
         os.path.basename(bundle_path), key_name))
 
