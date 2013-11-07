@@ -34,6 +34,8 @@ def build_bundles():
                 config_handler.get_environment(),
                 config_handler.get_bundle_paths(bundle_type))
 
+            tmptar.close()
+
             # Run post-bundle-hook
             _post_bundle_hook(bundle_type)
 
