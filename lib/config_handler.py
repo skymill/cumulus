@@ -20,6 +20,7 @@ args = None
 
 # Initial configuration object
 conf = {
+    'general': {},
     'environments': {},
     'stacks': {},
     'bundles': {}
@@ -27,6 +28,9 @@ conf = {
 
 # Options per section
 # [(option, required)]
+general_options = [
+    ('log-level', False)
+]
 stack_options = [
     ('template', True),
     ('disable-rollback', True),
@@ -201,6 +205,17 @@ def get_environment_option(option_name):
         return None
 
 
+def get_log_level():
+    """ Returns the log level
+
+    :returns: str
+    """
+    try:
+        return conf['general']['log-level']
+    except KeyError:
+        return 'DEBUG'
+
+
 def get_post_bundle_hook(bundle):
     """ Returns the post bundle hook command or None
 
@@ -330,6 +345,7 @@ def _read_configuration_files():
     config = SafeConfigParser()
     config.read(config_files)
 
+    _populate_general(config)
     _populate_environments(config)
     _populate_stacks(config)
     _populate_bundles(config)
@@ -367,6 +383,45 @@ def _populate_environments(config):
                     else:
                         conf['environments'][env][option] = \
                             config.get(section, option)
+                except NoOptionError:
+                    if required:
+                        raise ConfigurationException(
+                            'Missing required option {}'.format(option))
+
+
+def _populate_general(config):
+    """ Populate the general config object
+
+    :type config: ConfigParser.read
+    :param config: Config parser config object
+    """
+    for section in config.sections():
+        if section == 'general':
+            conf['general'] = {}
+
+            for option, required in general_options:
+                try:
+                    if option == 'log-level':
+                        log_level = config.get(section, option).upper()
+
+                        log_levels = [
+                            'DEBUG',
+                            'INFO',
+                            'WARNING',
+                            'ERROR'
+                        ]
+
+                        if log_level not in log_levels:
+                            logger.warning(
+                                (
+                                    'Invalid log level "{}". '
+                                    'Using default log level.'
+                                ).format(log_level))
+                            log_level = 'DEBUG'
+
+                        conf['general'][option] = log_level
+                    else:
+                        conf['general'][option] = config.get(section, option)
                 except NoOptionError:
                     if required:
                         raise ConfigurationException(

@@ -5,7 +5,10 @@ import logging
 import bundle_manager
 import deployment_manager
 
-logging.config.dictConfig({
+config_handler.command_line_options()
+config_handler.configure()
+
+logging_config = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -48,17 +51,18 @@ logging.config.dictConfig({
             'propagate': False
         }
     }
-})
+}
 
+# Set log level
+logging_config['handlers']['default']['level'] = config_handler.get_log_level()
+
+logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
 
 
 def main():
     """ Main function """
     try:
-        config_handler.command_line_options()
-        config_handler.configure()
-
         if config_handler.args.bundle:
             bundle_manager.build_bundles()
 
