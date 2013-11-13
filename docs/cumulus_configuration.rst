@@ -8,6 +8,9 @@ Cumulus configuration
 All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and ``./cumulus.conf`` in order. This is a full example configuration:
 ::
 
+    [general]
+    log-level: info
+
     [environment: stage]
     access-key-id: <AWS ACCESS KEY>
     secret-access-key: <AWS SECRET KEY>
@@ -40,6 +43,18 @@ All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and ``
     path-rewrites:
         /wordpress -> /var/www/wordpress
         /nginx -> /etc/nginx
+
+
+General configuration
+^^^^^^^^^^^^^^^^^^^^^
+
+The configuration options here modify the behavior of Cumulus features that are not environment or stack specific.
+
+======================= ================== ======== ==========================================
+Option                  Type               Required Comment
+======================= ================== ======== ==========================================
+``log-level``           String             No       Log level (one of: ``debug``, ``info``, ``warning`` and ``error``)
+======================= ================== ======== ==========================================
 
 
 Environment configuration
