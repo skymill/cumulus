@@ -33,6 +33,7 @@ Major features:
 - [Generate Python docs with autodoc #59](https://github.com/skymill/cumulus/issues/59)
 - [Added Sphinx documentation #48](https://github.com/skymill/cumulus/issues/48)
 - [Set CF parameters on command line #61](https://github.com/skymill/cumulus/issues/61)
+- [Log level is now configurable #63](https://github.com/skymill/cumulus/issues/63)
 
 Minor improvements:
 - [Stop writing to `target` dir, use `tempfile` instead #62](https://github.com/skymill/cumulus/issues/62)
