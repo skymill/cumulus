@@ -141,6 +141,8 @@ def _remove_old_files():
         logger.info('No previous bundle files to clean up')
         return
 
+    logger.info('Removing old files and directories')
+
     with open(cache_file, 'r') as file_handle:
         for line in file_handle.readlines():
             line = line.replace('\n', '')
@@ -163,7 +165,7 @@ def _remove_old_files():
                 except OSError:
                     pass
             elif os.path.islink(line):
-                logger.info('Removing link {}'.format(line))
+                logger.debug('Removing link {}'.format(line))
                 os.remove(line)
 
                 try:
