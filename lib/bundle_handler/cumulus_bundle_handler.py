@@ -254,9 +254,6 @@ def _store_bundle_files(filenames):
     """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
 
-    if os.path.exists(cache_file):
-        os.remove(cache_file)
-
     file_handle = open(cache_file, 'a')
     try:
         for filename in filenames:
