@@ -74,8 +74,9 @@ def main():
         logger.error('Missing "bundle-types" in metadata.conf')
         sys.exit(1)
 
+    _remove_old_files()
+
     for bundle_type in bundle_types:
-        _remove_old_files()
         _download_and_unpack_bundle(bundle_type)
 
     _run_init_scripts(kill=False, start=True, other=True)
