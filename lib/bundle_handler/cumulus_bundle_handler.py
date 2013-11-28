@@ -151,11 +151,11 @@ def _remove_old_files():
             if os.path.isdir(line):
                 try:
                     os.removedirs(line)
-                    logger.info('Removing directory {}'.format(line))
+                    logger.debug('Removing directory {}'.format(line))
                 except OSError:
                     pass
             elif os.path.isfile(line):
-                logger.info('Removing file {}'.format(line))
+                logger.debug('Removing file {}'.format(line))
                 os.remove(line)
 
                 try:
