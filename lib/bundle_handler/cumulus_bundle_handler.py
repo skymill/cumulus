@@ -71,7 +71,7 @@ def main():
 
     bundle_types = config.get('metadata', 'bundle-types').split(',')
     if not bundle_types:
-        logger.error('Missing "bundle-type" in metadata.conf')
+        logger.error('Missing "bundle-types" in metadata.conf')
         sys.exit(1)
 
     for bundle_type in bundle_types:
