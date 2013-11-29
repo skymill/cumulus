@@ -2,83 +2,54 @@
 
 Cumulus is a deployment tool used to deploy and maintain environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
 
-## Basic concepts
+## Installation
 
-Cumulus is built around three main concepts:
+Checkout the code and run
 
-- An **environment** references a whole environment and all it's CF stacks. It holds together information about the AWS account, which stacks to deploy and in which version.
-- A **stack** is simply a CloudFormation stack.
-- And a **bundle** is a `tar.bz2` file with code and configuration to unpack to instances.
+    make install
 
-## Requirements
+`cumulus` will now be available as a global command
 
-Cumulus requires Python 2.7 and `boto`. Please install requirements with
 
-    sudo pip install -r cumulus/requirements.txt
+## Generate documentation
 
-## Configuration
+Cumulus docs are generated using Sphinx. Generate documentation using
 
-### Cumulus configuration
 
-All configuration is read form `/etc/cumulus.conf`, `~/.cumulus.conf` and , `./cumulus.conf` in order. This is an example configuration:
+    make gen-docs
 
-    [environment: stage]
-    access-key-id: <AWS ACCESS KEY>
-    secret-access-key: <AWS SECRET KEY>
-    bucket: se.skymill.bundles
-    region: eu-west-1
-    stacks: full
-    bundles: webserver, database
-    version: 1.0.0-SNAPSHOT
-    pre-deploy-hook: /path/to/script
-    post-deploy-hook: echo "Yay" > ~/test.log
+The HTML output is stored under `docs/_build/html`.
 
-    [stack: full]
-    template: /Users/sebastian/tmp/hosts/webserver.json
-    disable-rollback: true
-    parameters:
-        version = 1.1.0,
-        test tag = my test value
-        key = value
-
-    [bundle: webserver]
-    pre-bundle-hook: git clone git://git.example.com/my.git
-    post-bundle-hook: rm -rf my
-    paths:
-        /Users/sebastian/tmp/hosts/webserver,
-        /Users/sebastian/tmp/code/wordpress
-
-    [bundle: database]
-    pre-bundle-hook: /path/to/script
-    paths: /Users/sebastian/tmp/hosts/database
-    path-rewrites:
-        /wordpress -> /var/www/wordpress
-        /nginx -> /etc/nginx
-
-All configuration options are required to be set except `parameters` for bundles.
-
-### CloudFormation configuration
-
-To save some space in this document, please find the example AWS CloudFormation template [here](https://github.com/skymill/cumulus/blob/master/cumulus/docs/cloudformation-template-example.json)
-
-## Deployment workflow
-
-All you need to do is to run the command below. This will bundle and upload all your software to AWS S3. It will then trigger an create or update at AWS CloudFormation.
-
-    cumulus --environment production --deploy
-
-## Environment specific configuration
-
-To have files that should only be included in specific environments, prefix them with `__cumulus-environment__filename`. So for example: `__cumulus-production__nginx.conf` is the `nginx.conf` for the `production` environment.
 
 ## Release notes
+
+**0.6.0 ()**
+
+Major features:
+- [Global `cumulus` command and documentation generation #56](https://github.com/skymill/cumulus/issues/56)
+- [Support multiple bundle types on hosts #52](https://github.com/skymill/cumulus/issues/52)
+- [Support CloudFormation templates served from S3 #58](https://github.com/skymill/cumulus/issues/58)
+- [Cumulus bundle handler should support both start and kill scripts in init.d #49](https://github.com/skymill/cumulus/issues/49)
+- [Generate Python docs with autodoc #59](https://github.com/skymill/cumulus/issues/59)
+- [Added Sphinx documentation #48](https://github.com/skymill/cumulus/issues/48)
+- [Set CF parameters on command line #61](https://github.com/skymill/cumulus/issues/61)
+- [Log level is now configurable #63](https://github.com/skymill/cumulus/issues/63)
+
+Minor improvements:
+- [Stop writing to `target` dir, use `tempfile` instead #62](https://github.com/skymill/cumulus/issues/62)
+- [Harmonize CBH option names #53](https://github.com/skymill/cumulus/issues/53)
+- [Restructured project folders #54](https://github.com/skymill/cumulus/issues/54)
+- [Bundle Cumlus in a Python egg #55](https://github.com/skymill/cumulus/issues/55)
+- [Remove docs from README #57](https://github.com/skymill/cumulus/issues/57)
+- [Read versions from one place #60](https://github.com/skymill/cumulus/issues/60)
+- [Bug: paths should be \n separated, not comma separated #51](https://github.com/skymill/cumulus/issues/51)
 
 **0.5.0 (2013-10-28)**
 
 - [Clean up host on bundle update #38](https://github.com/skymill/cumulus/issues/38)
 - [Cumulus bundle handler should use Python logging #40](https://github.com/skymill/cumulus/issues/40)
 - [Get rid of Cumulus metadata.conf and make the bundle handler self-contained #41](https://github.com/skymill/cumulus/issues/41)
-- [Remove __name__ from logging output #42](https://github.com/skymill/cumulus/issues/42)
+- [Remove `__name__` from logging output #42](https://github.com/skymill/cumulus/issues/42)
 - [Filter events when creating/updating/deleting stacks #43](https://github.com/skymill/cumulus/issues/43)
 - [Add function for listing stack events on command line #45](https://github.com/skymill/cumulus/issues/45)
 - [Enhance status output when waiting for stack change to complete #46](https://github.com/skymill/cumulus/issues/46)

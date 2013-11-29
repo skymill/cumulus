@@ -1,3 +1,6 @@
 .DS_Store
 *.pyc
 target
+cumulus.egg-info
+build
+dist

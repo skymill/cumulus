@@ -4,11 +4,10 @@
 
 import logging
 import os
-import shutil
+import subprocess
 import sys
 import tarfile
 import tempfile
-from subprocess import call
 from ConfigParser import SafeConfigParser
 
 try:
@@ -68,29 +67,42 @@ config.read('/etc/cumulus/metadata.conf')
 
 def main():
     """ Main function """
+    _run_init_scripts(kill=True, start=False, other=True)
+
+    bundle_types = config.get('metadata', 'bundle-types').split(',')
+    if not bundle_types:
+        logger.error('Missing "bundle-types" in metadata.conf')
+        sys.exit(1)
+
     _remove_old_files()
-    _download_and_unpack_bundle()
-    _run_init_scripts()
+
+    for bundle_type in bundle_types:
+        _download_and_unpack_bundle(bundle_type)
+
+    _run_init_scripts(kill=False, start=True, other=True)
 
     logger.info("Done updating host")
 
 
-def _download_and_unpack_bundle():
-    """ Download the bundle from AWS S3 """
+def _download_and_unpack_bundle(bundle_type):
+    """ Download the bundle from AWS S3
+
+    :type bundle_type: str
+    :param bundle_type: Bundle type to download
+    """
     logger.debug("Connecting to AWS S3")
     connection = s3.connect_to_region(
         config.get('metadata', 'region'),
-        aws_access_key_id=config.get('metadata', 'aws-access-key-id'),
-        aws_secret_access_key=config.get(
-            'metadata', 'aws-secret-access-key'))
+        aws_access_key_id=config.get('metadata', 'access-key-id'),
+        aws_secret_access_key=config.get('metadata', 'secret-access-key'))
 
     # Download the bundle
     key_name = (
         '{env}/{version}/bundle-{env}-{version}-{bundle}.tar.bz2'.format(
             env=config.get('metadata', 'environment'),
             version=config.get('metadata', 'version'),
-            bundle=config.get('metadata', 'bundle-type')))
-    bucket = connection.get_bucket(config.get('metadata', 's3-bundles-bucket'))
+            bundle=bundle_type))
+    bucket = connection.get_bucket(config.get('metadata', 'bundle-bucket'))
     key = bucket.get_key(key_name)
 
     # If the bundle does not exist
@@ -101,7 +113,7 @@ def _download_and_unpack_bundle():
     bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
     bundle.close()
     logger.info("Downloading s3://{}/{} to {}".format(
-        config.get('metadata', 's3-bundles-bucket'),
+        config.get('metadata', 'bundle-bucket'),
         key.name,
         bundle.name))
     key.get_contents_to_filename(bundle.name)
@@ -110,8 +122,11 @@ def _download_and_unpack_bundle():
     logger.info("Unpacking {}".format(bundle.name))
     tar = tarfile.open(bundle.name, 'r:bz2')
     _store_bundle_files(tar.getnames())
+    pwd = os.getcwd()
+    os.chdir('/')
     tar.extractall()
     tar.close()
+    os.chdir(pwd)
 
     # Remove the downloaded package
     logger.info("Removing temporary file {}".format(bundle.name))
@@ -126,6 +141,8 @@ def _remove_old_files():
         logger.info('No previous bundle files to clean up')
         return
 
+    logger.info('Removing old files and directories')
+
     with open(cache_file, 'r') as file_handle:
         for line in file_handle.readlines():
             line = line.replace('\n', '')
@@ -134,37 +151,101 @@ def _remove_old_files():
                 continue
 
             if os.path.isdir(line):
-                if os.listdir(line) == []:
-                    logger.info('Removing empty directory {}'.format(line))
-                    shutil.rmtree(line)
+                try:
+                    os.removedirs(line)
+                    logger.debug('Removing directory {}'.format(line))
+                except OSError:
+                    pass
             elif os.path.isfile(line):
-                logger.info('Removing file {}'.format(line))
+                logger.debug('Removing file {}'.format(line))
                 os.remove(line)
 
-                if os.listdir(os.path.dirname(line)) == []:
-                    logger.info('Removing empty directory {}'.format(
-                        os.path.dirname(line)))
-                    shutil.rmtree(os.path.dirname(line))
-
+                try:
+                    os.removedirs(os.path.dirname(line))
+                except OSError:
+                    pass
             elif os.path.islink(line):
-                logger.info('Removing link {}'.format(line))
+                logger.debug('Removing link {}'.format(line))
+                os.remove(line)
 
-                if os.listdir(os.path.dirname(line)) == []:
-                    logger.info('Removing empty directory {}'.format(
-                        os.path.dirname(line)))
-                    shutil.rmtree(os.path.dirname(line))
+                try:
+                    os.removedirs(os.path.dirname(line))
+                except OSError:
+                    pass
             else:
                 logger.warning('Unknown file type {}'.format(line))
 
+    # Remove the cache file when done
+    os.remove(cache_file)
 
-def _run_init_scripts():
-    """ Execute scripts in /etc/cumulus-init.d """
+
+def _run_command(command):
+    """ Run arbitary command
+
+    :type command: str
+    :param command: Command to execute
+    """
+    logger.info('Executing command: {}'.format(command))
+
+    cmd = subprocess.Popen(
+        command,
+        shell=True,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE)
+
+    stdout, stderr = cmd.communicate()
+    if stdout:
+        print(stdout)
+    if stderr:
+        print(stderr)
+
+    if cmd.returncode != 0:
+        logger.error('Command "{}" returned non-zero exit code {}'.format(
+            command,
+            cmd.returncode))
+        sys.exit(cmd.returncode)
+
+
+def _run_init_scripts(start=False, kill=False, other=False):
+    """ Execute scripts in /etc/cumulus-init.d
+
+    :type start: bool
+    :param start: Run scripts starting with S
+    :type kill: bool
+    :param kill: Run scripts starting with K
+    :type others: bool
+    :param others: Run scripts not starting with S or K
+    """
+    init_dir = '/etc/cumulus-init.d'
+
     # Run the post install scripts provided by the bundle
-    if os.path.exists('/etc/cumulus-init.d'):
-        logger.info("Running all post deploy scripts in /etc/cumulus-init.d")
-        call(
-            'run-parts -v --regex ".*" /etc/cumulus-init.d',
-            shell=True)
+    if not os.path.exists(init_dir):
+        logger.info('No init scripts found in {}'.format(init_dir))
+        return
+
+    logger.info('Running init scripts from {}'.format(init_dir))
+
+    filenames = []
+    for filename in os.listdir(init_dir):
+        if os.path.isfile(os.path.join(init_dir, filename)):
+            logger.debug('Found init script {}'.format(
+                os.path.join(init_dir, filename)))
+            filenames.append(os.path.join(init_dir, filename))
+
+    if start:
+        for filename in filenames:
+            if filename[0] == 'S':
+                _run_command(os.path.abspath(filename))
+
+    if kill:
+        for filename in filenames:
+            if filename[0] == 'K':
+                _run_command(os.path.abspath(filename))
+
+    if other:
+        for filename in filenames:
+            if filename[0] not in ['K', 'S']:
+                _run_command(os.path.abspath(filename))
 
 
 def _store_bundle_files(filenames):
@@ -175,10 +256,7 @@ def _store_bundle_files(filenames):
     """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
 
-    if os.path.exists(cache_file):
-        os.remove(cache_file)
-
-    file_handle = open(cache_file, 'w')
+    file_handle = open(cache_file, 'a')
     try:
         for filename in filenames:
             if not filename:

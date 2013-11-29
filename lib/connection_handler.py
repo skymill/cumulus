@@ -1,7 +1,6 @@
 """ Connection handler """
 import boto
 import logging
-import sys
 from boto import cloudformation
 
 import config_handler
@@ -20,9 +19,9 @@ def connect_s3():
                 'access-key-id'),
             aws_secret_access_key=config_handler.get_environment_option(
                 'secret-access-key'))
-    except Exception, err:
+    except Exception as err:
         logger.error('A problem occurred connecting to AWS S3: {}'.format(err))
-        sys.exit(1)
+        raise
 
 
 def connect_cloudformation():
@@ -37,8 +36,8 @@ def connect_cloudformation():
                 'access-key-id'),
             aws_secret_access_key=config_handler.get_environment_option(
                 'secret-access-key'))
-    except Exception, err:
+    except Exception as err:
         logger.error(
             'A problem occurred connecting to AWS CloudFormation: {}'.format(
                 err))
-        sys.exit(1)
+        raise

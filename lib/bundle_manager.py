@@ -1,50 +1,61 @@
 """ Bundling functions """
 import logging
 import os
-import os.path
 import subprocess
-import sys
 import tarfile
+import tempfile
 
 import config_handler
 import connection_handler
+from exceptions import HookExecutionException
 
 logger = logging.getLogger(__name__)
 
 
 def build_bundles():
     """ Build bundles for the environment """
-    for bundle in config_handler.get_bundles():
-        logger.info('Building bundle {}'.format(bundle))
+    for bundle_type in config_handler.get_bundles():
+        logger.info('Building bundle {}'.format(bundle_type))
         logger.debug('Bundle paths: {}'.format(', '.join(
-            config_handler.get_bundle_paths(bundle))))
+            config_handler.get_bundle_paths(bundle_type))))
 
         # Run pre-bundle-hook
-        _pre_bundle_hook(bundle)
+        _pre_bundle_hook(bundle_type)
 
-        bundle_path = _bundle(
-            bundle,
-            config_handler.get_environment(),
-            config_handler.get_environment_option('version'),
-            config_handler.get_bundle_paths(bundle))
+        tmptar = tempfile.NamedTemporaryFile(
+            suffix='.tar.bz2',
+            delete=False)
+        logger.debug('Created temporary tar file {}'.format(tmptar.name))
 
-        # Run post-bundle-hook
-        _post_bundle_hook(bundle)
+        try:
+            _bundle(
+                tmptar,
+                bundle_type,
+                config_handler.get_environment(),
+                config_handler.get_bundle_paths(bundle_type))
 
-        _upload_bundle(bundle_path)
+            tmptar.close()
+
+            # Run post-bundle-hook
+            _post_bundle_hook(bundle_type)
+
+            _upload_bundle(tmptar.name, bundle_type)
+        finally:
+            logger.debug('Removing temporary tar file {}'.format(tmptar.name))
+            os.remove(tmptar.name)
 
     _upload_bundle_handler()
 
 
-def _bundle(bundle_name, environment, version, paths):
+def _bundle(tmpfile, bundle_type, environment, paths):
     """ Create bundle
 
-    :type bundle: str
-    :param bundle: Bundle name
+    :type tmpfile: tempfile instance
+    :param tmpfile: Tempfile object
+    :type bundle_type: str
+    :param bundle_type: Bundle name
     :type environment: str
     :param environment: Environment name
-    :type version: str
-    :param version: Version number
     :type paths: list
     :param paths: List of paths to include
     """
@@ -102,28 +113,19 @@ def _bundle(bundle_name, environment, version, paths):
             else:
                 return False
 
-    bundle = '{}/target/bundle-{}-{}-{}.tar.bz2'.format(
-        os.curdir,
-        environment,
-        version,
-        bundle_name)
+    path_rewrites = config_handler.get_bundle_path_rewrites(bundle_type)
 
-    path_rewrites = config_handler.get_bundle_path_rewrites(bundle_name)
-
-    # Ensure that the bundle target exists
-    if not os.path.exists(os.path.dirname(bundle)):
-        os.makedirs(os.path.dirname(bundle))
-
-    tar = tarfile.open(bundle, 'w:bz2', dereference=True)
+    tar = tarfile.open(
+        fileobj=tmpfile,
+        mode='w:bz2',
+        dereference=True)
     for path in paths:
         tar.add(
             path,
             exclude=exclusion_filter,
             filter=tar_filter)
     tar.close()
-    logger.info('Wrote bundle to {}'.format(bundle))
-
-    return bundle
+    logger.info('Wrote bundle to {}'.format(tmpfile.name))
 
 
 def _post_bundle_hook(bundle_name):
@@ -141,10 +143,9 @@ def _post_bundle_hook(bundle_name):
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
-        logger.error(
+        raise HookExecutionException(
             'The post-bundle-hook returned a non-zero exit code: {}'.format(
                 error))
-        sys.exit(1)
 
 
 def _pre_bundle_hook(bundle_name):
@@ -162,37 +163,50 @@ def _pre_bundle_hook(bundle_name):
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
-        logger.error(
+        raise HookExecutionException(
             'The pre-bundle-hook returned a non-zero exit code: {}'.format(
                 error))
-        sys.exit(1)
 
 
-def _upload_bundle(bundle_path):
+def _upload_bundle(bundle_path, bundle_type):
     """ Upload all bundles to S3
 
     :type bundle_path: str
     :param bundle_path: Local path to the bundle
+    :type bundle_type: str
+    :param bundle_type: Bundle type
     """
-    connection = connection_handler.connect_s3()
+    try:
+        connection = connection_handler.connect_s3()
+    except Exception:
+        raise
+
     bucket = connection.get_bucket(
         config_handler.get_environment_option('bucket'))
 
-    key_name = '{}/{}/{}'.format(
-        config_handler.get_environment(),
-        config_handler.get_environment_option('version'),
-        os.path.basename(bundle_path))
+    key_name = (
+        '{environment}/{version}/'
+        'bundle-{environment}-{version}-{bundle_type}.tar.bz2').format(
+            environment=config_handler.get_environment(),
+            version=config_handler.get_environment_option('version'),
+            bundle_type=bundle_type)
     key = bucket.new_key(key_name)
-    logger.info('Starting upload of {}'.format(
-        os.path.basename(bundle_path)))
+
+    logger.info('Starting upload of {} to s3://{}'.format(
+        os.path.basename(bundle_path), key_name))
+
     key.set_contents_from_filename(bundle_path, replace=True)
-    logger.info('Completed upload of {}'.format(
-        os.path.basename(bundle_path)))
+
+    logger.info('Completed upload of {} to s3://{}'.format(
+        os.path.basename(bundle_path), key_name))
 
 
 def _upload_bundle_handler():
     """ Upload the bundle handler to S3 """
-    connection = connection_handler.connect_s3()
+    try:
+        connection = connection_handler.connect_s3()
+    except Exception:
+        raise
     bucket = connection.get_bucket(
         config_handler.get_environment_option('bucket'))
 

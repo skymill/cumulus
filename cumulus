@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+""" Cumulus Cloud Tool """
+
+import sys
+
+import lib
+
+
+if __name__ == '__main__':
+    try:
+        lib.main()
+    except lib.exceptions.ConfigurationException:
+        sys.exit(1)
+    except lib.exceptions.HookExecutionException:
+        sys.exit(1)
+    except Exception:
+        sys.exit(1)
+
+    sys.exit(0)
+
+sys.exit(1)

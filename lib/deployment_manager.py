@@ -1,9 +1,7 @@
 """ Manager """
 import json
 import logging
-import os.path
 import subprocess
-import sys
 import time
 from datetime import datetime
 
@@ -11,13 +9,9 @@ import boto
 
 import config_handler
 import connection_handler
+from exceptions import InvalidTemplateException, HookExecutionException
 
 logger = logging.getLogger(__name__)
-
-BLUE = '\033[94m'
-GREEN = '\033[92m'
-RED = '\033[91m'
-ENDC = '\033[0m'
 
 
 def deploy():
@@ -40,7 +34,10 @@ def deploy():
 
 def list_events():
     """ List events """
-    con = connection_handler.connect_cloudformation()
+    try:
+        con = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
 
     for stack_name in config_handler.get_stacks():
         stack = _get_stack_by_name(stack_name)
@@ -59,7 +56,11 @@ def list_events():
 
 def list_stacks():
     """ List stacks and their statuses """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     for stack in connection.list_stacks():
         if (stack.stack_status != 'DELETE_COMPLETE' and
                 stack.stack_name in config_handler.get_stacks()):
@@ -82,7 +83,11 @@ def undeploy():
 
 def validate_templates():
     """ Validate the template """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     for stack in config_handler.get_stacks():
         template = config_handler.get_stack_template(stack)
 
@@ -108,9 +113,13 @@ def _ensure_stack(
     :type parameters: list
     :param parameters: List of tuples with CF parameters
     """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     logger.info('Ensuring stack {} with template {}'.format(
-        stack_name, os.path.basename(template)))
+        stack_name, template))
 
     cumulus_parameters = [
         (
@@ -131,36 +140,57 @@ def _ensure_stack(
         )
     ]
 
+    for parameter in cumulus_parameters + parameters:
+        logger.debug(
+            'Adding parameter {} with value {} to CF template'.format(
+                parameter[0], parameter[1]))
+
     try:
         if _stack_exists(stack_name):
             logger.debug('Updating existing stack to version {}'.format(
                 config_handler.get_environment_option('version')))
-            connection.update_stack(
-                stack_name,
-                parameters=cumulus_parameters + parameters,
-                template_body=_get_json_from_template(template),
-                disable_rollback=disable_rollback,
-                capabilities=['CAPABILITY_IAM'])
+
+            if template[0:4] == 'http':
+                connection.update_stack(
+                    stack_name,
+                    parameters=cumulus_parameters + parameters,
+                    template_url=template,
+                    disable_rollback=disable_rollback,
+                    capabilities=['CAPABILITY_IAM'])
+            else:
+                connection.update_stack(
+                    stack_name,
+                    parameters=cumulus_parameters + parameters,
+                    template_body=_get_json_from_template(template),
+                    disable_rollback=disable_rollback,
+                    capabilities=['CAPABILITY_IAM'])
 
             _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
             logger.debug('Creating new stack with version {}'.format(
                 config_handler.get_environment_option('version')))
-            connection.create_stack(
-                stack_name,
-                parameters=cumulus_parameters + parameters,
-                template_body=_get_json_from_template(template),
-                disable_rollback=disable_rollback,
-                capabilities=['CAPABILITY_IAM'])
+            if template[0:4] == 'http':
+                connection.create_stack(
+                    stack_name,
+                    parameters=cumulus_parameters + parameters,
+                    template_url=template,
+                    disable_rollback=disable_rollback,
+                    capabilities=['CAPABILITY_IAM'])
+            else:
+                connection.create_stack(
+                    stack_name,
+                    parameters=cumulus_parameters + parameters,
+                    template_body=_get_json_from_template(template),
+                    disable_rollback=disable_rollback,
+                    capabilities=['CAPABILITY_IAM'])
 
-            _wait_for_stack_complete(stack_name, filter_type='CREATE')
+        _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
     except ValueError, error:
-        logger.error('Malformatted template: {}'.format(error))
-        sys.exit(1)
+        raise InvalidTemplateException(
+            'Malformatted template: {}'.format(error))
     except boto.exception.BotoServerError, error:
-        logger.error("ERROR - Boto exception: {}".format(error))
-        logger.error("Enable debug in manage.py to see more details")
+        raise
 
 
 def _delete_stack(stack):
@@ -169,7 +199,11 @@ def _delete_stack(stack):
     :type stack: str
     :param stack: Stack name
     """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     logger.info('Deleting stack {}'.format(stack))
     connection.delete_stack(stack)
     _wait_for_stack_complete(stack, filter_type='DELETE')
@@ -195,7 +229,11 @@ def _get_stack_by_name(stack_name):
     :param stack_name: Stack name
     :returns: stack or None
     """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     for stack in connection.list_stacks():
         if (stack.stack_status != 'DELETE_COMPLETE' and
                 stack.stack_name == stack_name):
@@ -215,10 +253,9 @@ def _pre_deploy_hook():
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
-        logger.error(
+        raise HookExecutionException(
             'The pre-deploy-hook returned a non-zero exit code: {}'.format(
                 error))
-        sys.exit(1)
 
 
 def _print_event_log_event(event):
@@ -230,11 +267,14 @@ def _print_event_log_event(event):
     # Colorize status
     event_status = event.resource_status.split('_')
     if event_status[len(event_status) - 1] == 'COMPLETE':
-        status = GREEN + event.resource_status + ENDC
+        # Green text
+        status = '\033[92m' + event.resource_status + '\033[0m'
     elif event_status[len(event_status) - 1] == 'PROGRESS':
-        status = BLUE + event.resource_status + ENDC
+        # Blue text
+        status = '\033[94m' + event.resource_status + '\033[0m'
     elif event_status[len(event_status) - 1] == 'FAILED':
-        status = RED + event.resource_status + ENDC
+        # Red text
+        status = '\033[91m' + event.resource_status + '\033[0m'
     else:
         status = event.resource_status
 
@@ -276,10 +316,9 @@ def _post_deploy_hook():
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
-        logger.error(
+        raise HookExecutionException(
             'The post-deploy-hook returned a non-zero exit code: {}'.format(
                 error))
-        sys.exit(1)
 
 
 def _stack_exists(stack_name):
@@ -289,7 +328,11 @@ def _stack_exists(stack_name):
     :param stack_name: Stack name
     :returns: bool
     """
-    connection = connection_handler.connect_cloudformation()
+    try:
+        connection = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     for stack in connection.list_stacks():
         if (stack.stack_status != 'DELETE_COMPLETE' and
                 stack.stack_name == stack_name):
@@ -321,7 +364,11 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
         'UPDATE_ROLLBACK_FAILED',
         'UPDATE_ROLLBACK_COMPLETE'
     ]
-    con = connection_handler.connect_cloudformation()
+    try:
+        con = connection_handler.connect_cloudformation()
+    except Exception:
+        raise
+
     written_events = []
 
     while not complete:
