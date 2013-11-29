@@ -23,7 +23,7 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
-**0.6.0 ()**
+**0.6.0 (2013-11-29)**
 
 Major features:
 - [Global `cumulus` command and documentation generation #56](https://github.com/skymill/cumulus/issues/56)
