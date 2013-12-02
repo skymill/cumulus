@@ -228,8 +228,6 @@ def _run_init_scripts(start=False, kill=False, other=False):
     filenames = []
     for filename in os.listdir(init_dir):
         if os.path.isfile(os.path.join(init_dir, filename)):
-            logger.debug('Found init script {}'.format(
-                os.path.join(init_dir, filename)))
             filenames.append(os.path.join(init_dir, filename))
 
     if start:
