@@ -23,6 +23,11 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
+**0.6.1 (2013-12-02)**
+
+- [All `cumulus-init.d` scripts run both before and after bundle deploy #66](https://github.com/skymill/cumulus/issues/66)
+- [Widen output formatting for Logical ID #65](https://github.com/skymill/cumulus/issues/65)
+
 **0.6.0 (2013-11-29)**
 
 Major features:

@@ -280,7 +280,7 @@ def _print_event_log_event(event):
 
     print((
         '{timestamp:<20} | {type:<45} | '
-        '{logical_id:<30} | {status:<25}').format(
+        '{logical_id:<42} | {status:<25}').format(
             timestamp=datetime.strftime(
                 event.timestamp,
                 '%Y-%m-%dT%H:%M:%S'),
@@ -293,15 +293,15 @@ def _print_event_log_title():
     """ Print event log title row on stdout """
     print((
         '{timestamp:<20} | {type:<45} | '
-        '{logical_id:<30} | {status:<25}'.format(
+        '{logical_id:<42} | {status:<25}'.format(
             timestamp='Timestamp',
             type='Resource type',
             logical_id='Logical ID',
             status='Status')))
     print((
         '---------------------+---------------'
-        '--------------------------------+----'
-        '----------------------------+--------'
+        '--------------------------------------+----'
+        '----------------------------------+--------'
         '-------------------'))
 
 
