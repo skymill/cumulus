@@ -234,17 +234,17 @@ def _run_init_scripts(start=False, kill=False, other=False):
 
     if start:
         for filename in filenames:
-            if filename[0] == 'S':
+            if os.path.basename(filename)[0] == 'S':
                 _run_command(os.path.abspath(filename))
 
     if kill:
         for filename in filenames:
-            if filename[0] == 'K':
+            if os.path.basename(filename)[0] == 'K':
                 _run_command(os.path.abspath(filename))
 
     if other:
         for filename in filenames:
-            if filename[0] not in ['K', 'S']:
+            if os.path.basename(filename)[0] not in ['K', 'S']:
                 _run_command(os.path.abspath(filename))
 
 
