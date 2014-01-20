@@ -23,6 +23,10 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
+**NEXT**
+
+- Minor fix: Enhanced event log output
+
 **0.6.2 (2013-01-20)**
 
 - [Exclude all other configuration files if `--config` is set #68](https://github.com/skymill/cumulus/issues/68)
