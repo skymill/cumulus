@@ -23,6 +23,10 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
+**0.6.2 (2013-01-20)**
+
+- [Exclude all other configuration files if `--config` is set #68](https://github.com/skymill/cumulus/issues/68)
+
 **0.6.1 (2013-12-02)**
 
 - [All `cumulus-init.d` scripts run both before and after bundle deploy #66](https://github.com/skymill/cumulus/issues/66)
