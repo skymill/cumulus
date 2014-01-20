@@ -326,7 +326,7 @@ def _read_configuration_files():
     # Add custom configuration file path
     if args.config:
         if os.path.exists(os.path.expanduser(args.config)):
-            config_files.append(os.path.expanduser(args.config))
+            config_files = [os.path.expanduser(args.config)]
         else:
             logger.warning('Configuration file {} not found.'.format(
                 os.path.expanduser(args.config)))
