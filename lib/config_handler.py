@@ -185,8 +185,13 @@ def get_bundles():
 
     # Check that the bundles are configured
     for bundle in bundles:
+        if not bundle:
+            bundles.remove(bundle)
+            continue
+
         if bundle not in conf['bundles']:
-            raise ConfigurationException(
+            bundles.remove(bundle)
+            logger.warning(
                 'No matching configuration for bundle "{}"!'.format(bundle))
 
     return bundles

@@ -14,7 +14,14 @@ logger = logging.getLogger(__name__)
 
 def build_bundles():
     """ Build bundles for the environment """
-    for bundle_type in config_handler.get_bundles():
+    bundle_types = config_handler.get_bundles()
+
+    if not bundle_types:
+        logger.warning(
+            'No bundles configured, will deploy without any bundles')
+        return None
+
+    for bundle_type in bundle_types:
         logger.info('Building bundle {}'.format(bundle_type))
         logger.debug('Bundle paths: {}'.format(', '.join(
             config_handler.get_bundle_paths(bundle_type))))
