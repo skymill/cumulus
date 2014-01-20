@@ -23,7 +23,7 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
-**NEXT**
+**0.6.3 (2014-01-20)**
 
 - [It is not possible to run `--deploy` with a `cumulus.conf` without bundles #67](https://github.com/skymill/cumulus/issues/67)
 - Minor fix: Enhanced event log output
