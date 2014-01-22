@@ -455,8 +455,10 @@ def _populate_stacks(config):
                     elif option == 'parameters':
                         try:
                             raw_parameters = config.get(section, option)\
-                                .replace('\n', '')\
-                                .split(',')
+                                .split('\n')
+                            if not raw_parameters[0]:
+                                raw_parameters.pop(0)
+
                             parameters = []
                             for parameter in raw_parameters:
                                 key, value = parameter.split('=')
