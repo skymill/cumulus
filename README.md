@@ -23,6 +23,10 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
+**0.6.4 (2014-01-21)**
+
+- [Fix odd syntax in parameters option #69](https://github.com/skymill/cumulus/issues/69)
+
 **0.6.3 (2014-01-20)**
 
 - [It is not possible to run `--deploy` with a `cumulus.conf` without bundles #67](https://github.com/skymill/cumulus/issues/67)
