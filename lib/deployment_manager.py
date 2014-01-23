@@ -385,9 +385,10 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
     while not complete:
         stack = _get_stack_by_name(stack_name)
         if not stack:
+            _print_event_log_separator()
             break
 
-        if written_events == []:
+        if not written_events:
             _print_event_log_title()
 
         for event in reversed(con.describe_stack_events(stack.stack_id)):
