@@ -23,6 +23,10 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
+**NEXT**
+
+- [Ugly error when trying to deploy unconfigured environment #71](https://github.com/skymill/cumulus/issues/71)
+
 **0.6.4 (2014-01-21)**
 
 - [Fix odd syntax in parameters option #69](https://github.com/skymill/cumulus/issues/69)
