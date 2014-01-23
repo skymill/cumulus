@@ -19,7 +19,12 @@ def deploy():
     # Run pre-deploy-hook
     _pre_deploy_hook()
 
-    for stack in config_handler.get_stacks():
+    stacks = config_handler.get_stacks()
+    if not stacks:
+        logger.warning('No stacks configured, nothing to deploy')
+        return
+
+    for stack in stacks:
             _ensure_stack(
                 stack,
                 config_handler.get_environment(),
