@@ -68,11 +68,6 @@ logging_config['handlers']['default']['level'] = config_handler.get_log_level()
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
 
-import sys
-import json
-print(json.dumps(config_handler.conf, indent=2))
-sys.exit(1)
-
 
 def main():
     """ Main function """
