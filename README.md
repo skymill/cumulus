@@ -25,6 +25,7 @@ The HTML output is stored under `docs/_build/html`.
 
 **NEXT**
 
+- [Ensure stack deletion order #74](https://github.com/skymill/cumulus/issues/74)
 - [Ugly error when trying to deploy unconfigured environment #71](https://github.com/skymill/cumulus/issues/71)
 - [Stack deletion events are not handled properly #72](https://github.com/skymill/cumulus/issues/72)
 
