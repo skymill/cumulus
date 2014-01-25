@@ -29,6 +29,7 @@ The HTML output is stored under `docs/_build/html`.
 - [Update for all stacks fail if one stack fails #73](https://github.com/skymill/cumulus/issues/73)
 - [Ugly error when trying to deploy unconfigured environment #71](https://github.com/skymill/cumulus/issues/71)
 - [Stack deletion events are not handled properly #72](https://github.com/skymill/cumulus/issues/72)
+- [Catch ctrl-c interruptions cleanly #75](https://github.com/skymill/cumulus/issues/75)
 
 **0.6.4 (2014-01-21)**
 
