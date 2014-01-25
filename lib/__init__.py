@@ -35,7 +35,7 @@ logging_config = {
     },
     'loggers': {
         '': {
-            'handlers': ['boto'],
+            'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': True
         },
