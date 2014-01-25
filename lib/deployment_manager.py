@@ -138,10 +138,6 @@ def _ensure_stack(
             config_handler.get_environment()
         ),
         (
-            'CumulusEnvironment',
-            config_handler.get_environment()
-        ),
-        (
             'CumulusVersion',
             config_handler.get_environment_option('version')
         )
@@ -193,10 +189,23 @@ def _ensure_stack(
 
         _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
-    except ValueError, error:
+    except ValueError as error:
         raise InvalidTemplateException(
             'Malformatted template: {}'.format(error))
-    except boto.exception.BotoServerError, error:
+    except boto.exception.BotoServerError as error:
+        code = eval(error.error_message)['Error']['Code']
+        message = eval(error.error_message)['Error']['Message']
+
+        if code == 'ValidationError':
+            if message == 'No updates are to be performed.':
+                # Do not raise this exception if it is due to lack of updates
+                # We do not want to fail any other stack updates after this
+                # stack
+                logger.warning(
+                    'No CloudFormation updates are to be '
+                    'performed for {}'.format(stack_name))
+                return
+
         raise
 
 
