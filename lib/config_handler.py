@@ -68,6 +68,11 @@ def command_line_options():
         '-e', '--environment',
         help='Environment to use')
     general_ag.add_argument(
+        '-s', '--stacks',
+        help=(
+            'Comma separated list of stacks to deploy. '
+            'Default behavior is to deploy all stacks for an environment'))
+    general_ag.add_argument(
         '--version',
         help=(
             'Environment version number. '
@@ -115,6 +120,10 @@ def command_line_options():
         action='count',
         help='Undeploy (DELETE) all stacks in the environment')
     args = parser.parse_args()
+
+    # Make the stacks prettier
+    if args.stacks:
+        args.stacks = [s.strip() for s in args.stacks.split(',')]
 
     if args.cumulus_version:
         print('Cumulus version {}'.format(settings.get('general', 'version')))
@@ -442,6 +451,11 @@ def _populate_stacks(config):
     for section in config.sections():
         if section.startswith('stack: '):
             stack = section.split(': ')[1]
+
+            # If --stacks has been used, do only add those stacks
+            if args.stacks and stack not in args.stacks:
+                continue
+
             conf['stacks'][stack] = {}
 
             for option, required in stack_options:
