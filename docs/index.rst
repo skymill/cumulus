@@ -15,4 +15,5 @@ Table of contents
     cumulus_configuration
     cumulus_bundle_handler
     cf_example
+    command_line_options
     sc_lib_init
