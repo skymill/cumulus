@@ -35,7 +35,8 @@ stack_options = [
     ('template', True),
     ('disable-rollback', True),
     ('parameters', False),
-    ('timeout-in-minutes', False)
+    ('timeout-in-minutes', False),
+    ('tags', False)
 ]
 bundle_options = [
     ('paths', True),
@@ -306,6 +307,19 @@ def get_stack_parameters(stack):
         return []
 
 
+def get_stack_tags(stack):
+    """ Return the stack tags
+
+    :type stack: str
+    :param stack: Stack name
+    :returns: list -- All stack tags
+    """
+    try:
+        return conf['stacks'][stack]['tags']
+    except KeyError:
+        return None
+
+
 def get_stack_template(stack):
     """ Return the path to the stack template
 
@@ -507,6 +521,22 @@ def _populate_stacks(config):
                         except ValueError:
                             raise ConfigurationException(
                                 'Error parsing parameters for stack {}'.format(
+                                    stack))
+                    elif option == 'tags':
+                        try:
+                            raw_tags = config.get(section, option)\
+                                .split('\n')
+                            if not raw_tags[0]:
+                                raw_tags.pop(0)
+
+                            tags = {}
+                            for tag in raw_tags:
+                                key, value = tag.split('=')
+                                tags[key.strip()] = value.strip()
+                            conf['stacks'][stack][option] = tags
+                        except ValueError:
+                            raise ConfigurationException(
+                                'Error parsing tags for stack {}'.format(
                                     stack))
                     elif option == 'timeout-in-minutes':
                         conf['stacks'][stack][option] = config.getint(

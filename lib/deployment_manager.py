@@ -32,7 +32,8 @@ def deploy():
                 stack),
             parameters=config_handler.get_stack_parameters(stack),
             timeout_in_minutes=config_handler.get_stack_timeout_in_minutes(
-                stack))
+                stack),
+            tags=config_handler.get_stack_tags(stack))
 
     # Run post-deploy-hook
     _post_deploy_hook()
@@ -108,7 +109,7 @@ def validate_templates():
 def _ensure_stack(
         stack_name, environment, template,
         disable_rollback=False, parameters=[],
-        timeout_in_minutes=None):
+        timeout_in_minutes=None, tags=None):
     """ Ensure stack is up and running (create or update it)
 
     :type stack_name: str
@@ -121,9 +122,11 @@ def _ensure_stack(
     :param disable_rollback: Should rollbacks be disabled?
     :type parameters: list
     :param parameters: List of tuples with CF parameters
-    :type timeout_in_minutes: int
+    :type timeout_in_minutes: int or None
     :param timeout_in_minutes:
         Consider the stack FAILED if creation takes more than x minutes
+    :type tags: dict or None
+    :param tags: Dictionary of keys and values to use as CloudFormation tags
     """
     try:
         connection = connection_handler.connect_cloudformation()
@@ -169,7 +172,8 @@ def _ensure_stack(
                     template_url=template,
                     disable_rollback=disable_rollback,
                     capabilities=['CAPABILITY_IAM'],
-                    timeout_in_minutes=timeout_in_minutes)
+                    timeout_in_minutes=timeout_in_minutes,
+                    tags=tags)
             else:
                 connection.update_stack(
                     stack_name,
@@ -177,7 +181,8 @@ def _ensure_stack(
                     template_body=_get_json_from_template(template),
                     disable_rollback=disable_rollback,
                     capabilities=['CAPABILITY_IAM'],
-                    timeout_in_minutes=timeout_in_minutes)
+                    timeout_in_minutes=timeout_in_minutes,
+                    tags=tags)
 
             _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
@@ -190,7 +195,8 @@ def _ensure_stack(
                     template_url=template,
                     disable_rollback=disable_rollback,
                     capabilities=['CAPABILITY_IAM'],
-                    timeout_in_minutes=timeout_in_minutes)
+                    timeout_in_minutes=timeout_in_minutes,
+                    tags=tags)
             else:
                 connection.create_stack(
                     stack_name,
@@ -198,7 +204,8 @@ def _ensure_stack(
                     template_body=_get_json_from_template(template),
                     disable_rollback=disable_rollback,
                     capabilities=['CAPABILITY_IAM'],
-                    timeout_in_minutes=timeout_in_minutes)
+                    timeout_in_minutes=timeout_in_minutes,
+                    tags=tags)
 
         _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
