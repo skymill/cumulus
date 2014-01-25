@@ -23,15 +23,16 @@ def deploy():
     if not stacks:
         logger.warning('No stacks configured, nothing to deploy')
         return
-
     for stack in stacks:
-            _ensure_stack(
-                stack,
-                config_handler.get_environment(),
-                config_handler.get_stack_template(stack),
-                disable_rollback=config_handler.get_stack_disable_rollback(
-                    stack),
-                parameters=config_handler.get_stack_parameters(stack))
+        _ensure_stack(
+            stack,
+            config_handler.get_environment(),
+            config_handler.get_stack_template(stack),
+            disable_rollback=config_handler.get_stack_disable_rollback(
+                stack),
+            parameters=config_handler.get_stack_parameters(stack),
+            timeout_in_minutes=config_handler.get_stack_timeout_in_minutes(
+                stack))
 
     # Run post-deploy-hook
     _post_deploy_hook()
@@ -106,7 +107,8 @@ def validate_templates():
 
 def _ensure_stack(
         stack_name, environment, template,
-        disable_rollback=False, parameters=[]):
+        disable_rollback=False, parameters=[],
+        timeout_in_minutes=None):
     """ Ensure stack is up and running (create or update it)
 
     :type stack_name: str
@@ -119,6 +121,9 @@ def _ensure_stack(
     :param disable_rollback: Should rollbacks be disabled?
     :type parameters: list
     :param parameters: List of tuples with CF parameters
+    :type timeout_in_minutes: int
+    :param timeout_in_minutes:
+        Consider the stack FAILED if creation takes more than x minutes
     """
     try:
         connection = connection_handler.connect_cloudformation()
@@ -143,6 +148,10 @@ def _ensure_stack(
         )
     ]
 
+    if timeout_in_minutes:
+        logger.debug('Will time out stack creation after {:d} minutes'.format(
+            timeout_in_minutes))
+
     for parameter in cumulus_parameters + parameters:
         logger.debug(
             'Adding parameter {} with value {} to CF template'.format(
@@ -159,14 +168,16 @@ def _ensure_stack(
                     parameters=cumulus_parameters + parameters,
                     template_url=template,
                     disable_rollback=disable_rollback,
-                    capabilities=['CAPABILITY_IAM'])
+                    capabilities=['CAPABILITY_IAM'],
+                    timeout_in_minutes=timeout_in_minutes)
             else:
                 connection.update_stack(
                     stack_name,
                     parameters=cumulus_parameters + parameters,
                     template_body=_get_json_from_template(template),
                     disable_rollback=disable_rollback,
-                    capabilities=['CAPABILITY_IAM'])
+                    capabilities=['CAPABILITY_IAM'],
+                    timeout_in_minutes=timeout_in_minutes)
 
             _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
@@ -178,14 +189,16 @@ def _ensure_stack(
                     parameters=cumulus_parameters + parameters,
                     template_url=template,
                     disable_rollback=disable_rollback,
-                    capabilities=['CAPABILITY_IAM'])
+                    capabilities=['CAPABILITY_IAM'],
+                    timeout_in_minutes=timeout_in_minutes)
             else:
                 connection.create_stack(
                     stack_name,
                     parameters=cumulus_parameters + parameters,
                     template_body=_get_json_from_template(template),
                     disable_rollback=disable_rollback,
-                    capabilities=['CAPABILITY_IAM'])
+                    capabilities=['CAPABILITY_IAM'],
+                    timeout_in_minutes=timeout_in_minutes)
 
         _wait_for_stack_complete(stack_name, filter_type='CREATE')
 

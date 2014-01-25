@@ -34,10 +34,15 @@ logging_config = {
         }
     },
     'loggers': {
+        '': {
+            'handlers': ['boto'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
         'boto': {
             'handlers': ['boto'],
-            'level': 'INFO',
-            'propagate': True
+            'level': logging.CRITICAL,
+            'propagate': False
         },
         'lib.bundle_manager': {
             'handlers': ['default'],

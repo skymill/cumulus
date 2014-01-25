@@ -34,7 +34,8 @@ general_options = [
 stack_options = [
     ('template', True),
     ('disable-rollback', True),
-    ('parameters', False)
+    ('parameters', False),
+    ('timeout-in-minutes', False)
 ]
 bundle_options = [
     ('paths', True),
@@ -319,6 +320,24 @@ def get_stack_template(stack):
             'Stack template not found in configuration')
 
 
+def get_stack_timeout_in_minutes(stack):
+    """ Return stack creation timeout
+
+    :type stack: str
+    :param stack: Stack name
+    :returns: int -- Stack creation timeout in minutes
+    """
+    try:
+        timeout = int(conf['stacks'][stack]['timeout-in-minutes'])
+    except KeyError:
+        raise ConfigurationException(
+            'Stack timeout not found in configuration')
+
+    if timeout == 0:
+        return None
+    return timeout
+
+
 def get_stacks():
     """ Returns a list of stacks """
     try:
@@ -386,7 +405,14 @@ def _populate_environments(config):
                     elif option == 'stacks':
                         stacks = []
                         for item in config.get(section, option).split(','):
-                            stacks.append(item.strip())
+                            item = item.strip()
+
+                            # If --stacks has been used,
+                            # do only add those stacks
+                            if args.stacks and item not in args.stacks:
+                                continue
+
+                            stacks.append(item)
                         conf['environments'][env][option] = stacks
                     elif option == 'version':
                         if args.version:
@@ -482,6 +508,9 @@ def _populate_stacks(config):
                             raise ConfigurationException(
                                 'Error parsing parameters for stack {}'.format(
                                     stack))
+                    elif option == 'timeout-in-minutes':
+                        conf['stacks'][stack][option] = config.getint(
+                            section, option)
                     else:
                         conf['stacks'][stack][option] = config.get(
                             section, option)
@@ -490,6 +519,9 @@ def _populate_stacks(config):
                         raise ConfigurationException(
                             'Missing required option {}'.format(
                                 option))
+
+                    if option == 'timeout-in-minutes':
+                        conf['stacks'][stack][option] = 0
 
             # Add command line parameters
             try:
