@@ -43,6 +43,7 @@ Full example
     environment: stage
     bundle-type: webserver
     version: 1.0.0-SNAPSHOT
+    log-level: INFO
 
 
 Configuration options
@@ -57,6 +58,7 @@ Option                  Type               Required Comment
 ``bucket``              String             Yes      AWS S3 bucket to fetch bundles from
 ``environment``         String             Yes      Environment name
 ``version``             String             Yes      Environment version to apply
-``bundle-types``        CSV                Yes      Bundle names to apply to this host
+``bundle-types``        CVS                Yes      Bundle names to apply to this host
+``log-level``           String             No       Log level for the bundle handler
 ======================= ================== ======== ==========================================
 
