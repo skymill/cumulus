@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-from ConfigParser import SafeConfigParser
+from ConfigParser import SafeConfigParser, NoOptionError
 
 try:
     from boto import s3
@@ -16,9 +16,12 @@ except ImportError:
     print('Could not import boto. Try installing it with "pip install boto"')
     sys.exit(1)
 
+config = SafeConfigParser()
+config.read('/etc/cumulus/metadata.conf')
+
 
 # Configure logging
-logging.config.dictConfig({
+logging_config = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -57,12 +60,18 @@ logging.config.dictConfig({
             'propagate': False
         }
     }
-})
+}
 
+try:
+    logging_config['handlers']['console']['level'] = config.get(
+        'metadata', 'log-level')
+    logging_config['handlers']['file']['level'] = config.get(
+        'metadata', 'log-level')
+except NoOptionError:
+    pass
+
+logging.config.dictConfig(logging_config)
 logger = logging.getLogger('cumulus_bundle_handler')
-
-config = SafeConfigParser()
-config.read('/etc/cumulus/metadata.conf')
 
 
 def main():
