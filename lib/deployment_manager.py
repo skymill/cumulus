@@ -80,7 +80,9 @@ def undeploy():
         'Are you sure you want to do continue? [N/y] ')
     choice = raw_input(message).lower()
     if choice in ['yes', 'y']:
-        for stack in config_handler.get_stacks():
+        stacks = config_handler.get_stacks()
+        stacks.reverse()
+        for stack in stacks:
             _delete_stack(stack)
     else:
         print('Skipping undeployment.')
