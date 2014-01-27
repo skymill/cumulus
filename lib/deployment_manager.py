@@ -226,7 +226,8 @@ def _ensure_stack(
                     'performed for {}'.format(stack_name))
                 return
 
-        raise
+        logger.error('Boto exception {}: {}'.format(code, message))
+        return
 
 
 def _delete_stack(stack):
