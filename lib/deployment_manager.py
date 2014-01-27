@@ -157,7 +157,7 @@ def _ensure_stack(
 
     for parameter in cumulus_parameters + parameters:
         logger.debug(
-            'Adding parameter {} with value {} to CF template'.format(
+            'Adding parameter "{}" with value "{}" to CF template'.format(
                 parameter[0], parameter[1]))
 
     try:
