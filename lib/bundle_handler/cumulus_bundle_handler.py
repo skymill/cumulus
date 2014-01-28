@@ -3,11 +3,13 @@
 """ Script downloading and unpacking Cumulus bundles for the host """
 
 import logging
+import logging.config
 import os
 import subprocess
 import sys
 import tarfile
 import tempfile
+import zipfile
 from ConfigParser import SafeConfigParser, NoOptionError
 
 try:
@@ -16,14 +18,14 @@ except ImportError:
     print('Could not import boto. Try installing it with "pip install boto"')
     sys.exit(1)
 
-config = SafeConfigParser()
-config.read('/etc/cumulus/metadata.conf')
+CONFIG = SafeConfigParser()
+CONFIG.read('/etc/cumulus/metadata.conf')
 
 
 # Configure logging
-logging_config = {
+LOGGING_CONFIG = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_LOGGERs': False,
     'formatters': {
         'standard': {
             'format': (
@@ -48,7 +50,7 @@ logging_config = {
             'backupCount': 5
         }
     },
-    'loggers': {
+    'LOGGERs': {
         '': {
             'handlers': ['console', 'file'],
             'level': 'WARNING',
@@ -63,24 +65,24 @@ logging_config = {
 }
 
 try:
-    logging_config['handlers']['console']['level'] = config.get(
+    LOGGING_CONFIG['handlers']['console']['level'] = CONFIG.get(
         'metadata', 'log-level')
-    logging_config['handlers']['file']['level'] = config.get(
+    LOGGING_CONFIG['handlers']['file']['level'] = CONFIG.get(
         'metadata', 'log-level')
 except NoOptionError:
     pass
 
-logging.config.dictConfig(logging_config)
-logger = logging.getLogger('cumulus_bundle_handler')
+logging.config.dictConfig(LOGGING_CONFIG)
+LOGGER = logging.getLogger('cumulus_bundle_handler')
 
 
 def main():
     """ Main function """
     _run_init_scripts(kill=True, start=False, other=True)
 
-    bundle_types = config.get('metadata', 'bundle-types').split(',')
+    bundle_types = CONFIG.get('metadata', 'bundle-types').split(',')
     if not bundle_types:
-        logger.error('Missing "bundle-types" in metadata.conf')
+        LOGGER.error('Missing "bundle-types" in metadata.conf')
         sys.exit(1)
 
     _remove_old_files()
@@ -90,7 +92,7 @@ def main():
 
     _run_init_scripts(kill=False, start=True, other=True)
 
-    logger.info("Done updating host")
+    LOGGER.info("Done updating host")
 
 
 def _download_and_unpack_bundle(bundle_type):
@@ -99,47 +101,86 @@ def _download_and_unpack_bundle(bundle_type):
     :type bundle_type: str
     :param bundle_type: Bundle type to download
     """
-    logger.debug("Connecting to AWS S3")
-    connection = s3.connect_to_region(
-        config.get('metadata', 'region'),
-        aws_access_key_id=config.get('metadata', 'access-key-id'),
-        aws_secret_access_key=config.get('metadata', 'secret-access-key'))
-
-    # Download the bundle
-    key_name = (
-        '{env}/{version}/bundle-{env}-{version}-{bundle}.tar.bz2'.format(
-            env=config.get('metadata', 'environment'),
-            version=config.get('metadata', 'version'),
-            bundle=bundle_type))
-    bucket = connection.get_bucket(config.get('metadata', 'bundle-bucket'))
-    key = bucket.get_key(key_name)
+    key, compression = _get_key(bundle_type)
 
     # If the bundle does not exist
     if not key:
-        logger.error('No bundle matching {} found'.format(key_name))
+        LOGGER.error('No bundle found. Exiting.')
         sys.exit(1)
 
-    bundle = tempfile.NamedTemporaryFile(suffix='.tar.bz2', delete=False)
+    bundle = tempfile.NamedTemporaryFile(
+        suffix='.{}'.format(compression),
+        delete=False)
     bundle.close()
-    logger.info("Downloading s3://{}/{} to {}".format(
-        config.get('metadata', 'bundle-bucket'),
+    LOGGER.info("Downloading s3://{}/{} to {}".format(
+        CONFIG.get('metadata', 'bundle-bucket'),
         key.name,
         bundle.name))
     key.get_contents_to_filename(bundle.name)
 
     # Unpack the bundle
-    logger.info("Unpacking {}".format(bundle.name))
-    tar = tarfile.open(bundle.name, 'r:bz2')
-    _store_bundle_files(tar.getnames())
-    pwd = os.getcwd()
-    os.chdir('/')
-    tar.extractall()
-    tar.close()
-    os.chdir(pwd)
+    LOGGER.info("Unpacking {}".format(bundle.name))
+    if compression == 'tar.bz2':
+        archive = tarfile.open(bundle.name, 'r:bz2')
+        _store_bundle_files(archive.getnames())
+    elif compression == 'tar.gz':
+        archive = tarfile.open(bundle.name, 'r:gz')
+        _store_bundle_files(archive.getnames())
+    elif compression == 'zip':
+        archive = zipfile.ZipFile(bundle.name, 'r')
+        _store_bundle_files(archive.namelist())
+    else:
+        logging.error('Unsupported compression format: "{}"'.format(
+            compression))
+        sys.exit(1)
+
+    try:
+        LOGGER.info('Unpacking {} to /'.format(bundle.name))
+        archive.extractall('/')
+    finally:
+        archive.close()
 
     # Remove the downloaded package
-    logger.info("Removing temporary file {}".format(bundle.name))
+    LOGGER.info("Removing temporary file {}".format(bundle.name))
     os.remove(bundle.name)
+
+
+def _get_key(bundle_type):
+    """ Returns the bundle key
+
+    :type bundle_type: str
+    :param bundle_type: Bundle type to download
+    :returns: (boto.s3.key, str) -- (S3 key object, compression type)
+    """
+    LOGGER.debug("Connecting to AWS S3")
+    connection = s3.connect_to_region(
+        CONFIG.get('metadata', 'region'),
+        aws_access_key_id=CONFIG.get('metadata', 'access-key-id'),
+        aws_secret_access_key=CONFIG.get('metadata', 'secret-access-key'))
+
+    # Get the relevant bucket
+    bucket_name = CONFIG.get('metadata', 'bundle-bucket')
+    LOGGER.debug('Using bucket {}'.format(bucket_name))
+    bucket = connection.get_bucket(bucket_name)
+
+    # Download the bundle
+    for compression in ['tar.bz2', 'tar.gz', 'zip']:
+        key_name = (
+            '{env}/{version}/bundle-{env}-{version}-{bundle}.{comp}'.format(
+                env=CONFIG.get('metadata', 'environment'),
+                version=CONFIG.get('metadata', 'version'),
+                bundle=bundle_type,
+                comp=compression))
+        LOGGER.debug('Looking for bundle {}'.format(key_name))
+        key = bucket.get_key(key_name)
+
+        # When we have found a key, don't look any more
+        if key:
+            LOGGER.debug('Found bundle: {}'.format(key_name))
+            return key
+        LOGGER.debug('Bundle not found: {}'.format(key_name))
+
+    return (None, None)
 
 
 def _remove_old_files():
@@ -147,10 +188,10 @@ def _remove_old_files():
     cache_file = '/var/local/cumulus-bundle-handler.cache'
 
     if not os.path.exists(cache_file):
-        logger.info('No previous bundle files to clean up')
+        LOGGER.info('No previous bundle files to clean up')
         return
 
-    logger.info('Removing old files and directories')
+    LOGGER.info('Removing old files and directories')
 
     with open(cache_file, 'r') as file_handle:
         for line in file_handle.readlines():
@@ -162,11 +203,11 @@ def _remove_old_files():
             if os.path.isdir(line):
                 try:
                     os.removedirs(line)
-                    logger.debug('Removing directory {}'.format(line))
+                    LOGGER.debug('Removing directory {}'.format(line))
                 except OSError:
                     pass
             elif os.path.isfile(line):
-                logger.debug('Removing file {}'.format(line))
+                LOGGER.debug('Removing file {}'.format(line))
                 os.remove(line)
 
                 try:
@@ -174,7 +215,7 @@ def _remove_old_files():
                 except OSError:
                     pass
             elif os.path.islink(line):
-                logger.debug('Removing link {}'.format(line))
+                LOGGER.debug('Removing link {}'.format(line))
                 os.remove(line)
 
                 try:
@@ -182,7 +223,7 @@ def _remove_old_files():
                 except OSError:
                     pass
             else:
-                logger.warning('Unknown file type {}'.format(line))
+                LOGGER.warning('Unknown file type {}'.format(line))
 
     # Remove the cache file when done
     os.remove(cache_file)
@@ -194,7 +235,7 @@ def _run_command(command):
     :type command: str
     :param command: Command to execute
     """
-    logger.info('Executing command: {}'.format(command))
+    LOGGER.info('Executing command: {}'.format(command))
 
     cmd = subprocess.Popen(
         command,
@@ -209,7 +250,7 @@ def _run_command(command):
         print(stderr)
 
     if cmd.returncode != 0:
-        logger.error('Command "{}" returned non-zero exit code {}'.format(
+        LOGGER.error('Command "{}" returned non-zero exit code {}'.format(
             command,
             cmd.returncode))
         sys.exit(cmd.returncode)
@@ -229,10 +270,10 @@ def _run_init_scripts(start=False, kill=False, other=False):
 
     # Run the post install scripts provided by the bundle
     if not os.path.exists(init_dir):
-        logger.info('No init scripts found in {}'.format(init_dir))
+        LOGGER.info('No init scripts found in {}'.format(init_dir))
         return
 
-    logger.info('Running init scripts from {}'.format(init_dir))
+    LOGGER.info('Running init scripts from {}'.format(init_dir))
 
     filenames = []
     for filename in os.listdir(init_dir):
@@ -274,7 +315,7 @@ def _store_bundle_files(filenames):
 
             file_handle.write('{}\n'.format(filename))
 
-        logger.debug('Stored bundle information in {}'.format(cache_file))
+        LOGGER.debug('Stored bundle information in {}'.format(cache_file))
     finally:
         file_handle.close()
 
