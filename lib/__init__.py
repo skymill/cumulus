@@ -16,6 +16,10 @@ logging_config = {
             'format':
             '%(asctime)s - cumulus - %(levelname)s - %(message)s'
         },
+        'boto': {
+            'format':
+            '%(asctime)s - boto - %(levelname)s - %(message)s'
+        }
     },
     'handlers': {
         'default': {
@@ -23,12 +27,22 @@ logging_config = {
             'class': 'logging.StreamHandler',
             'formatter': 'standard'
         },
+        'boto': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'boto'
+        }
     },
     'loggers': {
         '': {
             'handlers': ['default'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': True
+        },
+        'boto': {
+            'handlers': ['boto'],
+            'level': logging.CRITICAL,
+            'propagate': False
         },
         'lib.bundle_manager': {
             'handlers': ['default'],

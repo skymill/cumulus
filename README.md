@@ -1,4 +1,4 @@
-# Cumulus
+# Cumulus Deployment Suite
 
 Cumulus is a deployment tool used to deploy and maintain environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
 
@@ -22,6 +22,18 @@ The HTML output is stored under `docs/_build/html`.
 
 
 ## Release notes
+
+**0.7.0 (2014-01-28)**
+
+- [Support deployment of certain stacks only #70](https://github.com/skymill/cumulus/issues/70)
+- [Add support for stack creation timeouts #76](https://github.com/skymill/cumulus/issues/76)
+- [Ensure stack deletion order #74](https://github.com/skymill/cumulus/issues/74)
+- [Support CloudFormation stack tags #78](https://github.com/skymill/cumulus/issues/78)
+- [Update for all stacks fail if one stack fails #73](https://github.com/skymill/cumulus/issues/73)
+- [Log level config in CBH #64](https://github.com/skymill/cumulus/issues/64)
+- [Ugly error when trying to deploy unconfigured environment #71](https://github.com/skymill/cumulus/issues/71)
+- [Stack deletion events are not handled properly #72](https://github.com/skymill/cumulus/issues/72)
+- [Catch ctrl-c interruptions cleanly #75](https://github.com/skymill/cumulus/issues/75)
 
 **0.6.4 (2014-01-21)**
 

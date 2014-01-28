@@ -34,7 +34,9 @@ general_options = [
 stack_options = [
     ('template', True),
     ('disable-rollback', True),
-    ('parameters', False)
+    ('parameters', False),
+    ('timeout-in-minutes', False),
+    ('tags', False)
 ]
 bundle_options = [
     ('paths', True),
@@ -67,6 +69,11 @@ def command_line_options():
     general_ag.add_argument(
         '-e', '--environment',
         help='Environment to use')
+    general_ag.add_argument(
+        '-s', '--stacks',
+        help=(
+            'Comma separated list of stacks to deploy. '
+            'Default behavior is to deploy all stacks for an environment'))
     general_ag.add_argument(
         '--version',
         help=(
@@ -115,6 +122,10 @@ def command_line_options():
         action='count',
         help='Undeploy (DELETE) all stacks in the environment')
     args = parser.parse_args()
+
+    # Make the stacks prettier
+    if args.stacks:
+        args.stacks = [s.strip() for s in args.stacks.split(',')]
 
     if args.cumulus_version:
         print('Cumulus version {}'.format(settings.get('general', 'version')))
@@ -296,6 +307,19 @@ def get_stack_parameters(stack):
         return []
 
 
+def get_stack_tags(stack):
+    """ Return the stack tags
+
+    :type stack: str
+    :param stack: Stack name
+    :returns: list -- All stack tags
+    """
+    try:
+        return conf['stacks'][stack]['tags']
+    except KeyError:
+        return None
+
+
 def get_stack_template(stack):
     """ Return the path to the stack template
 
@@ -308,6 +332,24 @@ def get_stack_template(stack):
     except KeyError:
         raise ConfigurationException(
             'Stack template not found in configuration')
+
+
+def get_stack_timeout_in_minutes(stack):
+    """ Return stack creation timeout
+
+    :type stack: str
+    :param stack: Stack name
+    :returns: int -- Stack creation timeout in minutes
+    """
+    try:
+        timeout = int(conf['stacks'][stack]['timeout-in-minutes'])
+    except KeyError:
+        raise ConfigurationException(
+            'Stack timeout not found in configuration')
+
+    if timeout == 0:
+        return None
+    return timeout
 
 
 def get_stacks():
@@ -377,7 +419,14 @@ def _populate_environments(config):
                     elif option == 'stacks':
                         stacks = []
                         for item in config.get(section, option).split(','):
-                            stacks.append(item.strip())
+                            item = item.strip()
+
+                            # If --stacks has been used,
+                            # do only add those stacks
+                            if args.stacks and item not in args.stacks:
+                                continue
+
+                            stacks.append(item)
                         conf['environments'][env][option] = stacks
                     elif option == 'version':
                         if args.version:
@@ -442,6 +491,11 @@ def _populate_stacks(config):
     for section in config.sections():
         if section.startswith('stack: '):
             stack = section.split(': ')[1]
+
+            # If --stacks has been used, do only add those stacks
+            if args.stacks and stack not in args.stacks:
+                continue
+
             conf['stacks'][stack] = {}
 
             for option, required in stack_options:
@@ -468,6 +522,25 @@ def _populate_stacks(config):
                             raise ConfigurationException(
                                 'Error parsing parameters for stack {}'.format(
                                     stack))
+                    elif option == 'tags':
+                        try:
+                            raw_tags = config.get(section, option)\
+                                .split('\n')
+                            if not raw_tags[0]:
+                                raw_tags.pop(0)
+
+                            tags = {}
+                            for tag in raw_tags:
+                                key, value = tag.split('=')
+                                tags[key.strip()] = value.strip()
+                            conf['stacks'][stack][option] = tags
+                        except ValueError:
+                            raise ConfigurationException(
+                                'Error parsing tags for stack {}'.format(
+                                    stack))
+                    elif option == 'timeout-in-minutes':
+                        conf['stacks'][stack][option] = config.getint(
+                            section, option)
                     else:
                         conf['stacks'][stack][option] = config.get(
                             section, option)
@@ -476,6 +549,9 @@ def _populate_stacks(config):
                         raise ConfigurationException(
                             'Missing required option {}'.format(
                                 option))
+
+                    if option == 'timeout-in-minutes':
+                        conf['stacks'][stack][option] = 0
 
             # Add command line parameters
             try:

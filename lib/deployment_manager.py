@@ -19,14 +19,21 @@ def deploy():
     # Run pre-deploy-hook
     _pre_deploy_hook()
 
-    for stack in config_handler.get_stacks():
-            _ensure_stack(
-                stack,
-                config_handler.get_environment(),
-                config_handler.get_stack_template(stack),
-                disable_rollback=config_handler.get_stack_disable_rollback(
-                    stack),
-                parameters=config_handler.get_stack_parameters(stack))
+    stacks = config_handler.get_stacks()
+    if not stacks:
+        logger.warning('No stacks configured, nothing to deploy')
+        return
+    for stack in stacks:
+        _ensure_stack(
+            stack,
+            config_handler.get_environment(),
+            config_handler.get_stack_template(stack),
+            disable_rollback=config_handler.get_stack_disable_rollback(
+                stack),
+            parameters=config_handler.get_stack_parameters(stack),
+            timeout_in_minutes=config_handler.get_stack_timeout_in_minutes(
+                stack),
+            tags=config_handler.get_stack_tags(stack))
 
     # Run post-deploy-hook
     _post_deploy_hook()
@@ -75,7 +82,9 @@ def undeploy():
         'Are you sure you want to do continue? [N/y] ')
     choice = raw_input(message).lower()
     if choice in ['yes', 'y']:
-        for stack in config_handler.get_stacks():
+        stacks = config_handler.get_stacks()
+        stacks.reverse()
+        for stack in stacks:
             _delete_stack(stack)
     else:
         print('Skipping undeployment.')
@@ -99,7 +108,8 @@ def validate_templates():
 
 def _ensure_stack(
         stack_name, environment, template,
-        disable_rollback=False, parameters=[]):
+        disable_rollback=False, parameters=[],
+        timeout_in_minutes=None, tags=None):
     """ Ensure stack is up and running (create or update it)
 
     :type stack_name: str
@@ -112,6 +122,11 @@ def _ensure_stack(
     :param disable_rollback: Should rollbacks be disabled?
     :type parameters: list
     :param parameters: List of tuples with CF parameters
+    :type timeout_in_minutes: int or None
+    :param timeout_in_minutes:
+        Consider the stack FAILED if creation takes more than x minutes
+    :type tags: dict or None
+    :param tags: Dictionary of keys and values to use as CloudFormation tags
     """
     try:
         connection = connection_handler.connect_cloudformation()
@@ -131,18 +146,18 @@ def _ensure_stack(
             config_handler.get_environment()
         ),
         (
-            'CumulusEnvironment',
-            config_handler.get_environment()
-        ),
-        (
             'CumulusVersion',
             config_handler.get_environment_option('version')
         )
     ]
 
+    if timeout_in_minutes:
+        logger.debug('Will time out stack creation after {:d} minutes'.format(
+            timeout_in_minutes))
+
     for parameter in cumulus_parameters + parameters:
         logger.debug(
-            'Adding parameter {} with value {} to CF template'.format(
+            'Adding parameter "{}" with value "{}" to CF template'.format(
                 parameter[0], parameter[1]))
 
     try:
@@ -156,14 +171,18 @@ def _ensure_stack(
                     parameters=cumulus_parameters + parameters,
                     template_url=template,
                     disable_rollback=disable_rollback,
-                    capabilities=['CAPABILITY_IAM'])
+                    capabilities=['CAPABILITY_IAM'],
+                    timeout_in_minutes=timeout_in_minutes,
+                    tags=tags)
             else:
                 connection.update_stack(
                     stack_name,
                     parameters=cumulus_parameters + parameters,
                     template_body=_get_json_from_template(template),
                     disable_rollback=disable_rollback,
-                    capabilities=['CAPABILITY_IAM'])
+                    capabilities=['CAPABILITY_IAM'],
+                    timeout_in_minutes=timeout_in_minutes,
+                    tags=tags)
 
             _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
@@ -175,22 +194,40 @@ def _ensure_stack(
                     parameters=cumulus_parameters + parameters,
                     template_url=template,
                     disable_rollback=disable_rollback,
-                    capabilities=['CAPABILITY_IAM'])
+                    capabilities=['CAPABILITY_IAM'],
+                    timeout_in_minutes=timeout_in_minutes,
+                    tags=tags)
             else:
                 connection.create_stack(
                     stack_name,
                     parameters=cumulus_parameters + parameters,
                     template_body=_get_json_from_template(template),
                     disable_rollback=disable_rollback,
-                    capabilities=['CAPABILITY_IAM'])
+                    capabilities=['CAPABILITY_IAM'],
+                    timeout_in_minutes=timeout_in_minutes,
+                    tags=tags)
 
         _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
-    except ValueError, error:
+    except ValueError as error:
         raise InvalidTemplateException(
             'Malformatted template: {}'.format(error))
-    except boto.exception.BotoServerError, error:
-        raise
+    except boto.exception.BotoServerError as error:
+        code = eval(error.error_message)['Error']['Code']
+        message = eval(error.error_message)['Error']['Message']
+
+        if code == 'ValidationError':
+            if message == 'No updates are to be performed.':
+                # Do not raise this exception if it is due to lack of updates
+                # We do not want to fail any other stack updates after this
+                # stack
+                logger.warning(
+                    'No CloudFormation updates are to be '
+                    'performed for {}'.format(stack_name))
+                return
+
+        logger.error('Boto exception {}: {}'.format(code, message))
+        return
 
 
 def _delete_stack(stack):
@@ -295,7 +332,7 @@ def _print_event_log_separator():
         '---------------------+---------------'
         '--------------------------------+----------'
         '----------------------------------+--------'
-        '-------------------'))
+        '------------'))
 
 
 def _print_event_log_title():
@@ -380,9 +417,10 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
     while not complete:
         stack = _get_stack_by_name(stack_name)
         if not stack:
+            _print_event_log_separator()
             break
 
-        if written_events == []:
+        if not written_events:
             _print_event_log_title()
 
         for event in reversed(con.describe_stack_events(stack.stack_id)):

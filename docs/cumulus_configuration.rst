@@ -25,10 +25,13 @@ All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and ``
     [stack: full]
     template: /Users/sebastian/tmp/hosts/webserver.json
     disable-rollback: true
+    #timeout-in-minutes: 10
     parameters:
         version = 1.1.0,
         test tag = my test value
         key = value
+    tags:
+        project = Example project
 
     [bundle: webserver]
     pre-bundle-hook: git clone git://git.example.com/my.git
@@ -87,7 +90,9 @@ Option                  Type               Required Comment
 ======================= ================== ======== ==========================================
 ``template``            String             Yes      Path to local CloudFormation JSON file
 ``disable-rollback``    Boolean            No       Should CloudFormation rollbacks be disabled? Default: ``false``
+``timeout-in-minutes``  Int                No       Set a CloudFormation creation timeout
 ``parameters``          Line sep. string   Yes      Parameters to send to the CloudFormation template. Should be on the form ``key = value``. Each parameter is separated by a new line.
+``tags``                Line sep. string   No       CloudFormation tags to add to the stack
 ======================= ================== ======== ==========================================
 
 
