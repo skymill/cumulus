@@ -26,6 +26,7 @@ The HTML output is stored under `docs/_build/html`.
 **NEXT**
 
 - [Support for running Cumulus on a Windows client #80](https://github.com/skymill/cumulus/issues/80)
+- [Support using pre-bundled software #82](https://github.com/skymill/cumulus/issues/82)
 - [Create clean error when command line options are missing #85](https://github.com/skymill/cumulus/issues/85)
 
 **0.7.0 (2014-01-28)**
