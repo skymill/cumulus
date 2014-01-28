@@ -4,13 +4,17 @@
 
 import sys
 
-import lib
+try:
+    import lib
+except Exception as error:
+    print('Configuration error: {}'.format(error))
+    sys.exit(1)
 
 
 if __name__ == '__main__':
     try:
         lib.main()
-    except lib.exceptions.ConfigurationException:
+    except lib.exceptions.ConfigurationException as error:
         sys.exit(1)
     except lib.exceptions.HookExecutionException:
         sys.exit(1)

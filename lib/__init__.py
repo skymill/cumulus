@@ -5,8 +5,11 @@ import logging
 import bundle_manager
 import deployment_manager
 
-config_handler.command_line_options()
-config_handler.configure()
+try:
+    config_handler.command_line_options()
+    config_handler.configure()
+except Exception:
+    raise
 
 logging_config = {
     'version': 1,
