@@ -1,6 +1,7 @@
 """ Manager """
 import json
 import logging
+import os
 import subprocess
 import time
 from datetime import datetime
@@ -253,9 +254,13 @@ def _get_json_from_template(template):
     :param template: Template path to use
     :returns: JSON object
     """
-    file_handle = open(template)
+    template_path = os.expandvars(os.expanduser(template))
+    logger.debug('Parsing template file {}'.format(template_path))
+
+    file_handle = open(template_path)
     json_data = json.dumps(json.loads(file_handle.read()))
     file_handle.close()
+
     return json_data
 
 
