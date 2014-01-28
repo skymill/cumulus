@@ -17,7 +17,7 @@ All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and ``
     bucket: se.skymill.bundles
     region: eu-west-1
     stacks: full
-    bundles: webserver, database
+    bundles: webserver, database, app
     version: 1.0.0-SNAPSHOT
     pre-deploy-hook: /path/to/script
     post-deploy-hook: echo "Yay" > ~/test.log
@@ -46,6 +46,9 @@ All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and ``
     path-rewrites:
         /wordpress -> /var/www/wordpress
         /nginx -> /etc/nginx
+
+    [bundle: app]
+    pre-built-bundle: /Users/sebastian/build/app.tar.bz2
 
 
 General configuration
@@ -107,4 +110,5 @@ Option                  Type               Required Comment
 ``pre-bundle-hook``     String             No       Command to execute before bundling
 ``post-bundle-hook``    String             No       Command to execute after bundling
 ``paths``               Line sep. string   Yes      Paths to include in the bundle. Each path should be declared on a new line.
+``pre-build-bundle``    String             No       Path to a pre-built bundle. This option will make the others unneeded.
 ======================= ================== ======== ==========================================
