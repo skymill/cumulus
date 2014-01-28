@@ -110,5 +110,5 @@ Option                  Type               Required Comment
 ``pre-bundle-hook``     String             No       Command to execute before bundling
 ``post-bundle-hook``    String             No       Command to execute after bundling
 ``paths``               Line sep. string   Yes      Paths to include in the bundle. Each path should be declared on a new line.
-``pre-build-bundle``    String             No       Path to a pre-built bundle. This option will make the others unneeded.
+``pre-build-bundle``    String             No       Path to a pre-built bundle. This option will make the `paths` redundant.
 ======================= ================== ======== ==========================================
