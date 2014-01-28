@@ -73,12 +73,8 @@ def _bundle(tmpfile, bundle_type, environment, paths):
         See: http://docs.python.org/library/tarfile.html#tarfile.TarInfo
         """
         # Make sure that the files are placed in the / root dir
-        tarinfo.name = tarinfo.name.replace(
-            '{}/'.format(path[1:]),
-            '')
-        tarinfo.name = tarinfo.name.replace(
-            '{}'.format(path[1:]),
-            '')
+        tarinfo.name = tarinfo.name.replace('{}/'.format(path[1:]), '')
+        tarinfo.name = tarinfo.name.replace('{}'.format(path[1:]), '')
 
         for rewrite in path_rewrites:
             try:
