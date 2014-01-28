@@ -23,7 +23,7 @@ The HTML output is stored under `docs/_build/html`.
 
 ## Release notes
 
-**NEXT**
+**0.7.0 (2014-01-28)**
 
 - [Support deployment of certain stacks only #70](https://github.com/skymill/cumulus/issues/70)
 - [Add support for stack creation timeouts #76](https://github.com/skymill/cumulus/issues/76)
