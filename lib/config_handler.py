@@ -42,7 +42,8 @@ bundle_options = [
     ('paths', True),
     ('path-rewrites', False),
     ('pre-bundle-hook', False),
-    ('post-bundle-hook', False)
+    ('post-bundle-hook', False),
+    ('pre-built-bundle', False)
 ]
 env_options = [
     ('access-key-id', True),
@@ -615,6 +616,10 @@ def _populate_bundles(config):
                         conf['bundles'][bundle][option] = config.get(
                             section, option)
                 except NoOptionError:
+                    if (option == 'paths' and
+                            config.has_option(section, 'pre-built-bundle')):
+                        pass
+
                     if required:
                         raise ConfigurationException(
                             'Missing required option {}'.format(option))
