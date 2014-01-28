@@ -14,7 +14,7 @@ except Exception as error:
 if __name__ == '__main__':
     try:
         lib.main()
-    except lib.exceptions.ConfigurationException as error:
+    except lib.exceptions.ConfigurationException:
         sys.exit(1)
     except lib.exceptions.HookExecutionException:
         sys.exit(1)
