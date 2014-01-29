@@ -308,7 +308,7 @@ def _run_command(command):
 
 
 def _run_init_scripts(start=False, kill=False, other=False):
-    """ Execute scripts in /etc/cumulus-init.d
+    """ Execute scripts in /etc/cumulus-init.d or C:\\cumulus\\init.d
 
     :type start: bool
     :param start: Run scripts starting with S
@@ -318,6 +318,8 @@ def _run_init_scripts(start=False, kill=False, other=False):
     :param others: Run scripts not starting with S or K
     """
     init_dir = '/etc/cumulus-init.d'
+    if sys.platform in ['win32', 'cygwin']:
+        init_dir = 'C:\\cumulus\\init.d'
 
     # Run the post install scripts provided by the bundle
     if not os.path.exists(init_dir):
