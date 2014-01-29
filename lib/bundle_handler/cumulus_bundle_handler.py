@@ -169,6 +169,10 @@ def _get_extraction_path(bundle_type):
     if sys.platform in ['win32', 'cygwin']:
         path = 'C:\\'
 
+    if not os.path.exists(path):
+        LOGGER.debug('Created extraction path {}'.format(path))
+        os.makedirs(path)
+
     try:
         bundle_paths = CONFIG.get('metadata', 'bundle-extraction-paths')\
             .split('\n')
