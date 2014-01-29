@@ -42,6 +42,9 @@ Full example
     bundle-bucket: com.example.bundles
     environment: stage
     bundle-type: webserver
+    bundle-extraction-paths:
+        generic -> /etc/example
+        webserver -> /
     version: 1.0.0-SNAPSHOT
     log-level: INFO
 
@@ -49,16 +52,17 @@ Full example
 Configuration options
 ^^^^^^^^^^^^^^^^^^^^^
 
-======================= ================== ======== ==========================================
-Option                  Type               Required Comment
-======================= ================== ======== ==========================================
-``access-key-id``       String             Yes      AWS access key
-``secret-access-key``   String             Yes      AWS secret access key
-``region``              String             Yes      AWS region name, e.g. ``us-east-1``
-``bucket``              String             Yes      AWS S3 bucket to fetch bundles from
-``environment``         String             Yes      Environment name
-``version``             String             Yes      Environment version to apply
-``bundle-types``        CVS                Yes      Bundle names to apply to this host
-``log-level``           String             No       Log level for the bundle handler
-======================= ================== ======== ==========================================
+=========================== ================== ======== ==========================================
+Option                      Type               Required Comment
+=========================== ================== ======== ==========================================
+``access-key-id``           String             Yes      AWS access key
+``secret-access-key``       String             Yes      AWS secret access key
+``region``                  String             Yes      AWS region name, e.g. ``us-east-1``
+``bucket``                  String             Yes      AWS S3 bucket to fetch bundles from
+``environment``             String             Yes      Environment name
+``version``                 String             Yes      Environment version to apply
+``bundle-types``            List               Yes      Bundle names to apply to this host
+``bundle-extraction-paths`` New line sep. list No       Decide in which parent directory a bundle shall be extracted. Default is `/` on Linux and `C:\` on Windows systems
+``log-level``               String             No       Log level for the bundle handler
+=========================== ================== ======== ==========================================
 

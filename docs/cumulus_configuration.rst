@@ -75,8 +75,8 @@ Option                  Type               Required Comment
 ``secret-access-key``   String             Yes      AWS secret access key
 ``bucket``              String             Yes      AWS S3 bucket to store bundles in
 ``region``              String             Yes      AWS region name, e.g. ``us-east-1``
-``stacks``              CSV                Yes      List of stack names to deploy
-``bundles``             CSV                Yes      List of bundles to build and upload
+``stacks``              List               Yes      List of stack names to deploy
+``bundles``             List               Yes      List of bundles to build and upload
 ``version``             String             Yes      Environment version number
 ``pre-deploy-hook``     String             No       Command to execute before deployment
 ``post-deploy-hook``    String             No       Command to execute after deployment
