@@ -62,7 +62,7 @@ Option                      Type               Required Comment
 ``environment``             String             Yes      Environment name
 ``version``                 String             Yes      Environment version to apply
 ``bundle-types``            List               Yes      Bundle names to apply to this host
-``bundle-extraction-paths`` New line sep. list No       Decide in which parent directory a bundle shall be extracted. Default is `/` on Linux and `C:\` on Windows systems
+``bundle-extraction-paths`` New line sep. list No       Decide in which parent directory a bundle shall be extracted. Default is `/` on Linux and Mac OS X and `C:\` on Windows systems
 ``log-level``               String             No       Log level for the bundle handler
 =========================== ================== ======== ==========================================
 
