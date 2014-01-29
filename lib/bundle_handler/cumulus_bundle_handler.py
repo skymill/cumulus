@@ -19,7 +19,11 @@ except ImportError:
     sys.exit(1)
 
 CONFIG = SafeConfigParser()
-CONFIG.read('/etc/cumulus/metadata.conf')
+
+if sys.platform in ['win32', 'cygwin']:
+    CONFIG.read('C:\\cumulus\\conf\\metadata.conf')
+else:
+    CONFIG.read('/etc/cumulus/metadata.conf')
 
 
 # Configure logging
@@ -64,6 +68,13 @@ LOGGING_CONFIG = {
     }
 }
 
+# Change the log file path on Windows systems
+if sys.platform in ['win32', 'cygwin']:
+    os.makedirs('C:\\cumulus\\logs')
+    LOGGING_CONFIG['handlers']['file']['filename'] = \
+        'C:\\cumulus\\logs\\cumulus-bundle-handler.log'
+
+# Read log level from the metadata.conf
 try:
     LOGGING_CONFIG['handlers']['console']['level'] = CONFIG.get(
         'metadata', 'log-level').upper()
@@ -223,6 +234,9 @@ def _get_key(bundle_type):
 def _remove_old_files():
     """ Remove files from previous bundle """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
+    if sys.platform in ['win32', 'cygwin']:
+        os.makedirs('C:\\cumulus\\cache')
+        cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
 
     if not os.path.exists(cache_file):
         LOGGER.info('No previous bundle files to clean up')
@@ -294,7 +308,7 @@ def _run_command(command):
 
 
 def _run_init_scripts(start=False, kill=False, other=False):
-    """ Execute scripts in /etc/cumulus-init.d
+    """ Execute scripts in /etc/cumulus-init.d or C:\\cumulus\\init.d
 
     :type start: bool
     :param start: Run scripts starting with S
@@ -304,6 +318,8 @@ def _run_init_scripts(start=False, kill=False, other=False):
     :param others: Run scripts not starting with S or K
     """
     init_dir = '/etc/cumulus-init.d'
+    if sys.platform in ['win32', 'cygwin']:
+        init_dir = 'C:\\cumulus\\init.d'
 
     # Run the post install scripts provided by the bundle
     if not os.path.exists(init_dir):
@@ -340,6 +356,9 @@ def _store_bundle_files(filenames):
     :param filenames: List of full paths for all paths in the bundle
     """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
+    if sys.platform in ['win32', 'cygwin']:
+        os.makedirs('C:\\cumulus\\cache')
+        cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
 
     file_handle = open(cache_file, 'a')
     try:

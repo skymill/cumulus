@@ -13,26 +13,27 @@ The bundles are generated via the ``cumulus`` command and uploaded to S3. CBH wi
 
 Init scripts
 ------------
+
 The Cumulus Bundle Handler supports scripts to be executed:
 
 * Before bundle extraction (good for stopping services etc)
 * After bundle extraction (good for starting services)
 * Both before and after extraction (typically cleaning jobs)
 
-All init script should reside in ``/etc/cumulus-init.d`` and must be executable.
+All init script should reside in ``/etc/cumulus-init.d`` on Linux systems and in ``C:\cumulus\init.d`` on Windows systems and must be executable.
 
 * Scripts starting with ``K`` (capital K) are executed *before* the bundle is extracted.
 * Scripts starting with ``S`` (capital S) are executed *after* the bundle is extracted.
 * Scripts starting with anything else than ``S`` or ``K`` are executed *both before and after* the bundle is extracted.
 
+Configuration file
+------------------
 
-Configuration
--------------
-This configuration should reside on your EC2 instances under ``/etc/cumulus/metadata.conf``. It is good practice to serve it to that location using CloudFormation `AWS::CloudFormation::Init <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-init.html#aws-resource-init-files>`_.
+The configuration file for Cumulus Bundle Handler should reside on your EC2 instances under ``/etc/cumulus/metadata.conf`` on Linux systems and under ``C:\cumulus\conf\metadata.conf`` on Windows systems. It recommended to serve it to that location using CloudFormation `AWS::CloudFormation::Init <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-init.html#aws-resource-init-files>`_.
 
 
-Full example
-^^^^^^^^^^^^
+``metadata.conf`` example
+^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
     [metadata]
@@ -49,8 +50,8 @@ Full example
     version: 1.0.0-SNAPSHOT
 
 
-Configuration options
-^^^^^^^^^^^^^^^^^^^^^
+``metadata.conf`` - configuration options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 =========================== ================== ======== ==========================================
 Option                      Type               Required Comment
