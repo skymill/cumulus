@@ -36,17 +36,17 @@ Full example
 ::
 
     [metadata]
+    log-level: INFO
     access-key-id: <AWS_ACCESS_KEY>
     secret-access-key: <AWS_SECRET_KEY>
     region: eu-west-1
     bundle-bucket: com.example.bundles
     environment: stage
-    bundle-type: webserver
+    bundle-types: webserver
     bundle-extraction-paths:
         generic -> /etc/example
         webserver -> /
     version: 1.0.0-SNAPSHOT
-    log-level: INFO
 
 
 Configuration options
