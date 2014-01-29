@@ -234,6 +234,9 @@ def _get_key(bundle_type):
 def _remove_old_files():
     """ Remove files from previous bundle """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
+    if sys.platform in ['win32', 'cygwin']:
+        os.makedirs('C:\\cumulus\\cache')
+        cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
 
     if not os.path.exists(cache_file):
         LOGGER.info('No previous bundle files to clean up')
@@ -351,6 +354,9 @@ def _store_bundle_files(filenames):
     :param filenames: List of full paths for all paths in the bundle
     """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
+    if sys.platform in ['win32', 'cygwin']:
+        os.makedirs('C:\\cumulus\\cache')
+        cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
 
     file_handle = open(cache_file, 'a')
     try:
