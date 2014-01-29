@@ -66,9 +66,9 @@ LOGGING_CONFIG = {
 
 try:
     LOGGING_CONFIG['handlers']['console']['level'] = CONFIG.get(
-        'metadata', 'log-level')
+        'metadata', 'log-level').upper()
     LOGGING_CONFIG['handlers']['file']['level'] = CONFIG.get(
-        'metadata', 'log-level')
+        'metadata', 'log-level').upper()
 except NoOptionError:
     pass
 
@@ -143,6 +143,41 @@ def _download_and_unpack_bundle(bundle_type):
     # Remove the downloaded package
     LOGGER.info("Removing temporary file {}".format(bundle.name))
     os.remove(bundle.name)
+
+
+def _get_extraction_path(bundle_type):
+    """ Returns the path to where the bundle should be extracted
+
+    :type bundle_type: str
+    :param bundle_type: Bundle type to download
+    :returns: str -- Path
+    """
+    path = '/'
+    if sys.platform in ['win32', 'cygwin']:
+        path = 'C:\\'
+
+    try:
+        bundle_paths = CONFIG.get('metadata', 'bundle-extraction-paths')\
+            .split('\n')
+
+        for line in bundle_paths:
+            try:
+                for_bundle_type, extraction_path = line.split('->')
+            except ValueError:
+                LOGGER.error(
+                    'Error parsing bundle-extraction-paths: {}'.format(line))
+                sys.exit(1)
+
+            if for_bundle_type == bundle_type:
+                path = extraction_path
+
+    except NoOptionError:
+        pass
+
+    LOGGER.debug('Determined bundle extraction path to {} for {}'.format(
+        path, bundle_type))
+
+    return path
 
 
 def _get_key(bundle_type):
