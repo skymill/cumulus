@@ -145,9 +145,11 @@ def _download_and_unpack_bundle(bundle_type):
             compression))
         sys.exit(1)
 
+    extraction_path = _get_extraction_path(bundle_type)
+
     try:
-        LOGGER.info('Unpacking {} to /'.format(bundle.name))
-        archive.extractall('/')
+        LOGGER.info('Unpacking {} to {}'.format(bundle.name, extraction_path))
+        archive.extractall(extraction_path)
     finally:
         archive.close()
 
