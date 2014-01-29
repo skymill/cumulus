@@ -19,7 +19,11 @@ except ImportError:
     sys.exit(1)
 
 CONFIG = SafeConfigParser()
-CONFIG.read('/etc/cumulus/metadata.conf')
+
+if sys.platform in ['win32', 'cygwin']:
+    CONFIG.read('C:\\cumulus\\conf\\metadata.conf')
+else:
+    CONFIG.read('/etc/cumulus/metadata.conf')
 
 
 # Configure logging
@@ -64,6 +68,13 @@ LOGGING_CONFIG = {
     }
 }
 
+# Change the log file path on Windows systems
+if sys.platform in ['win32', 'cygwin']:
+    os.makedirs('C:\\cumulus\\logs')
+    LOGGING_CONFIG['handlers']['file']['filename'] = \
+        'C:\\cumulus\\logs\\cumulus-bundle-handler.log'
+
+# Read log level from the metadata.conf
 try:
     LOGGING_CONFIG['handlers']['console']['level'] = CONFIG.get(
         'metadata', 'log-level').upper()
