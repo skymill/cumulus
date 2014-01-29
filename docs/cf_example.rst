@@ -79,7 +79,10 @@ Here's an example CloudFormation JSON document for a webserver in an Auto Scalin
                       "region: ", {"Ref" : "AWS::Region"}, "\n",
                       "bundle-bucket: ", { "Ref" : "CumulusBundleBucket"}, "\n",
                       "environment: ", { "Ref" : "CumulusEnvironment" }, "\n",
-                      "bundle-types: webserver\n",
+                      "bundle-types: generic, webserver\n",
+                      "bundle-extraction-paths:\n",
+                      "    generic -> /etc/example"
+                      "    webserver -> /"
                       "version: ", { "Ref" : "CumulusVersion" }, "\n"
                     ]]},
                     "mode"  : "000644",
