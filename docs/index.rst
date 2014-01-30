@@ -15,8 +15,8 @@ Table of contents
     cumulus_bundle_handler
     cf_example
     command_line_options
+    release_notes
     license
-    sc_lib_init
 
 Overview
 ========
