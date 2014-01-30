@@ -35,7 +35,7 @@ NEXT
 
 **Release date:** 2014-01-20
 
-- `It is not possible to run ``--deploy`` with a ``cumulus.conf`` without bundles #67 <https://github.com/skymill/cumulus/issues/67>`__
+- `It is not possible to run --deploy with a cumulus.conf without bundles #67 <https://github.com/skymill/cumulus/issues/67>`__
 - Minor fix: Enhanced event log output
 
 0.6.2
@@ -43,14 +43,14 @@ NEXT
 
 **Release date:** 2013-01-20
 
-- `Exclude all other configuration files if ``--config`` is set #68 <https://github.com/skymill/cumulus/issues/68>`__
+- `Exclude all other configuration files if --config is set #68 <https://github.com/skymill/cumulus/issues/68>`__
 
 0.6.1
 -----
 
 **Release date:** 2013-12-02
 
-- `All ``cumulus-init.d`` scripts run both before and after bundle deploy #66 <https://github.com/skymill/cumulus/issues/66>`__
+- `All cumulus-init.d scripts run both before and after bundle deploy #66 <https://github.com/skymill/cumulus/issues/66>`__
 - `Widen output formatting for Logical ID #65 <https://github.com/skymill/cumulus/issues/65>`__
 
 0.6.0
@@ -59,7 +59,7 @@ NEXT
 **Release date:** 2013-11-29
 
 Major features:
-- `Global ``cumulus`` command and documentation generation #56 <https://github.com/skymill/cumulus/issues/56>`__
+- `Global cumulus command and documentation generation #56 <https://github.com/skymill/cumulus/issues/56>`__
 - `Support multiple bundle types on hosts #52 <https://github.com/skymill/cumulus/issues/52>`__
 - `Support CloudFormation templates served from S3 #58 <https://github.com/skymill/cumulus/issues/58>`__
 - `Cumulus bundle handler should support both start and kill scripts in init.d #49 <https://github.com/skymill/cumulus/issues/49>`__
@@ -69,7 +69,7 @@ Major features:
 - `Log level is now configurable #63 <https://github.com/skymill/cumulus/issues/63>`__
 
 Minor improvements:
-- `Stop writing to ``target`` dir, use ``tempfile`` instead #62 <https://github.com/skymill/cumulus/issues/62>`__
+- `Stop writing to target dir, use tempfile instead #62 <https://github.com/skymill/cumulus/issues/62>`__
 - `Harmonize CBH option names #53 <https://github.com/skymill/cumulus/issues/53>`__
 - `Restructured project folders #54 <https://github.com/skymill/cumulus/issues/54>`__
 - `Bundle Cumlus in a Python egg #55 <https://github.com/skymill/cumulus/issues/55>`__
@@ -85,7 +85,7 @@ Minor improvements:
 - `Clean up host on bundle update #38 <https://github.com/skymill/cumulus/issues/38>`__
 - `Cumulus bundle handler should use Python logging #40 <https://github.com/skymill/cumulus/issues/40>`__
 - `Get rid of Cumulus metadata.conf and make the bundle handler self-contained #41 <https://github.com/skymill/cumulus/issues/41>`__
-- `Remove ``__name__`` from logging output #42 <https://github.com/skymill/cumulus/issues/42>`__
+- `Remove __name__ from logging output #42 <https://github.com/skymill/cumulus/issues/42>`__
 - `Filter events when creating/updating/deleting stacks #43 <https://github.com/skymill/cumulus/issues/43>`__
 - `Add function for listing stack events on command line #45 <https://github.com/skymill/cumulus/issues/45>`__
 - `Enhance status output when waiting for stack change to complete #46 <https://github.com/skymill/cumulus/issues/46>`__
@@ -103,8 +103,8 @@ Minor improvements:
 **Release date:** 2013-10-24
 
 - `Error handling stack delete status #34 <https://github.com/skymill/cumulus/issues/34>`__
-- `Running ``--deploy`` on existing stack fails #35 <https://github.com/skymill/cumulus/issues/35>`__
-- `Initial stack creation fails when using ``--deploy-without-bundling`` #33 <https://github.com/skymill/cumulus/issues/33>`__
+- `Running --deploy on existing stack fails #35 <https://github.com/skymill/cumulus/issues/35>`__
+- `Initial stack creation fails when using --deploy-without-bundling #33 <https://github.com/skymill/cumulus/issues/33>`__
 - `Bundle type missing in Cumulus metadata #37 <https://github.com/skymill/cumulus/issues/37>`__
 
 0.3.0
@@ -118,7 +118,7 @@ Minor improvements:
 - `Set environment version as input parameter #28 <https://github.com/skymill/cumulus/issues/28>`__
 - `Make it possible to environment prefix whole directories #10 <https://github.com/skymill/cumulus/issues/10>`__
 - `Create shortcut for both bundling and deploying #27 <https://github.com/skymill/cumulus/issues/27>`__
-- `Ask before delete when running ``--undeploy`` #24 <https://github.com/skymill/cumulus/issues/24>`__
+- `Ask before delete when running --undeploy #24 <https://github.com/skymill/cumulus/issues/24>`__
 - `Ensure that boto is available for cumulus bundle handler #25 <https://github.com/skymill/cumulus/issues/25>`__
 - `Remove skymill reference from JSON template #23 <https://github.com/skymill/cumulus/issues/23>`__
 - `Remove unnecessary stack name in metadata #22 <https://github.com/skymill/cumulus/issues/22>`__
