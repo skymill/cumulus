@@ -59,6 +59,7 @@ NEXT
 **Release date:** 2013-11-29
 
 Major features:
+
 - `Global cumulus command and documentation generation #56 <https://github.com/skymill/cumulus/issues/56>`__
 - `Support multiple bundle types on hosts #52 <https://github.com/skymill/cumulus/issues/52>`__
 - `Support CloudFormation templates served from S3 #58 <https://github.com/skymill/cumulus/issues/58>`__
@@ -69,6 +70,7 @@ Major features:
 - `Log level is now configurable #63 <https://github.com/skymill/cumulus/issues/63>`__
 
 Minor improvements:
+
 - `Stop writing to target dir, use tempfile instead #62 <https://github.com/skymill/cumulus/issues/62>`__
 - `Harmonize CBH option names #53 <https://github.com/skymill/cumulus/issues/53>`__
 - `Restructured project folders #54 <https://github.com/skymill/cumulus/issues/54>`__
