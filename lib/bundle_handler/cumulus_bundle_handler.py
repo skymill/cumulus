@@ -130,23 +130,23 @@ def _download_and_unpack_bundle(bundle_type):
         bundle.name))
     key.get_contents_to_filename(bundle.name)
 
+    extraction_path = _get_extraction_path(bundle_type)
+
     # Unpack the bundle
     LOGGER.info("Unpacking {}".format(bundle.name))
     if compression == 'tar.bz2':
         archive = tarfile.open(bundle.name, 'r:bz2')
-        _store_bundle_files(archive.getnames())
+        _store_bundle_files(archive.getnames(), extraction_path)
     elif compression == 'tar.gz':
         archive = tarfile.open(bundle.name, 'r:gz')
-        _store_bundle_files(archive.getnames())
+        _store_bundle_files(archive.getnames(), extraction_path)
     elif compression == 'zip':
         archive = zipfile.ZipFile(bundle.name, 'r')
-        _store_bundle_files(archive.namelist())
+        _store_bundle_files(archive.namelist(), extraction_path)
     else:
         logging.error('Unsupported compression format: "{}"'.format(
             compression))
         sys.exit(1)
-
-    extraction_path = _get_extraction_path(bundle_type)
 
     try:
         LOGGER.info('Unpacking {} to {}'.format(bundle.name, extraction_path))
@@ -361,11 +361,13 @@ def _run_init_scripts(start=False, kill=False, other=False):
                 _run_command(os.path.abspath(filename))
 
 
-def _store_bundle_files(filenames):
+def _store_bundle_files(filenames, extraction_path):
     """ Store a list of bundle paths
 
     :type filenames: list
-    :param filenames: List of full paths for all paths in the bundle
+    :param filenames: List of full paths for all paths in the bundle'
+    :type extraction_path: str
+    :param extraction_path: Path to prefix all filenames with
     """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
     if sys.platform in ['win32', 'cygwin']:
@@ -379,8 +381,10 @@ def _store_bundle_files(filenames):
             if not filename:
                 continue
 
-            if filename[0] != '/':
-                filename = '/{}'.format(filename)
+            if sys.platform in ['win32', 'cygwin']:
+                filename = '{}\\{}'.format(extraction_path, filename)
+            else:
+                filename = '{}/{}'.format(extraction_path, filename)
 
             file_handle.write('{}\n'.format(filename))
 
