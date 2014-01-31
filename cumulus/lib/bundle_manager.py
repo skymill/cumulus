@@ -64,8 +64,6 @@ def build_bundles():
         # Run post-bundle-hook
         _post_bundle_hook(bundle_type)
 
-    _upload_bundle_handler()
-
 
 def _bundle(tmpfile, bundle_type, environment, paths):
     """ Create bundle
@@ -228,23 +226,3 @@ def _upload_bundle(bundle_path, bundle_type):
 
     logger.info('Completed upload of {} to s3://{}/{}'.format(
         os.path.basename(bundle_path), bucket.name, key_name))
-
-
-def _upload_bundle_handler():
-    """ Upload the bundle handler to S3 """
-    try:
-        connection = connection_handler.connect_s3()
-    except Exception:
-        raise
-    bucket = connection.get_bucket(
-        config_handler.get_environment_option('bucket'))
-
-    logger.info('Uploading the cumulus_bundle_handler.py script')
-    key_name = '{}/{}/cumulus_bundle_handler.py'.format(
-        config_handler.get_environment(),
-        config_handler.get_environment_option('version'))
-    key = bucket.new_key(key_name)
-    key.set_contents_from_filename(
-        '{}/bundle_handler/cumulus_bundle_handler.py'.format(
-            os.path.dirname(os.path.realpath(__file__))),
-        replace=True)
