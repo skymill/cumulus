@@ -54,7 +54,7 @@ LOGGING_CONFIG = {
             'backupCount': 5
         }
     },
-    'LOGGERs': {
+    'loggers': {
         '': {
             'handlers': ['console', 'file'],
             'level': 'WARNING',
