@@ -1,13 +1,5 @@
-Cumulus
-=======
-
-Cumulus is a deployment tool used to deploy and maintain environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
-
-
-Table of contents
-=================
-
 .. toctree::
+    :hidden:
     :maxdepth: 3
 
     installation
@@ -17,6 +9,11 @@ Table of contents
     command_line_options
     release_notes
     license
+
+Cumulus
+=======
+
+Cumulus is a deployment tool used to deploy and maintain environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
 
 Overview
 ========
