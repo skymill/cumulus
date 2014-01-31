@@ -19,9 +19,15 @@ except ImportError:
 CONFIG = SafeConfigParser()
 
 if sys.platform in ['win32', 'cygwin']:
-    CONFIG.read('C:\\cumulus\\conf\\metadata.conf')
+    CONFIG_PATH = 'C:\\cumulus\\conf\\metadata.conf'
 else:
-    CONFIG.read('/etc/cumulus/metadata.conf')
+    CONFIG_PATH = '/etc/cumulus/metadata.conf'
+
+if not os.path(CONFIG_PATH):
+    print('Error: Configuration file not found: {}'.format(CONFIG_PATH))
+    sys.exit(1)
+
+CONFIG.read(CONFIG_PATH)
 
 
 # Configure logging
