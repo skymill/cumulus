@@ -7,7 +7,7 @@ import tempfile
 
 import config_handler
 import connection_handler
-from exceptions import HookExecutionException
+from exceptions import HookExecutionException, UnsupportedCompression
 
 logger = logging.getLogger(__name__)
 
@@ -22,34 +22,47 @@ def build_bundles():
         return None
 
     for bundle_type in bundle_types:
-        logger.info('Building bundle {}'.format(bundle_type))
-        logger.debug('Bundle paths: {}'.format(', '.join(
-            config_handler.get_bundle_paths(bundle_type))))
-
         # Run pre-bundle-hook
         _pre_bundle_hook(bundle_type)
 
-        tmptar = tempfile.NamedTemporaryFile(
-            suffix='.tar.bz2',
-            delete=False)
-        logger.debug('Created temporary tar file {}'.format(tmptar.name))
+        if config_handler.has_pre_built_bundle(bundle_type):
+            bundle_path = config_handler.get_pre_built_bundle_path(bundle_type)
+            logger.info('Using pre-built bundle: {}'.format(bundle_path))
 
-        try:
-            _bundle(
-                tmptar,
-                bundle_type,
-                config_handler.get_environment(),
-                config_handler.get_bundle_paths(bundle_type))
+            try:
+                _upload_bundle(bundle_path, bundle_type)
+            except UnsupportedCompression:
+                raise
+        else:
+            logger.info('Building bundle {}'.format(bundle_type))
+            logger.debug('Bundle paths: {}'.format(', '.join(
+                config_handler.get_bundle_paths(bundle_type))))
 
-            tmptar.close()
+            tmptar = tempfile.NamedTemporaryFile(
+                suffix='.tar.bz2',
+                delete=False)
+            logger.debug('Created temporary tar file {}'.format(tmptar.name))
 
-            # Run post-bundle-hook
-            _post_bundle_hook(bundle_type)
+            try:
+                _bundle(
+                    tmptar,
+                    bundle_type,
+                    config_handler.get_environment(),
+                    config_handler.get_bundle_paths(bundle_type))
 
-            _upload_bundle(tmptar.name, bundle_type)
-        finally:
-            logger.debug('Removing temporary tar file {}'.format(tmptar.name))
-            os.remove(tmptar.name)
+                tmptar.close()
+
+                try:
+                    _upload_bundle(tmptar.name, bundle_type)
+                except UnsupportedCompression:
+                    raise
+            finally:
+                logger.debug('Removing temporary tar file {}'.format(
+                    tmptar.name))
+                os.remove(tmptar.name)
+
+        # Run post-bundle-hook
+        _post_bundle_hook(bundle_type)
 
     _upload_bundle_handler()
 
@@ -73,12 +86,8 @@ def _bundle(tmpfile, bundle_type, environment, paths):
         See: http://docs.python.org/library/tarfile.html#tarfile.TarInfo
         """
         # Make sure that the files are placed in the / root dir
-        tarinfo.name = tarinfo.name.replace(
-            '{}/'.format(path[1:]),
-            '')
-        tarinfo.name = tarinfo.name.replace(
-            '{}'.format(path[1:]),
-            '')
+        tarinfo.name = tarinfo.name.replace('{}/'.format(path[1:]), '')
+        tarinfo.name = tarinfo.name.replace('{}'.format(path[1:]), '')
 
         for rewrite in path_rewrites:
             try:
@@ -191,21 +200,34 @@ def _upload_bundle(bundle_path, bundle_type):
     bucket = connection.get_bucket(
         config_handler.get_environment_option('bucket'))
 
+    if bundle_path.endswith('.tar.bz2'):
+        compression = 'tar.bz2'
+    elif bundle_path.endswith('.tar.gz'):
+        compression = 'tar.gz'
+    elif bundle_path.endswith('.zip'):
+        compression = 'zip'
+    else:
+        raise UnsupportedCompression(
+            'Unknown compression format for {}. '
+            'Supported formats are tar.b2, tar.gz and .zip'.format(
+                bundle_path))
+
     key_name = (
         '{environment}/{version}/'
-        'bundle-{environment}-{version}-{bundle_type}.tar.bz2').format(
+        'bundle-{environment}-{version}-{bundle_type}.{compression}').format(
             environment=config_handler.get_environment(),
             version=config_handler.get_environment_option('version'),
-            bundle_type=bundle_type)
+            bundle_type=bundle_type,
+            compression=compression)
     key = bucket.new_key(key_name)
 
-    logger.info('Starting upload of {} to s3://{}'.format(
-        os.path.basename(bundle_path), key_name))
+    logger.info('Starting upload of {} to s3://{}/{}'.format(
+        os.path.basename(bundle_path), bucket.name, key_name))
 
     key.set_contents_from_filename(bundle_path, replace=True)
 
-    logger.info('Completed upload of {} to s3://{}'.format(
-        os.path.basename(bundle_path), key_name))
+    logger.info('Completed upload of {} to s3://{}/{}'.format(
+        os.path.basename(bundle_path), bucket.name, key_name))
 
 
 def _upload_bundle_handler():

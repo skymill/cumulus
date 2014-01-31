@@ -1,17 +1,18 @@
 """ Manager """
 import json
 import logging
+import os.path
 import subprocess
 import time
 from datetime import datetime
 
 import boto
 
-import config_handler
-import connection_handler
-from exceptions import InvalidTemplateException, HookExecutionException
+from lib import config_handler
+from lib import connection_handler
+from lib.exceptions import InvalidTemplateException, HookExecutionException
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def deploy():
@@ -21,12 +22,11 @@ def deploy():
 
     stacks = config_handler.get_stacks()
     if not stacks:
-        logger.warning('No stacks configured, nothing to deploy')
+        LOGGER.warning('No stacks configured, nothing to deploy')
         return
     for stack in stacks:
         _ensure_stack(
             stack,
-            config_handler.get_environment(),
             config_handler.get_stack_template(stack),
             disable_rollback=config_handler.get_stack_disable_rollback(
                 stack),
@@ -103,19 +103,17 @@ def validate_templates():
         result = connection.validate_template(
             _get_json_from_template(template))
         if result:
-            logger.info('Template {} is valid!'.format(template))
+            LOGGER.info('Template {} is valid!'.format(template))
 
 
 def _ensure_stack(
-        stack_name, environment, template,
+        stack_name, template,
         disable_rollback=False, parameters=[],
         timeout_in_minutes=None, tags=None):
     """ Ensure stack is up and running (create or update it)
 
     :type stack_name: str
     :param stack_name: Stack name
-    :type environment: str
-    :param environment: Environment name
     :type template: str
     :param template: Template path to use
     :type disable_rollback: bool
@@ -133,7 +131,7 @@ def _ensure_stack(
     except Exception:
         raise
 
-    logger.info('Ensuring stack {} with template {}'.format(
+    LOGGER.info('Ensuring stack {} with template {}'.format(
         stack_name, template))
 
     cumulus_parameters = [
@@ -152,17 +150,17 @@ def _ensure_stack(
     ]
 
     if timeout_in_minutes:
-        logger.debug('Will time out stack creation after {:d} minutes'.format(
+        LOGGER.debug('Will time out stack creation after {:d} minutes'.format(
             timeout_in_minutes))
 
     for parameter in cumulus_parameters + parameters:
-        logger.debug(
+        LOGGER.debug(
             'Adding parameter "{}" with value "{}" to CF template'.format(
                 parameter[0], parameter[1]))
 
     try:
         if _stack_exists(stack_name):
-            logger.debug('Updating existing stack to version {}'.format(
+            LOGGER.debug('Updating existing stack to version {}'.format(
                 config_handler.get_environment_option('version')))
 
             if template[0:4] == 'http':
@@ -186,7 +184,7 @@ def _ensure_stack(
 
             _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
-            logger.debug('Creating new stack with version {}'.format(
+            LOGGER.debug('Creating new stack with version {}'.format(
                 config_handler.get_environment_option('version')))
             if template[0:4] == 'http':
                 connection.create_stack(
@@ -221,12 +219,12 @@ def _ensure_stack(
                 # Do not raise this exception if it is due to lack of updates
                 # We do not want to fail any other stack updates after this
                 # stack
-                logger.warning(
+                LOGGER.warning(
                     'No CloudFormation updates are to be '
                     'performed for {}'.format(stack_name))
                 return
 
-        logger.error('Boto exception {}: {}'.format(code, message))
+        LOGGER.error('Boto exception {}: {}'.format(code, message))
         return
 
 
@@ -241,7 +239,7 @@ def _delete_stack(stack):
     except Exception:
         raise
 
-    logger.info('Deleting stack {}'.format(stack))
+    LOGGER.info('Deleting stack {}'.format(stack))
     connection.delete_stack(stack)
     _wait_for_stack_complete(stack, filter_type='DELETE')
 
@@ -253,9 +251,13 @@ def _get_json_from_template(template):
     :param template: Template path to use
     :returns: JSON object
     """
-    file_handle = open(template)
+    template_path = os.path.expandvars(os.path.expanduser(template))
+    LOGGER.debug('Parsing template file {}'.format(template_path))
+
+    file_handle = open(template_path)
     json_data = json.dumps(json.loads(file_handle.read()))
     file_handle.close()
+
     return json_data
 
 
@@ -286,7 +288,7 @@ def _pre_deploy_hook():
     if not command:
         return None
 
-    logger.info('Running pre-deploy-hook command: "{}"'.format(command))
+    LOGGER.info('Running pre-deploy-hook command: "{}"'.format(command))
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
@@ -355,7 +357,7 @@ def _post_deploy_hook():
     if not command:
         return None
 
-    logger.info('Running post-deploy-hook command: "{}"'.format(command))
+    LOGGER.info('Running post-deploy-hook command: "{}"'.format(command))
     try:
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError, error:
@@ -450,7 +452,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
 
         if stack.stack_status in complete_statuses:
             _print_event_log_separator()
-            logger.info('Stack {} - Stack completed with status {}'.format(
+            LOGGER.info('Stack {} - Stack completed with status {}'.format(
                 stack.stack_name,
                 stack.stack_status))
             complete = True

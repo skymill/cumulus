@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-
-""" Cumulus Cloud Tool
+License
+=======
 
 The MIT License (MIT)
 
@@ -22,29 +21,3 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"""
-
-import sys
-
-try:
-    import lib
-except Exception as error:
-    print('Configuration error: {}'.format(error))
-    sys.exit(1)
-
-
-if __name__ == '__main__':
-    try:
-        lib.main()
-    except lib.exceptions.ConfigurationException:
-        sys.exit(1)
-    except lib.exceptions.HookExecutionException:
-        sys.exit(1)
-    except KeyboardInterrupt:
-        sys.exit(0)
-    except Exception:
-        sys.exit(1)
-
-    sys.exit(0)
-
-sys.exit(1)

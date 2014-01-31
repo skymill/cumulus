@@ -42,7 +42,8 @@ bundle_options = [
     ('paths', True),
     ('path-rewrites', False),
     ('pre-bundle-hook', False),
-    ('post-bundle-hook', False)
+    ('post-bundle-hook', False),
+    ('pre-built-bundle', False)
 ]
 env_options = [
     ('access-key-id', True),
@@ -256,6 +257,21 @@ def get_post_deploy_hook():
         return None
 
 
+def get_pre_built_bundle_path(bundle):
+    """ Return the path to the pre-built bundle
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: str -- Path to the pre-built bundle
+    """
+    try:
+        return str(conf['bundles'][bundle]['pre-built-bundle'])
+    except KeyError:
+        logger.error('No pre-built bundle path found for "{}"'.format(bundle))
+        raise ConfigurationException(
+            'No pre-built bundle path found for "{}"'.format(bundle))
+
+
 def get_pre_deploy_hook():
     """ Returns the pre deploy hook command or None
 
@@ -360,6 +376,18 @@ def get_stacks():
         logger.warning(
             'No stacks found for environment {}'.format(environment))
         return None
+
+
+def has_pre_built_bundle(bundle):
+    """ Checks wether or not the bundle has a pre-built-bundle flag
+
+    :type bundle: str
+    :param bundle: Bundle name
+    :returns: bool -- True if there is a pre-built-bundle
+    """
+    if 'pre-built-bundle' in conf['bundles'][bundle]:
+        return True
+    return False
 
 
 def _read_configuration_files():
@@ -615,6 +643,10 @@ def _populate_bundles(config):
                         conf['bundles'][bundle][option] = config.get(
                             section, option)
                 except NoOptionError:
+                    if (option == 'paths' and
+                            config.has_option(section, 'pre-built-bundle')):
+                        continue
+
                     if required:
                         raise ConfigurationException(
                             'Missing required option {}'.format(option))

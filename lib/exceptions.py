@@ -11,3 +11,8 @@ class HookExecutionException(Exception):
 class InvalidTemplateException(Exception):
     """ Invalid CloudFormation template """
     pass
+
+
+class UnsupportedCompression(Exception):
+    """ An unsupported compression format for the bundle found """
+    pass

@@ -17,7 +17,7 @@ All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and ``
     bucket: se.skymill.bundles
     region: eu-west-1
     stacks: full
-    bundles: webserver, database
+    bundles: webserver, database, app
     version: 1.0.0-SNAPSHOT
     pre-deploy-hook: /path/to/script
     post-deploy-hook: echo "Yay" > ~/test.log
@@ -47,6 +47,9 @@ All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and ``
         /wordpress -> /var/www/wordpress
         /nginx -> /etc/nginx
 
+    [bundle: app]
+    pre-built-bundle: /Users/sebastian/build/app.tar.bz2
+
 
 General configuration
 ^^^^^^^^^^^^^^^^^^^^^
@@ -72,8 +75,8 @@ Option                  Type               Required Comment
 ``secret-access-key``   String             Yes      AWS secret access key
 ``bucket``              String             Yes      AWS S3 bucket to store bundles in
 ``region``              String             Yes      AWS region name, e.g. ``us-east-1``
-``stacks``              CSV                Yes      List of stack names to deploy
-``bundles``             CSV                Yes      List of bundles to build and upload
+``stacks``              List               Yes      List of stack names to deploy
+``bundles``             List               Yes      List of bundles to build and upload
 ``version``             String             Yes      Environment version number
 ``pre-deploy-hook``     String             No       Command to execute before deployment
 ``post-deploy-hook``    String             No       Command to execute after deployment
@@ -107,4 +110,5 @@ Option                  Type               Required Comment
 ``pre-bundle-hook``     String             No       Command to execute before bundling
 ``post-bundle-hook``    String             No       Command to execute after bundling
 ``paths``               Line sep. string   Yes      Paths to include in the bundle. Each path should be declared on a new line.
+``pre-build-bundle``    String             No       Path to a pre-built bundle. This option will make the `paths` redundant.
 ======================= ================== ======== ==========================================
