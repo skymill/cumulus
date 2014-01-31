@@ -70,7 +70,8 @@ LOGGING_CONFIG = {
 
 # Change the log file path on Windows systems
 if sys.platform in ['win32', 'cygwin']:
-    os.makedirs('C:\\cumulus\\logs')
+    if not os.path.exists('C:\\cumulus\\logs'):
+        os.makedirs('C:\\cumulus\\logs')
     LOGGING_CONFIG['handlers']['file']['filename'] = \
         'C:\\cumulus\\logs\\cumulus-bundle-handler.log'
 
@@ -239,7 +240,8 @@ def _remove_old_files():
     """ Remove files from previous bundle """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
     if sys.platform in ['win32', 'cygwin']:
-        os.makedirs('C:\\cumulus\\cache')
+        if not os.path.exists('C:\\cumulus\\cache'):
+            os.makedirs('C:\\cumulus\\cache')
         cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
 
     if not os.path.exists(cache_file):
@@ -361,7 +363,8 @@ def _store_bundle_files(filenames):
     """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
     if sys.platform in ['win32', 'cygwin']:
-        os.makedirs('C:\\cumulus\\cache')
+        if not os.path.exists('C:\\cumulus\\cache'):
+            os.makedirs('C:\\cumulus\\cache')
         cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
 
     file_handle = open(cache_file, 'a')
