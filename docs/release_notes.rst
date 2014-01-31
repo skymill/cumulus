@@ -1,12 +1,20 @@
 Release notes
 =============
 
-NEXT
+0.8.0
 ----
+
+**Release date:** 2014-01-31
+
+This release is the first Cumulus release to support Windows. Windows is supported
+both as client system and a target system.
 
 - `Support for running Cumulus on a Windows client #80 <https://github.com/skymill/cumulus/issues/80>`__
 - `Support using pre-bundled software #82 <https://github.com/skymill/cumulus/issues/82>`__
 - `Create clean error when command line options are missing #85 <https://github.com/skymill/cumulus/issues/85>`__
+- `Windows support in Cumulus Bundle Handler #83 <https://github.com/skymill/cumulus/issues/83>`__
+- `Custom extraction path in Cumulus Bundle Handler #84 <https://github.com/skymill/cumulus/issues/84>`__
+- `Support zip, tar.gz and tar.bz2 in Cumulus Bundle Handler #88 <https://github.com/skymill/cumulus/issues/88>`__
 
 0.7.0
 -----
