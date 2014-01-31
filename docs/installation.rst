@@ -1,9 +1,23 @@
-Installation
-============
+Installation and upgrading
+==========================
 
-Install Cumulus by checking out the source code to your machine, then go to the project root folder and run:
+
+Installation
+------------
+
+You can install Cumulus via PyPI with ``pip``.
 ::
 
-    make install
+    pip install cumulus
 
-That should install ``cumulus`` as a global command on your machine.
+``cumulus`` is now available as a global command on your machine.
+
+
+Upgrading
+---------
+
+Cumulus can be updated using ``pip``.
+::
+
+    pip install -U cumulus
+
