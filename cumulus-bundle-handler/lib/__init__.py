@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """ Script downloading and unpacking Cumulus bundles for the host """
 
 import logging
@@ -391,10 +389,3 @@ def _store_bundle_files(filenames, extraction_path):
         LOGGER.debug('Stored bundle information in {}'.format(cache_file))
     finally:
         file_handle.close()
-
-
-if __name__ == '__main__':
-    main()
-    sys.exit(0)
-
-sys.exit(1)

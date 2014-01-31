@@ -56,14 +56,6 @@ Here's an example CloudFormation JSON document for a webserver in an Auto Scalin
         "WebServerLaunchConfiguration" : {
           "Type": "AWS::AutoScaling::LaunchConfiguration",
           "Metadata" : {
-            "AWS::CloudFormation::Authentication" : {
-              "S3Access" : {
-                "type" : "S3",
-                "accessKeyId" : { "Ref" : "WebServerKeys" },
-                "secretKey" : {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}
-              }
-            },
-
             "AWS::CloudFormation::Init" : {
               "configSets" : {
                 "cumulus": [ "fileConfig", "commandConfig" ]
@@ -89,17 +81,6 @@ Here's an example CloudFormation JSON document for a webserver in an Auto Scalin
                     "owner" : "root",
                     "group" : "root"
                   },
-
-                  "/usr/local/bin/cumulus_bundle_handler.py" : {
-                    "source" : { "Fn::Join" : ["",
-                      ["http://s3-", {"Ref" : "AWS::Region"},  ".amazonaws.com/",
-                      { "Ref" : "CumulusBundleBucket"}, "/", { "Ref" : "CumulusEnvironment"},
-                      "/", { "Ref" : "CumulusVersion"}, "/cumulus_bundle_handler.py"]]},
-                    "mode"  : "000755",
-                    "owner" : "root",
-                    "group" : "root",
-                    "authentication" : "S3Access"
-                   },
 
                   "/etc/cfn/cfn-credentials" : {
                     "content" : { "Fn::Join" : ["", [
@@ -182,6 +163,7 @@ Here's an example CloudFormation JSON document for a webserver in an Auto Scalin
 
               "# Make sure we have the latest boto\n",
               "pip install --upgrade boto || error_exit 'Failed upgrading boto to the latest version'\n",
+              "pip install --upgrade cumulus-bundle-handler || error_exit 'Failed upgrading boto to the latest version'\n",
 
               "# Install software\n",
               "/usr/local/bin/cfn-init -v -c cumulus -s ", { "Ref" : "AWS::StackName" }, " -r WebServerLaunchConfiguration ",

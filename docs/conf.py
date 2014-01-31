@@ -18,7 +18,7 @@ import os
 from ConfigParser import SafeConfigParser
 
 settings = SafeConfigParser()
-settings.read(os.path.realpath('../lib/settings.conf'))
+settings.read(os.path.realpath('../cumulus/lib/settings.conf'))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
