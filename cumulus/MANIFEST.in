@@ -1,3 +1,5 @@
 recursive-include lib *
 include cumulus
+include LICENSE
 include README
+
