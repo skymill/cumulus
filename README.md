@@ -4,21 +4,16 @@ Cumulus is a deployment tool used to deploy and maintain environments built with
 
 ## Installation
 
-Checkout the code and run
+Install Cumulus via PyPI
 
-    make install
+    pip install cumulus
 
 `cumulus` will now be available as a global command
 
 
-## Generate documentation
+## Documentation
 
-Cumulus docs are generated using Sphinx. Generate documentation using
-
-
-    make gen-docs
-
-The HTML output is stored under `docs/_build/html`.
+The Cumulus documentation is hosted at [http://cumulus-ds.readthedocs.org/](http://cumulus-ds.readthedocs.org/).
 
 ## License
 
