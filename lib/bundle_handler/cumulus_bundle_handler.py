@@ -179,15 +179,21 @@ def _get_extraction_path(bundle_type):
             .split('\n')
 
         for line in bundle_paths:
+            if not line:
+                continue
+
             try:
                 for_bundle_type, extraction_path = line.split('->')
+                for_bundle_type = for_bundle_type.strip()
+                extraction_path = extraction_path.strip()
+
+                if for_bundle_type == bundle_type:
+                    path = extraction_path
+
             except ValueError:
                 LOGGER.error(
                     'Error parsing bundle-extraction-paths: {}'.format(line))
                 sys.exit(1)
-
-            if for_bundle_type == bundle_type:
-                path = extraction_path
 
     except NoOptionError:
         pass
