@@ -230,7 +230,7 @@ def _get_key(bundle_type):
         # When we have found a key, don't look any more
         if key:
             LOGGER.debug('Found bundle: {}'.format(key_name))
-            return key
+            return (key, compression)
         LOGGER.debug('Bundle not found: {}'.format(key_name))
 
     return (None, None)
