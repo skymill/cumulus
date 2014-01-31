@@ -435,6 +435,9 @@ def _populate_environments(config):
     for section in config.sections():
         if section.startswith('environment: '):
             env = section.split(': ')[1]
+            if env != environment:
+                continue
+
             conf['environments'][env] = {}
 
             for option, required in env_options:
