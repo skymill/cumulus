@@ -1,8 +1,8 @@
-Release notes
-=============
+Cumulus release notes
+=====================
 
 0.8.0
-----
+-----
 
 **Release date:** 2014-01-31
 

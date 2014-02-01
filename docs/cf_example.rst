@@ -1,7 +1,10 @@
 .. _cloudformation-template-example:
 
-CloudFormation template example
-===============================
+CloudFormation template examples
+================================
+
+Linux host with an Auto Scaling Group
+-------------------------------------
 
 Here's an example CloudFormation JSON document for a webserver in an Auto Scaling Group with Cumulus configured.
 ::
