@@ -18,12 +18,9 @@ Basic concepts
 
 Cumulus is built around three main concepts:
 
-* An **environment** references a whole environment and all it's CloudFormation
-stacks. It holds together information about the AWS account, which stacks to
-deploy and in which version.
+* An **environment** references a whole environment and all it's CloudFormation stacks. It holds together information about the AWS account, which stacks to deploy and in which version.
 * A **stack** is simply a CloudFormation stack.
-* A **bundle** is a `tar.bz2`, ``.tar.gz`` or ``.zip`` file with code and
-configuration to unpack to instances.
+* A **bundle** is a `tar.bz2`, ``.tar.gz`` or ``.zip`` file with code and configuration to unpack to instances.
 
 Deployment workflow
 -------------------
@@ -37,16 +34,13 @@ this:
 
 1. The build server builds the software
 2. The build server places a ``.tar.bz2`` file on the file system
-3. ``cumulus`` picks up the software package - called a **bundle** in Cumulus -
-and rename it according to the given version and target environment
+3. ``cumulus`` picks up the software package - called a **bundle** in Cumulus - and rename it according to the given version and target environment
 4. ``cumulus`` uploads the bundle to AWS S3
-5. ``cumulus`` initiates a AWS CloudFormation ``CREATE`` or ``UPDATE``
-(depending on whether or not the stack exists previously)
+5. ``cumulus`` initiates a AWS CloudFormation ``CREATE`` or ``UPDATE`` (depending on whether or not the stack exists previously)
 6. The EC2 instance has ``cumulus-bundle-handler`` installed
 7. ``cumulus-bundle-handler`` will download the bundle from S3
 8. ``cumulus-bundle-handler`` will deploy the bundle to the instance
-9. ``cumulus-bundle-handler`` will restart necessary services and run any
-configured deployment hooks
+9. ``cumulus-bundle-handler`` will restart necessary services and run any configured deployment hooks
 10. Deployment is now completed
 
 You can also use ``cumulus`` to build your bundle, if you don't get a
