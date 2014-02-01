@@ -3,21 +3,39 @@ Cumulus Deployment Suite
 
 Cumulus is a deployment tool used to deploy and maintain environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
 
-Installation
-------------
-
-Install Cumulus via PyPI
-::
-
-    pip install cumulus
-
-``cumulus`` will now be available as a global command
-
-
 Documentation
 -------------
 
 The Cumulus documentation is hosted at `http://cumulus-ds.readthedocs.org/ <http://cumulus-ds.readthedocs.org/>`__.
+
+
+Installation
+------------
+
+Cumulus consists of two parts, ``cumulus`` which is used to manage the software
+bundling and deployment and the ``cumulus-bundle-handler`` which handles
+the software installation on the target servers.
+
+Installing ``cumulus``
+^^^^^^^^^^^^^^^^^^^^^^
+
+Install Cumulus via PyPI:
+::
+
+    pip install cumulus
+
+``cumulus`` will now be available as a global command.
+
+Installing ``cumulus-bundle-handler``
+^^^^^^^^^^^^^^^^^^^^^^
+
+Install Cumulus via PyPI:
+::
+
+    pip install cumulus-bundle-handler
+
+``cumulus-bundle-handler`` will now be available as a global command.
+
 
 Attribution
 -----------
