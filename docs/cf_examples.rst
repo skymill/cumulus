@@ -173,9 +173,8 @@ Here's an example CloudFormation JSON document for a webserver in an Auto Scalin
               "  exit 1\n",
               "}\n",
 
-              "# Make sure we have the latest boto\n",
-              "pip install --upgrade boto || error_exit 'Failed upgrading boto to the latest version'\n",
-              "pip install --upgrade cumulus-bundle-handler || error_exit 'Failed upgrading boto to the latest version'\n",
+              "# Make sure we have the latest cumulus-bundle-handler\n",
+              "pip install --upgrade cumulus-bundle-handler || error_exit 'Failed upgrading cumulus-bundle-handler to the latest version'\n",
 
               "# Install software\n",
               "/usr/local/bin/cfn-init -v -c cumulus -s ", { "Ref" : "AWS::StackName" }, " -r WebServerLaunchConfiguration ",
@@ -258,6 +257,271 @@ Here's an example CloudFormation JSON document for a webserver in an Auto Scalin
               {"IpProtocol" : "tcp", "FromPort" : "443", "ToPort" : "443", "CidrIp" : "0.0.0.0/0"},
               {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0"},
               {"IpProtocol" : "icmp", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "0.0.0.0/0"}
+            ]
+          }
+        }
+      }
+    }
+
+Windows instance in a VPC
+-------------------------
+
+Below is an example of a Windows instance in a VPC.
+::
+
+    {
+      "Description" : "Example with Windows instance and VPC",
+
+      "AWSTemplateFormatVersion" : "2010-09-09",
+
+      "Parameters" : {
+
+        "InstanceType" : {
+          "Description" : "Instance type to use",
+          "Type" : "String",
+          "AllowedValues" : [ "t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"],
+          "ConstraintDescription" : "must be a valid EC2 instance type."
+        },
+
+        "CumulusEnvironment": {
+          "Description" : "Cumulus environment name",
+          "Type": "String"
+        },
+
+        "CumulusBundleBucket": {
+          "Description" : "Cumulus bundle bucket name",
+          "Type": "String"
+        },
+
+        "CumulusVersion": {
+          "Description" : "Version of the software",
+          "Type": "String"
+        }
+
+      },
+
+      "Mappings" : {
+
+        "AWSInstanceType2Arch" : {
+          "m1.small"    : { "Arch" : "64" },
+          "m1.medium"   : { "Arch" : "64" },
+          "m2.xlarge"   : { "Arch" : "64" },
+          "m2.2xlarge"  : { "Arch" : "64" },
+          "m2.4xlarge"  : { "Arch" : "64" },
+          "m3.medium"   : { "Arch" : "64" },
+          "m3.large"    : { "Arch" : "64" },
+          "m3.xlarge"   : { "Arch" : "64" },
+          "m3.2xlarge"  : { "Arch" : "64" },
+          "m1.medium"   : { "Arch" : "64" }
+        },
+
+        "AWSRegionArch2AMI": {
+          "eu-west-1": {
+            "32" : "NOT_YET_SUPPORTED",
+            "64" : "ami-12345678",
+            "64HVM" : "NOT_YET_SUPPORTED"
+          }
+        }
+      },
+
+      "Resources" : {
+
+        "WebServer" : {
+          "Type" : "AWS::EC2::Instance",
+          "Properties" : {
+            "ImageId" : {
+              "Fn::FindInMap" : [
+                "AWSRegionArch2AMI",
+                { "Ref" : "AWS::Region" },
+                { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] }
+              ]
+            },
+            "KeyName": "sebdah-test",
+            "InstanceType"   : { "Ref" : "InstanceType" },
+            "NetworkInterfaces" : [{
+              "GroupSet"                 : [{ "Ref" : "WebServerSecurityGroup" }],
+              "AssociatePublicIpAddress" : "true",
+              "DeviceIndex"              : "0",
+              "DeleteOnTermination"      : "true",
+              "SubnetId"                 : "subnet-12345678"
+            }],
+            "Tags" : [
+              { "Key": "Name",    "Value" : { "Ref" : "AWS::StackName" } },
+              { "Key": "Project", "Value" : { "Ref" : "Project" } }
+            ],
+            "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+              "<powershell>\n",
+
+              "pip install -U cumulus-bundle-handler\n",
+
+              "cfn-init.exe -v -c cumulus ",
+              "    -s ", { "Ref" : "AWS::StackName" },
+              "    -r WebServer ",
+              "    --access-key ",  { "Ref" : "WebServerKeys" },
+              "    --secret-key ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]},
+              "    --region ", { "Ref" : "AWS::Region" }, "\n",
+
+              "cfn-signal.exe -e $LASTEXITCODE ", { "Fn::Base64" : { "Ref" : "WaitHandle" }}, "\n",
+
+              "</powershell>"
+
+            ]]}}
+          },
+          "Metadata" : {
+
+            "AWS::CloudFormation::Init" : {
+              "configSets" : {
+                "cumulus": [ "fileConfig", "commandConfig", "serviceConfig" ]
+              },
+
+              "fileConfig" : {
+                "files" : {
+                  "c:\\cumulus\\conf\\metadata.conf" : {
+                    "content" : { "Fn::Join" : ["", [
+                      "[metadata]\n",
+                      "access-key-id: ", { "Ref" : "WebServerKeys" }, "\n",
+                      "secret-access-key: ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}, "\n",
+                      "region: ", {"Ref" : "AWS::Region"}, "\n",
+                      "bundle-bucket: ", { "Ref" : "CumulusBundleBucket"}, "\n",
+                      "environment: ", { "Ref" : "CumulusEnvironment" }, "\n",
+                      "bundle-types: web\n",
+                      "bundle-extraction-paths:\n",
+                      "    web -> c:\\InetPub\\wwwroot\n",
+                      "version: ", { "Ref" : "CumulusVersion" }, "\n"
+                    ]]},
+                    "mode"  : "000644",
+                    "owner" : "root",
+                    "group" : "root"
+                  },
+
+                  "c:\\cfn\\cfn-credentials" : {
+                    "content" : { "Fn::Join" : ["", [
+                      "AWSAccessKeyId=", { "Ref" : "WebServerKeys" }, "\n",
+                      "AWSSecretKey=", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}, "\n"
+                    ]]},
+                    "mode"    : "000400",
+                    "owner"   : "root",
+                    "group"   : "root"
+                  },
+
+                  "c:\\cfn\\cfn-hup.conf" : {
+                    "content" : { "Fn::Join" : ["", [
+                      "[main]\n",
+                      "stack=", { "Ref" : "AWS::StackName" }, "\n",
+                      "credential-file=c:\\cfn\\cfn-credentials\n",
+                      "region=", { "Ref" : "AWS::Region" }, "\n",
+                      "interval=1\n"
+                    ]]},
+                    "mode"    : "000400",
+                    "owner"   : "root",
+                    "group"   : "root"
+                  },
+
+                  "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf" : {
+                    "content": { "Fn::Join" : ["", [
+                      "[cfn-auto-reloader-hook]\n",
+                      "triggers=post.update\n",
+                      "path=Resources.WebServer.Metadata.AWS::CloudFormation::Init\n",
+                      "action=cfn-init.exe -c cumulus -s ",
+                          { "Ref" : "AWS::StackName" }, " -r WebServer ",
+                           " --credential-file c:\\cfn\\cfn-credentials ",
+                           " --region ", { "Ref" : "AWS::Region" }, "\n"
+                    ]]}
+                  }
+                }
+              },
+
+              "commandConfig" : {
+                "commands" : {
+                  "cumulus-bundle-handler" : {
+                    "command" : "python cumulus-bundle-handler",
+                    "ignoreErrors" : false
+                  },
+                  "RecycleAppPool" : {
+                    "command" : "C:\\windows\\System32\\inetsrv\\appcmd.exe recycle apppool DefaultAppPool",
+                    "ignoreErrors" : false
+                  }
+                }
+              },
+
+              "serviceConfig" : {
+                "services" : {
+                  "windows" : {
+                    "cfn-hup" : {
+                      "enabled" : "true",
+                      "ensureRunning" : "true",
+                      "files" : ["c:\\cfn\\cfn-hup.conf", "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+
+        "WebServerKeys" : {
+          "Type" : "AWS::IAM::AccessKey",
+          "Properties" : {
+            "UserName" : {"Ref": "WebServerUser"}
+          }
+        },
+
+        "WebServerUser" : {
+          "Type" : "AWS::IAM::User",
+          "Properties" : {
+            "Path" : "/",
+            "Policies" : [
+              {
+                "PolicyName" : "cloudformation",
+                "PolicyDocument" : { "Statement":[{
+                  "Effect" : "Allow",
+                  "Action" : [
+                    "cloudformation:DescribeStackResource",
+                    "s3:*"
+                  ],
+                  "Resource" : "*"
+                }]}
+              }
+            ]
+          }
+        },
+
+        "WaitHandle" : {
+          "Type" : "AWS::CloudFormation::WaitConditionHandle"
+        },
+
+        "WaitCondition" : {
+          "Type" : "AWS::CloudFormation::WaitCondition",
+          "DependsOn" : "WebServer",
+          "Properties" : {
+            "Handle"  : { "Ref" : "WaitHandle" },
+            "Timeout" : "3600"
+          }
+        },
+
+        "WebServerSecurityGroup" : {
+          "Type": "AWS::EC2::SecurityGroup",
+          "Properties" : {
+            "VpcId": "vpc-12345678",
+            "GroupDescription": "Allow all traffic",
+            "SecurityGroupIngress": [
+              {
+                "IpProtocol": "tcp",
+                "FromPort": "0",
+                "ToPort": "65535",
+                "CidrIp": "0.0.0.0/0"
+              }
+            ],
+            "SecurityGroupEgress": [
+              {
+                "IpProtocol": "tcp",
+                "FromPort": "0",
+                "ToPort": "65535",
+                "CidrIp": "0.0.0.0/0"
+              }
+            ],
+            "Tags" : [
+              { "Key": "Name",    "Value" : { "Ref" : "AWS::StackName" } }
             ]
           }
         }
