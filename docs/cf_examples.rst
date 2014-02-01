@@ -3,6 +3,15 @@
 CloudFormation template examples
 ================================
 
+We are utilizing ``cfn-init`` to populate objects on the target instances. You
+will need to ensure that the `CFN helper scripts <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-helper-scripts-reference.html>`__ are installed on the servers.
+
+Also, you will need to have Python 2.7 as well as ``cumulus-bundle-handler`` on
+all servers.
+
+If you are running on a Windows server, please make sure that the ``UserData``
+is read on boot. You should take a look at `Bootstrapping AWS CloudFormation Windows Stacks <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-windows-stacks-bootstrapping.html>`__ and `Configuring a Windows Instance Using the EC2Config Service <http://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/UsingConfig_WinAMI.html>`__.
+
 Linux host with an Auto Scaling Group
 -------------------------------------
 
