@@ -177,7 +177,7 @@ To deploy (create or update) an environment run the following:
 
 If you only want to deploy a certain stack, use the ``--stacks`` option.
 
-Deleting (undeploying) an environment
+Undeploying (deleting) an environment
 -------------------------------------
 
 If you want to remove a whole environment, you'll undeploy it by running:
