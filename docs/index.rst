@@ -17,4 +17,5 @@ Table of contents
     cumulus_bundle_handler
     cf_examples
     cumulus_release_notes
+    bug_reporting
     license
