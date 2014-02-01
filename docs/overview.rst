@@ -20,7 +20,7 @@ Cumulus is built around three main concepts:
 
 * An **environment** references a whole environment and all it's CloudFormation stacks. It holds together information about the AWS account, which stacks to deploy and in which version.
 * A **stack** is simply a CloudFormation stack.
-* A **bundle** is a `tar.bz2`, ``.tar.gz`` or ``.zip`` file with code and configuration to unpack to instances.
+* A **bundle** is a ``tar.bz2``, ``.tar.gz`` or ``.zip`` file with code and configuration to unpack to instances.
 
 Deployment workflow
 -------------------
