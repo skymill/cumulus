@@ -46,3 +46,11 @@ this:
 You can also use ``cumulus`` to build your bundle, if you don't get a
 pre-packaged version of you software from the build server. ``cumulus`` can
 then take a certain path on the file system and convert it to a bundle.
+
+Supported platforms
+-------------------
+
+* Cumulus supports Linux, Mac OS X and Windows
+* Cumulus Bundle Handler supports Linux and Windows (and likely Mac OS X, but testing is needed)
+
+The rest of the work is down within the AWS CloudFormation template. Please have a look at our :ref:`cloudformation-template-example`.
