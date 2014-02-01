@@ -172,8 +172,8 @@ To deploy (create or update) an environment run the following:
 
     cumulus --environment production --deploy
 
-    **Note!**
-    When running on Windows, you'll need to invoke Cumulus with ``python cumulus``
+| **Note!**
+| When running on Windows, you'll need to invoke Cumulus with ``python cumulus``
 
 If you only want to deploy a certain stack, use the ``--stacks`` option.
 

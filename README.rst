@@ -29,7 +29,7 @@ Install Cumulus via PyPI:
 Installing ``cumulus-bundle-handler``
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Install Cumulus via PyPI:
+Install Cumulus Bundle Handler via PyPI:
 ::
 
     pip install cumulus-bundle-handler
