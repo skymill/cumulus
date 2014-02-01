@@ -7,8 +7,7 @@ The Cumulus Bundle Handle is a Python script that should reside on each server
 in the environment. The script is responsible for
 
 * Downloading and extracting the correct bundles for the host
-* Running pre and post deployment scripts on the host, e.g. to restart
-relevant services and trigger various deployment hooks
+* Running pre and post deployment scripts on the host, e.g. to restart relevant services and trigger various deployment hooks
 
 The bundles are generated via the ``cumulus`` command (or in your build server)
 and uploaded to S3. Cumulus Bundle Handler will then download the bundle when
@@ -26,12 +25,9 @@ The Cumulus Bundle Handler supports scripts to be executed:
 All init script should reside in ``/etc/cumulus-init.d`` on Linux systems and
 in ``C:\cumulus\init.d`` on Windows systems and must be executable.
 
-* Scripts starting with ``K`` (capital K) are executed *before* the bundle is
-extracted
-* Scripts starting with ``S`` (capital S) are executed *after* the bundle is
-extracted
-* Scripts starting with anything else than ``S`` or ``K`` are executed both
-before and after the bundle is extracted
+* Scripts starting with ``K`` (capital K) are executed *before* the bundle is extracted
+* Scripts starting with ``S`` (capital S) are executed *after* the bundle is extracted
+* Scripts starting with anything else than ``S`` or ``K`` are executed both before and after the bundle is extracted
 
 Configuration file
 ------------------
