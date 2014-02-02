@@ -14,6 +14,8 @@ Cumulus consists of two parts, ``cumulus`` which is used to manage the software
 bundling and deployment and the ``cumulus-bundle-handler`` which handles
 the software installation on the target servers.
 
+.. image:: images/workflow.png
+
 
 Table of contents
 -----------------
