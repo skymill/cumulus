@@ -47,6 +47,10 @@ You can also use ``cumulus`` to build your bundle, if you don't get a
 pre-packaged version of you software from the build server. ``cumulus`` can
 then take a certain path on the file system and convert it to a bundle.
 
+Here's an image of an example workflow. Please note that this is a very simple example with only one server, but there are no limitations in terms of what infrastructure you could set up with Cumulus.
+
+.. image:: images/workflow.png
+
 Supported platforms
 -------------------
 
