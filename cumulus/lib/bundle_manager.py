@@ -1,4 +1,5 @@
 """ Bundling functions """
+import fnmatch
 import logging
 import ntpath
 import os
@@ -13,17 +14,6 @@ import connection_handler
 from exceptions import HookExecutionException, UnsupportedCompression
 
 logger = logging.getLogger(__name__)
-
-
-import fnmatch
-
-
-def find_files(directory, pattern):
-    for root, dirs, files in os.walk(directory):
-        for basename in files:
-            if fnmatch.fnmatch(basename, pattern):
-                filename = os.path.join(root, basename)
-                yield filename
 
 
 def build_bundles():
@@ -95,7 +85,7 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
     path_rewrites = config_handler.get_bundle_path_rewrites(bundle_type)
 
     for path in paths:
-        for filename in find_files(path, '*.*'):
+        for filename in _find_files(path, '*.*'):
             arcname = filename
 
             # Exclude files with other target environments
@@ -131,6 +121,14 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
             archive.write(filename, arcname, zipfile.ZIP_DEFLATED)
 
     archive.close()
+
+
+def _find_files(directory, pattern):
+    for root, dirs, files in os.walk(directory):
+        for basename in files:
+            if fnmatch.fnmatch(basename, pattern):
+                filename = os.path.join(root, basename)
+                yield filename
 
 
 def _post_bundle_hook(bundle_name):
