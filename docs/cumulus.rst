@@ -57,7 +57,7 @@ Below is a full example configuration:
         /nginx -> /etc/nginx
 
     [bundle: app]
-    pre-built-bundle: /Users/sebastian/build/app.tar.bz2
+    pre-built-bundle: /Users/sebastian/build/app.zip
 
 
 Section: ``general``

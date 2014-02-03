@@ -20,7 +20,7 @@ Cumulus is built around three main concepts:
 
 * An **environment** references a whole environment and all it's CloudFormation stacks. It holds together information about the AWS account, which stacks to deploy and in which version.
 * A **stack** is simply a CloudFormation stack.
-* A **bundle** is a ``tar.bz2``, ``.tar.gz`` or ``.zip`` file with code and configuration to unpack to instances.
+* A **bundle** is a ``.zip`` file with code and configuration to unpack to instances.
 
 Deployment workflow
 -------------------
@@ -28,12 +28,10 @@ Deployment workflow
 Deployments with Cumulus can take many shapes depending on your project needs.
 But a common pattern can look like the example below.
 
-If your build server delivers a package (``.tar.bz2``, ``.tar.gz`` or ``.zip``),
-then Cumulus can use that for deployment. The procedure would be something like
-this:
+If your build server delivers a package, then Cumulus can use that for deployment. The procedure would be something like this:
 
 1. The build server builds the software
-2. The build server places a ``.tar.bz2`` file on the file system
+2. The build server places a ``.zip`` file on the file system
 3. ``cumulus`` picks up the software package - called a **bundle** in Cumulus - and rename it according to the given version and target environment
 4. ``cumulus`` uploads the bundle to AWS S3
 5. ``cumulus`` initiates a AWS CloudFormation ``CREATE`` or ``UPDATE`` (depending on whether or not the stack exists previously)
