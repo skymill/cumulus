@@ -2,14 +2,25 @@
 import logging
 import os
 import subprocess
-import tarfile
 import tempfile
+import zipfile
 
 import config_handler
 import connection_handler
 from exceptions import HookExecutionException, UnsupportedCompression
 
 logger = logging.getLogger(__name__)
+
+
+import fnmatch
+
+
+def find_files(directory, pattern):
+    for root, dirs, files in os.walk(directory):
+        for basename in files:
+            if fnmatch.fnmatch(basename, pattern):
+                filename = os.path.join(root, basename)
+                yield filename
 
 
 def build_bundles():
@@ -39,12 +50,12 @@ def build_bundles():
                 config_handler.get_bundle_paths(bundle_type))))
 
             tmptar = tempfile.NamedTemporaryFile(
-                suffix='.tar.bz2',
+                suffix='.zip',
                 delete=False)
             logger.debug('Created temporary tar file {}'.format(tmptar.name))
 
             try:
-                _bundle(
+                _bundle_zip(
                     tmptar,
                     bundle_type,
                     config_handler.get_environment(),
@@ -65,8 +76,8 @@ def build_bundles():
         _post_bundle_hook(bundle_type)
 
 
-def _bundle(tmpfile, bundle_type, environment, paths):
-    """ Create bundle
+def _bundle_zip(tmpfile, bundle_type, environment, paths):
+    """ Create a zip archive
 
     :type tmpfile: tempfile instance
     :param tmpfile: Tempfile object
@@ -77,71 +88,40 @@ def _bundle(tmpfile, bundle_type, environment, paths):
     :type paths: list
     :param paths: List of paths to include
     """
-    # Define a filter to modify the tar object
-    def tar_filter(tarinfo):
-        """ Modify the tar object.
-
-        See: http://docs.python.org/library/tarfile.html#tarfile.TarInfo
-        """
-        # Make sure that the files are placed in the / root dir
-        #tarinfo.name = tarinfo.name.replace('{}/'.format(path[1:]), '')
-        #tarinfo.name = tarinfo.name.replace('{}'.format(path[1:]), '')
-
-        for rewrite in path_rewrites:
-            try:
-                if tarinfo.name[:len(rewrite['target'])] == rewrite['target']:
-                    tarinfo.name = tarinfo.name.replace(
-                        rewrite['target'],
-                        rewrite['destination'])
-                    logger.debug('Replaced {} with {} in bundle {}'.format(
-                        rewrite['target'],
-                        rewrite['destination'],
-                        bundle_type))
-            except IndexError:
-                pass
-
-        # Remove prefixes
-        tarinfo.name = tarinfo.name.replace(
-            '__cumulus-{}__'.format(environment),
-            '')
-
-        # Change user permissions on all files
-        tarinfo.uid = 0
-        tarinfo.gid = 0
-        tarinfo.uname = 'root'
-        tarinfo.gname = 'root'
-
-        return tarinfo
-
-    def exclusion_filter(filename):
-            """ Filter excluding files for other environments """
-            prefix = '__cumulus-{}__'.format(environment)
-            if os.path.basename(filename).startswith('__cumulus-'):
-                cnt = len(os.path.basename(filename).split(prefix))
-                if cnt == 2:
-                    return False
-                else:
-                    logger.debug('Excluding file {}'.format(filename))
-                    return True
-            elif prefix in filename.split(os.path.sep):
-                logger.debug('Excluding file {}'.format(filename))
-                return True
-            else:
-                return False
-
+    archive = zipfile.ZipFile(tmpfile, 'w')
     path_rewrites = config_handler.get_bundle_path_rewrites(bundle_type)
 
-    tar = tarfile.open(
-        fileobj=tmpfile,
-        mode='w:bz2',
-        dereference=True)
     for path in paths:
-        tar.add(
-            path,
-            exclude=exclusion_filter,
-            filter=tar_filter)
-    tar.close()
-    logger.info('Wrote bundle to {}'.format(tmpfile.name))
+        for filename in find_files(path, '*.*'):
+            arcname = filename
+
+            # Exclude files with other target environments
+            prefix = '__cumulus-{}__'.format(environment)
+            if os.path.basename(filename).startswith('__cumulus-'):
+                if len(os.path.basename(filename).split(prefix)) != 2:
+                    logger.debug('Excluding file {}'.format(filename))
+                    continue
+            elif prefix in filename.split(os.path.sep):
+                logger.debug('Excluding file {}'.format(filename))
+                continue
+
+            # Do all rewrites
+            for rewrite in path_rewrites:
+                try:
+                    if arcname[:len(rewrite['target'])] == rewrite['target']:
+                        arcname = arcname.replace(
+                            rewrite['target'],
+                            rewrite['destination'])
+                        logger.debug('Replaced {} with {} in bundle {}'.format(
+                            rewrite['target'],
+                            rewrite['destination'],
+                            bundle_type))
+                except IndexError:
+                    pass
+
+            archive.write(filename, arcname, zipfile.ZIP_DEFLATED)
+
+    archive.close()
 
 
 def _post_bundle_hook(bundle_name):
