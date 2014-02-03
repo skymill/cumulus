@@ -5,7 +5,6 @@ import logging.config
 import os
 import subprocess
 import sys
-import tarfile
 import tempfile
 import zipfile
 from ConfigParser import SafeConfigParser, NoOptionError
@@ -117,7 +116,7 @@ def _download_and_unpack_bundle(bundle_type):
     :type bundle_type: str
     :param bundle_type: Bundle type to download
     """
-    key, compression = _get_key(bundle_type)
+    key = _get_key(bundle_type)
 
     # If the bundle does not exist
     if not key:
@@ -125,7 +124,7 @@ def _download_and_unpack_bundle(bundle_type):
         sys.exit(1)
 
     bundle = tempfile.NamedTemporaryFile(
-        suffix='.{}'.format(compression),
+        suffix='.zip',
         delete=False)
     bundle.close()
     LOGGER.info("Downloading s3://{}/{} to {}".format(
@@ -137,20 +136,8 @@ def _download_and_unpack_bundle(bundle_type):
     extraction_path = _get_extraction_path(bundle_type)
 
     # Unpack the bundle
-    LOGGER.info("Unpacking {}".format(bundle.name))
-    if compression == 'tar.bz2':
-        archive = tarfile.open(bundle.name, 'r:bz2')
-        _store_bundle_files(archive.getnames(), extraction_path)
-    elif compression == 'tar.gz':
-        archive = tarfile.open(bundle.name, 'r:gz')
-        _store_bundle_files(archive.getnames(), extraction_path)
-    elif compression == 'zip':
-        archive = zipfile.ZipFile(bundle.name, 'r')
-        _store_bundle_files(archive.namelist(), extraction_path)
-    else:
-        logging.error('Unsupported compression format: "{}"'.format(
-            compression))
-        sys.exit(1)
+    archive = zipfile.ZipFile(bundle.name, 'r')
+    _store_bundle_files(archive.namelist(), extraction_path)
 
     try:
         LOGGER.info('Unpacking {} to {}'.format(bundle.name, extraction_path))
@@ -215,7 +202,7 @@ def _get_key(bundle_type):
 
     :type bundle_type: str
     :param bundle_type: Bundle type to download
-    :returns: (boto.s3.key, str) -- (S3 key object, compression type)
+    :returns: boto.s3.key -- S3 key object
     """
     LOGGER.debug("Connecting to AWS S3")
     connection = s3.connect_to_region(
@@ -229,23 +216,21 @@ def _get_key(bundle_type):
     bucket = connection.get_bucket(bucket_name)
 
     # Download the bundle
-    for compression in ['tar.bz2', 'tar.gz', 'zip']:
-        key_name = (
-            '{env}/{version}/bundle-{env}-{version}-{bundle}.{comp}'.format(
-                env=CONFIG.get('metadata', 'environment'),
-                version=CONFIG.get('metadata', 'version'),
-                bundle=bundle_type,
-                comp=compression))
-        LOGGER.debug('Looking for bundle {}'.format(key_name))
-        key = bucket.get_key(key_name)
+    key_name = (
+        '{env}/{version}/bundle-{env}-{version}-{bundle}.zip'.format(
+            env=CONFIG.get('metadata', 'environment'),
+            version=CONFIG.get('metadata', 'version'),
+            bundle=bundle_type))
+    LOGGER.debug('Looking for bundle {}'.format(key_name))
+    key = bucket.get_key(key_name)
 
-        # When we have found a key, don't look any more
-        if key:
-            LOGGER.debug('Found bundle: {}'.format(key_name))
-            return (key, compression)
-        LOGGER.debug('Bundle not found: {}'.format(key_name))
+    # When we have found a key, don't look any more
+    if key:
+        LOGGER.debug('Found bundle: {}'.format(key_name))
+        return key
 
-    return (None, None)
+    LOGGER.debug('Bundle not found: {}'.format(key_name))
+    return None
 
 
 def _remove_old_files():
