@@ -104,7 +104,7 @@ def main():
     _remove_old_files()
 
     for bundle_type in bundle_types:
-        _download_and_unpack_bundle(bundle_type)
+        _download_and_unpack_bundle(bundle_type.strip())
 
     _run_init_scripts(kill=False, start=True, other=True)
 
@@ -155,6 +155,8 @@ def _download_and_unpack_bundle(bundle_type):
     try:
         LOGGER.info('Unpacking {} to {}'.format(bundle.name, extraction_path))
         archive.extractall(extraction_path)
+    except Exception as err:
+        LOGGER.error('Error when unpacking bundle: {}'.format(err))
     finally:
         archive.close()
 
