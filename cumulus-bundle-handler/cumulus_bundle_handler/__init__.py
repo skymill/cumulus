@@ -23,7 +23,7 @@ if sys.platform in ['win32', 'cygwin']:
 else:
     CONFIG_PATH = '/etc/cumulus/metadata.conf'
 
-if not os.path(CONFIG_PATH):
+if not os.path.exists(CONFIG_PATH):
     print('Error: Configuration file not found: {}'.format(CONFIG_PATH))
     sys.exit(1)
 
