@@ -20,12 +20,12 @@ limitations under the License.
 
 import sys
 
-import lib
+import cumulus_bundle_handler
 
 
 if __name__ == '__main__':
     try:
-        lib.main()
+        cumulus_bundle_handler.main()
     except KeyboardInterrupt:
         sys.exit(0)
     except Exception:
