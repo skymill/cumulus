@@ -1,7 +1,10 @@
 """ Bundling functions """
 import logging
+import ntpath
 import os
+import os.path
 import subprocess
+import sys
 import tempfile
 import zipfile
 
@@ -97,8 +100,14 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
 
             # Exclude files with other target environments
             prefix = '__cumulus-{}__'.format(environment)
-            if os.path.basename(filename).startswith('__cumulus-'):
-                if len(os.path.basename(filename).split(prefix)) != 2:
+
+            if sys.platform in ['win32', 'cygwin']:
+                basename = ntpath.basename(filename)
+            else:
+                basename = os.path.basename(filename)
+
+            if basename.startswith('__cumulus-'):
+                if len(basename.split(prefix)) != 2:
                     logger.debug('Excluding file {}'.format(filename))
                     continue
             elif prefix in filename.split(os.path.sep):
