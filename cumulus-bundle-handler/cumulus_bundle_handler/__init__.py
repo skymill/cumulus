@@ -121,7 +121,7 @@ def _download_and_unpack_bundle(bundle_type):
     # If the bundle does not exist
     if not key:
         LOGGER.error('No bundle found. Exiting.')
-        sys.exit(1)
+        sys.exit(0)
 
     bundle = tempfile.NamedTemporaryFile(
         suffix='.zip',
