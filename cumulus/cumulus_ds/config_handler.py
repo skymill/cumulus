@@ -347,7 +347,8 @@ def get_stack_template(stack):
         return conf['stacks'][stack]['template']
     except KeyError:
         raise ConfigurationException(
-            'Stack template not found in configuration')
+            'Stack template not found in configuration for stack {}'.format(
+                stack))
 
 
 def get_stack_timeout_in_minutes(stack):
@@ -457,7 +458,7 @@ def _populate_environments(config):
                             if args.stacks and item not in args.stacks:
                                 continue
 
-                            stacks.append(item)
+                            stacks.append('{}-{}'.format(environment, item))
                         conf['environments'][env][option] = stacks
                     elif option == 'version':
                         if args.version:
@@ -526,6 +527,8 @@ def _populate_stacks(config):
             # If --stacks has been used, do only add those stacks
             if args.stacks and stack not in args.stacks:
                 continue
+
+            stack = '{}-{}'.format(environment, section.split(': ')[1])
 
             conf['stacks'][stack] = {}
 
