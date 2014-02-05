@@ -209,7 +209,7 @@ def _ensure_stack(
                     timeout_in_minutes=timeout_in_minutes,
                     tags=tags)
 
-        _wait_for_stack_complete(stack_name, filter_type='CREATE')
+            _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
     except ValueError as error:
         raise InvalidTemplateException(
@@ -401,7 +401,6 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
     :param filter_type: Filter events by type. Supported values are None,
         CREATE, DELETE, UPDATE. Rollback events are always shown.
     """
-    complete = False
     complete_statuses = [
         'CREATE_FAILED',
         'CREATE_COMPLETE',
@@ -420,7 +419,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
 
     written_events = []
 
-    while not complete:
+    while True:
         stack = _get_stack_by_name(stack_name)
         if not stack:
             _print_event_log_separator()
@@ -435,8 +434,8 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
                 continue
 
             # Don't print old events
-            #if event.timestamp < STARTTIME:
-            #    continue
+            if event.timestamp < STARTTIME:
+                continue
 
             written_events.append(event.event_id)
 
@@ -464,6 +463,6 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
             LOGGER.info('Stack {} - Stack completed with status {}'.format(
                 stack.stack_name,
                 stack.stack_status))
-            complete = True
+            break
 
         time.sleep(check_interval)
