@@ -8,11 +8,15 @@ from datetime import datetime
 
 import boto
 
-from lib import config_handler
-from lib import connection_handler
-from lib.exceptions import InvalidTemplateException, HookExecutionException
+from cumulus_ds import config_handler
+from cumulus_ds import connection_handler
+from cumulus_ds.exceptions import (
+    InvalidTemplateException,
+    HookExecutionException)
 
 LOGGER = logging.getLogger(__name__)
+
+STARTTIME = datetime.utcnow()
 
 
 def deploy():
@@ -426,8 +430,13 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
             _print_event_log_title()
 
         for event in reversed(con.describe_stack_events(stack.stack_id)):
+            # Don't print written events
             if event.event_id in written_events:
                 continue
+
+            # Don't print old events
+            #if event.timestamp < STARTTIME:
+            #    continue
 
             written_events.append(event.event_id)
 
