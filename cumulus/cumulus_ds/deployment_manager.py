@@ -16,8 +16,6 @@ from cumulus_ds.exceptions import (
 
 LOGGER = logging.getLogger(__name__)
 
-STARTTIME = datetime.utcnow() - timedelta(0, 5)
-
 
 def deploy():
     """ Ensure stack is up and running (create or update it) """
@@ -401,6 +399,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
     :param filter_type: Filter events by type. Supported values are None,
         CREATE, DELETE, UPDATE. Rollback events are always shown.
     """
+    start_time = datetime.utcnow() - timedelta(0, 10)
     complete = False
     complete_statuses = [
         'CREATE_FAILED',
@@ -435,7 +434,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
                 continue
 
             # Don't print old events
-            if event.timestamp < STARTTIME:
+            if event.timestamp < start_time:
                 continue
 
             written_events.append(event.event_id)
