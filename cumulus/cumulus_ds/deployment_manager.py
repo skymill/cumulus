@@ -4,7 +4,7 @@ import logging
 import os.path
 import subprocess
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import boto
 
@@ -16,7 +16,7 @@ from cumulus_ds.exceptions import (
 
 LOGGER = logging.getLogger(__name__)
 
-STARTTIME = datetime.utcnow()
+STARTTIME = datetime.utcnow() - timedelta(0, 5)
 
 
 def deploy():
@@ -401,6 +401,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
     :param filter_type: Filter events by type. Supported values are None,
         CREATE, DELETE, UPDATE. Rollback events are always shown.
     """
+    complete = False
     complete_statuses = [
         'CREATE_FAILED',
         'CREATE_COMPLETE',
@@ -419,7 +420,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
 
     written_events = []
 
-    while True:
+    while not complete:
         stack = _get_stack_by_name(stack_name)
         if not stack:
             _print_event_log_separator()
@@ -463,6 +464,6 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
             LOGGER.info('Stack {} - Stack completed with status {}'.format(
                 stack.stack_name,
                 stack.stack_status))
-            break
+            complete = True
 
         time.sleep(check_interval)
