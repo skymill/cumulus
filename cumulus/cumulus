@@ -21,7 +21,7 @@ limitations under the License.
 import sys
 
 try:
-    import lib
+    import cumulus_ds
 except Exception as error:
     print('Configuration error: {}'.format(error))
     sys.exit(1)
@@ -29,10 +29,10 @@ except Exception as error:
 
 if __name__ == '__main__':
     try:
-        lib.main()
-    except lib.exceptions.ConfigurationException:
+        cumulus_ds.main()
+    except cumulus_ds.exceptions.ConfigurationException:
         sys.exit(1)
-    except lib.exceptions.HookExecutionException:
+    except cumulus_ds.exceptions.HookExecutionException:
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(0)
