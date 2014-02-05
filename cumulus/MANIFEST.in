@@ -1,4 +1,4 @@
-recursive-include lib *
+recursive-include cumulus_ds *
 include cumulus
 include LICENSE
 include README

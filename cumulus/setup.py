@@ -9,7 +9,8 @@ settings.read(os.path.realpath('lib/settings.conf'))
 
 setup(
     name='cumulus',
-    version=settings.get('general', 'version'),
+    #version=settings.get('general', 'version'),
+    version='0.9.0',
     license='Proprietary',
     description='Cumulus AWS deployment tools',
     author='Sebastian Dahlgren',
@@ -17,7 +18,7 @@ setup(
     url='http://www.skymillsolutions.com',
     keywords="cumulus cloudformation amazon web services",
     platforms=['Any'],
-    packages=['lib'],
+    packages=['cumulus_ds'],
     scripts=['cumulus'],
     include_package_data=True,
     zip_safe=False,
