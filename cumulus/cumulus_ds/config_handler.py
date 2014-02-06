@@ -93,6 +93,11 @@ def command_line_options():
         '--cumulus-version',
         action='count',
         help='Print cumulus version number')
+    general_ag.add_argument(
+        '--force',
+        type=bool,
+        ddefault=False,
+        help='Skip any safety questions')
     actions_ag = parser.add_argument_group('Actions')
     actions_ag.add_argument(
         '--bundle',
@@ -121,7 +126,9 @@ def command_line_options():
     actions_ag.add_argument(
         '--undeploy',
         action='count',
-        help='Undeploy (DELETE) all stacks in the environment')
+        help=(
+            'Undeploy (delete) all stacks in the environment. '
+            'Use --force to skip the safety question.'))
     args = parser.parse_args()
 
     # Make the stacks prettier

@@ -76,13 +76,21 @@ def list_stacks():
             print('{:<30}{}'.format(stack.stack_name, stack.stack_status))
 
 
-def undeploy():
-    """ Undeploy an environment """
+def undeploy(force=False):
+    """ Undeploy an environment
+
+    :type force: bool
+    :param force: Skip the safety question
+    """
     message = (
         'This will DELETE all stacks in the environment. '
         'This action cannot be undone. '
         'Are you sure you want to do continue? [N/y] ')
-    choice = raw_input(message).lower()
+
+    choice = 'yes'
+    if not force:
+        choice = raw_input(message).lower()
+
     if choice in ['yes', 'y']:
         stacks = config_handler.get_stacks()
         stacks.reverse()

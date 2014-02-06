@@ -110,7 +110,7 @@ def main():
             deployment_manager.list_stacks()
 
         if config_handler.args.undeploy:
-            deployment_manager.undeploy()
+            deployment_manager.undeploy(force=config_handler.args.force)
 
         if config_handler.args.validate_templates:
             deployment_manager.validate_templates()
