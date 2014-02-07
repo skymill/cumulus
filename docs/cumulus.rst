@@ -30,6 +30,8 @@ Below is a full example configuration:
     version: 1.0.0-SNAPSHOT
     pre-deploy-hook: /path/to/script
     post-deploy-hook: echo "Yay" > ~/test.log
+    stack-name-prefix: myproject
+    #stack-name-suffix: myproject
 
     [stack: full]
     template: /Users/sebastian/tmp/hosts/webserver.json
@@ -90,6 +92,8 @@ Option                  Type               Required Comment
 ``version``             String             Yes      Environment version number
 ``pre-deploy-hook``     String             No       Command to execute before deployment
 ``post-deploy-hook``    String             No       Command to execute after deployment
+``stack-name-prefix``   String             No       Prepend a prefix to the stack name
+``stack-name-suffix``   String             No       Append a suffix to the stack name
 ======================= ================== ======== ==========================================
 
 

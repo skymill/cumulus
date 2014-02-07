@@ -241,7 +241,7 @@ def get_stack_timeout_in_minutes(stack):
 def get_stacks():
     """ Returns a list of stacks """
     try:
-        return CONF['environments'][ENVIRONMENT]['stacks']
+        return CONF['stacks'].keys()
     except KeyError:
         LOGGER.warning(
             'No stacks found for environment {}'.format(ENVIRONMENT))

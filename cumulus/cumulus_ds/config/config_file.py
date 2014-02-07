@@ -45,7 +45,9 @@ ENV_OPTIONS = [
     ('bundles', True),
     ('version', False),
     ('pre-deploy-hook', False),
-    ('post-deploy-hook', False)
+    ('post-deploy-hook', False),
+    ('stack-name-prefix', False),
+    ('stack-name-suffix', False)
 ]
 
 
@@ -194,6 +196,18 @@ def _populate_stacks(config):
                 continue
 
             stack = '{}-{}'.format(args.environment, section.split(': ')[1])
+
+            # Prepend a stack name prefix
+            if 'stack-name-prefix' in CONF['environments'][args.environment]:
+                stack = '{}-{}'.format(
+                    CONF['environments'][args.environment]['stack-name-prefix'],
+                    stack)
+
+            # Append a stack name suffix
+            if 'stack-name-suffix' in CONF['environments'][args.environment]:
+                stack = '{}-{}'.format(
+                    stack,
+                    CONF['environments'][args.environment]['stack-name-suffix'])
 
             CONF['stacks'][stack] = {}
 

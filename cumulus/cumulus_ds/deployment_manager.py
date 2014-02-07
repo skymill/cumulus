@@ -23,6 +23,7 @@ def deploy():
     _pre_deploy_hook()
 
     stacks = config.get_stacks()
+
     if not stacks:
         LOGGER.warning('No stacks configured, nothing to deploy')
         return
