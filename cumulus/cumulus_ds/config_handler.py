@@ -1,12 +1,11 @@
 """ Configuration handler """
-import argparse
 import logging
 import os
 import os.path
-import sys
 from ConfigParser import SafeConfigParser, NoOptionError
 
-from exceptions import ConfigurationException
+from cumulus_ds.exceptions import ConfigurationException
+from cumulus_ds.config import command_line_options
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +14,8 @@ settings = SafeConfigParser()
 settings.read(
     os.path.realpath('{}/settings.conf'.format(os.path.dirname(__file__))))
 
-environment = None
-args = None
+environment = command_line_options.ARGS.environment
+args = command_line_options.ARGS
 
 # Initial configuration object
 conf = {
@@ -56,92 +55,6 @@ env_options = [
     ('pre-deploy-hook', False),
     ('post-deploy-hook', False)
 ]
-
-
-def command_line_options():
-    """ Parse command line options """
-    global args
-    global environment
-
-    # Read arguments from the command line
-    parser = argparse.ArgumentParser(
-        description='Cumulus cloud management tool')
-    general_ag = parser.add_argument_group('General options')
-    general_ag.add_argument(
-        '-e', '--environment',
-        help='Environment to use')
-    general_ag.add_argument(
-        '-s', '--stacks',
-        help=(
-            'Comma separated list of stacks to deploy. '
-            'Default behavior is to deploy all stacks for an environment'))
-    general_ag.add_argument(
-        '--version',
-        help=(
-            'Environment version number. '
-            'Overrides the version value from the configuration file'))
-    general_ag.add_argument(
-        '--parameters',
-        help=(
-            'CloudFormation parameters. On the form: '
-            'stack_name:parameter_name=value,stack_name=parameter_name=value'
-        ))
-    general_ag.add_argument(
-        '--config',
-        help='Path to configuration file.')
-    general_ag.add_argument(
-        '--cumulus-version',
-        action='count',
-        help='Print cumulus version number')
-    general_ag.add_argument(
-        '--force',
-        type=bool,
-        default=False,
-        help='Skip any safety questions')
-    actions_ag = parser.add_argument_group('Actions')
-    actions_ag.add_argument(
-        '--bundle',
-        action='count',
-        help='Build and upload bundles to AWS S3')
-    actions_ag.add_argument(
-        '--deploy',
-        action='count',
-        help='Bundle and deploy all stacks in the environment')
-    actions_ag.add_argument(
-        '--deploy-without-bundling',
-        action='count',
-        help='Deploy all stacks in the environment, without bundling first')
-    actions_ag.add_argument(
-        '--events',
-        action='count',
-        help='List events for the stack')
-    actions_ag.add_argument(
-        '--list',
-        action='count',
-        help='List stacks for each environment')
-    actions_ag.add_argument(
-        '--validate-templates',
-        action='count',
-        help='Validate all templates for the environment')
-    actions_ag.add_argument(
-        '--undeploy',
-        action='count',
-        help=(
-            'Undeploy (delete) all stacks in the environment. '
-            'Use --force to skip the safety question.'))
-    args = parser.parse_args()
-
-    # Make the stacks prettier
-    if args.stacks:
-        args.stacks = [s.strip() for s in args.stacks.split(',')]
-
-    if args.cumulus_version:
-        print('Cumulus version {}'.format(settings.get('general', 'version')))
-        sys.exit(0)
-    elif not args.environment:
-        raise ConfigurationException('--environment is required')
-
-    environment = args.environment
 
 
 def configure():
