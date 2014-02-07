@@ -95,8 +95,7 @@ def command_line_options():
         help='Print cumulus version number')
     general_ag.add_argument(
         '--force',
-        type=bool,
-        default=False,
+        action='store_true',
         help='Skip any safety questions')
     actions_ag = parser.add_argument_group('Actions')
     actions_ag.add_argument(
