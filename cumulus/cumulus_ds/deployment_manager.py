@@ -51,13 +51,13 @@ def list_events():
 
     for stack_name in config.get_stacks():
         stack = _get_stack_by_name(stack_name)
-        written_events = []
 
         if not stack:
             break
 
         _print_event_log_title()
 
+        written_events = []
         for event in reversed(con.describe_stack_events(stack.stack_id)):
             if event.event_id not in written_events:
                 written_events.append(event.event_id)
@@ -94,6 +94,11 @@ def undeploy(force=False):
 
     if choice in ['yes', 'y']:
         stacks = config.get_stacks()
+
+        if not stacks:
+            LOGGER.warning('No stacks to undeploy.')
+            return None
+
         stacks.reverse()
         for stack in stacks:
             _delete_stack(stack)
