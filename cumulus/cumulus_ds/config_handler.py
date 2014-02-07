@@ -9,11 +9,6 @@ from cumulus_ds.config import command_line_options
 
 logger = logging.getLogger(__name__)
 
-# Get settings.conf
-settings = SafeConfigParser()
-settings.read(
-    os.path.realpath('{}/settings.conf'.format(os.path.dirname(__file__))))
-
 environment = command_line_options.ARGS.environment
 args = command_line_options.ARGS
 
