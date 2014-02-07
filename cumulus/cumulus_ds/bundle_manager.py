@@ -187,17 +187,12 @@ def _upload_bundle(bundle_path, bundle_type):
     bucket = connection.get_bucket(
         config_handler.get_environment_option('bucket'))
 
-    if bundle_path.endswith('.tar.bz2'):
-        compression = 'tar.bz2'
-    elif bundle_path.endswith('.tar.gz'):
-        compression = 'tar.gz'
-    elif bundle_path.endswith('.zip'):
+    if bundle_path.endswith('.zip'):
         compression = 'zip'
     else:
         raise UnsupportedCompression(
             'Unknown compression format for {}. '
-            'Supported formats are tar.b2, tar.gz and .zip'.format(
-                bundle_path))
+            'We are currently only supporting .zip'.format(bundle_path))
 
     key_name = (
         '{environment}/{version}/'
