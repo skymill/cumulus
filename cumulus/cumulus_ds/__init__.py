@@ -15,17 +15,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import config_handler
 import logging
 
-import bundle_manager
-import deployment_manager
-
-try:
-    config_handler.command_line_options()
-    config_handler.configure()
-except Exception:
-    raise
+from cumulus_ds import config
+from cumulus_ds import bundle_manager
+from cumulus_ds import deployment_manager
+from cumulus_ds.config import command_line_options
 
 logging_config = {
     'version': 1,
@@ -87,7 +82,7 @@ logging_config = {
 }
 
 # Set log level
-logging_config['handlers']['default']['level'] = config_handler.get_log_level()
+logging_config['handlers']['default']['level'] = config.get_log_level()
 
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
@@ -96,26 +91,26 @@ logger = logging.getLogger(__name__)
 def main():
     """ Main function """
     try:
-        if config_handler.args.bundle:
+        if command_line_options.ARGS.bundle:
             bundle_manager.build_bundles()
 
-        if config_handler.args.deploy:
+        if command_line_options.ARGS.deploy:
             bundle_manager.build_bundles()
             deployment_manager.deploy()
 
-        if config_handler.args.deploy_without_bundling:
+        if command_line_options.ARGS.deploy_without_bundling:
             deployment_manager.deploy()
 
-        if config_handler.args.list:
+        if command_line_options.ARGS.list:
             deployment_manager.list_stacks()
 
-        if config_handler.args.undeploy:
-            deployment_manager.undeploy(force=config_handler.args.force)
+        if command_line_options.ARGS.undeploy:
+            deployment_manager.undeploy(force=command_line_options.ARGS.force)
 
-        if config_handler.args.validate_templates:
+        if command_line_options.ARGS.validate_templates:
             deployment_manager.validate_templates()
 
-        if config_handler.args.events:
+        if command_line_options.ARGS.events:
             deployment_manager.list_events()
 
     except Exception as error:

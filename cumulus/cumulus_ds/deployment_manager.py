@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 import boto
 
-from cumulus_ds import config_handler
+from cumulus_ds import config
 from cumulus_ds import connection_handler
 from cumulus_ds.exceptions import (
     InvalidTemplateException,
@@ -22,20 +22,20 @@ def deploy():
     # Run pre-deploy-hook
     _pre_deploy_hook()
 
-    stacks = config_handler.get_stacks()
+    stacks = config.get_stacks()
     if not stacks:
         LOGGER.warning('No stacks configured, nothing to deploy')
         return
     for stack in stacks:
         _ensure_stack(
             stack,
-            config_handler.get_stack_template(stack),
-            disable_rollback=config_handler.get_stack_disable_rollback(
+            config.get_stack_template(stack),
+            disable_rollback=config.get_stack_disable_rollback(
                 stack),
-            parameters=config_handler.get_stack_parameters(stack),
-            timeout_in_minutes=config_handler.get_stack_timeout_in_minutes(
+            parameters=config.get_stack_parameters(stack),
+            timeout_in_minutes=config.get_stack_timeout_in_minutes(
                 stack),
-            tags=config_handler.get_stack_tags(stack))
+            tags=config.get_stack_tags(stack))
 
     # Run post-deploy-hook
     _post_deploy_hook()
@@ -48,7 +48,7 @@ def list_events():
     except Exception:
         raise
 
-    for stack_name in config_handler.get_stacks():
+    for stack_name in config.get_stacks():
         stack = _get_stack_by_name(stack_name)
         written_events = []
 
@@ -72,7 +72,7 @@ def list_stacks():
 
     for stack in connection.list_stacks():
         if (stack.stack_status != 'DELETE_COMPLETE' and
-                stack.stack_name in config_handler.get_stacks()):
+                stack.stack_name in config.get_stacks()):
             print('{:<30}{}'.format(stack.stack_name, stack.stack_status))
 
 
@@ -92,7 +92,7 @@ def undeploy(force=False):
         choice = raw_input(message).lower()
 
     if choice in ['yes', 'y']:
-        stacks = config_handler.get_stacks()
+        stacks = config.get_stacks()
         stacks.reverse()
         for stack in stacks:
             _delete_stack(stack)
@@ -107,8 +107,8 @@ def validate_templates():
     except Exception:
         raise
 
-    for stack in config_handler.get_stacks():
-        template = config_handler.get_stack_template(stack)
+    for stack in config.get_stacks():
+        template = config.get_stack_template(stack)
 
         result = connection.validate_template(
             _get_json_from_template(template))
@@ -147,15 +147,15 @@ def _ensure_stack(
     cumulus_parameters = [
         (
             'CumulusBundleBucket',
-            config_handler.get_environment_option('bucket')
+            config.get_environment_option('bucket')
         ),
         (
             'CumulusEnvironment',
-            config_handler.get_environment()
+            config.get_environment()
         ),
         (
             'CumulusVersion',
-            config_handler.get_environment_option('version')
+            config.get_environment_option('version')
         )
     ]
 
@@ -171,7 +171,7 @@ def _ensure_stack(
     try:
         if _stack_exists(stack_name):
             LOGGER.debug('Updating existing stack to version {}'.format(
-                config_handler.get_environment_option('version')))
+                config.get_environment_option('version')))
 
             if template[0:4] == 'http':
                 connection.update_stack(
@@ -195,7 +195,7 @@ def _ensure_stack(
             _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
             LOGGER.debug('Creating new stack with version {}'.format(
-                config_handler.get_environment_option('version')))
+                config.get_environment_option('version')))
             if template[0:4] == 'http':
                 connection.create_stack(
                     stack_name,
@@ -293,7 +293,7 @@ def _get_stack_by_name(stack_name):
 
 def _pre_deploy_hook():
     """ Execute a pre-deploy-hook """
-    command = config_handler.get_pre_deploy_hook()
+    command = config.get_pre_deploy_hook()
 
     if not command:
         return None
@@ -362,7 +362,7 @@ def _print_event_log_title():
 
 def _post_deploy_hook():
     """ Execute a post-deploy-hook """
-    command = config_handler.get_post_deploy_hook()
+    command = config.get_post_deploy_hook()
 
     if not command:
         return None
