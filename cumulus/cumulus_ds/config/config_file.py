@@ -99,47 +99,47 @@ def _populate_environments(config):
     :type config: ConfigParser.read
     :param config: Config parser config object
     """
-    for section in config.sections():
-        if section.startswith('environment: '):
-            env = section.split(': ')[1]
-            if env != args.environment:
-                continue
+    section = '[environment: {}]'.format(args.environment)
+    environment = args.environment
+    if not section in config.sections():
+        raise ConfigurationException(
+            'No configuration found for environment {}'.format(environment))
 
-            CONF['environments'][env] = {}
+    CONF['environments'][environment] = {}
 
-            for option, required in ENV_OPTIONS:
-                try:
-                    if option == 'bundles':
-                        bundles = []
-                        for item in config.get(section, option).split(','):
-                            bundles.append(item.strip())
-                        CONF['environments'][env][option] = bundles
-                    elif option == 'stacks':
-                        stacks = []
-                        for item in config.get(section, option).split(','):
-                            item = item.strip()
+    for option, required in ENV_OPTIONS:
+        try:
+            if option == 'bundles':
+                bundles = []
+                for item in config.get(section, option).split(','):
+                    bundles.append(item.strip())
+                CONF['environments'][environment][option] = bundles
+            elif option == 'stacks':
+                stacks = []
+                for item in config.get(section, option).split(','):
+                    item = item.strip()
 
-                            # If --stacks has been used,
-                            # do only add those stacks
-                            if args.stacks and item not in args.stacks:
-                                continue
+                    # If --stacks has been used,
+                    # do only add those stacks
+                    if args.stacks and item not in args.stacks:
+                        continue
 
-                            stacks.append('{}-{}'.format(
-                                args.environment, item))
-                        CONF['environments'][env][option] = stacks
-                    elif option == 'version':
-                        if args.version:
-                            CONF['environments'][env][option] = args.version
-                        else:
-                            CONF['environments'][env][option] = config.get(
-                                section, option)
-                    else:
-                        CONF['environments'][env][option] = \
-                            config.get(section, option)
-                except NoOptionError:
-                    if required:
-                        raise ConfigurationException(
-                            'Missing required option {}'.format(option))
+                    stacks.append('{}-{}'.format(
+                        args.environment, item))
+                CONF['environments'][environment][option] = stacks
+            elif option == 'version':
+                if args.version:
+                    CONF['environments'][environment][option] = args.version
+                else:
+                    CONF['environments'][environment][option] = config.get(
+                        section, option)
+            else:
+                CONF['environments'][environment][option] = \
+                    config.get(section, option)
+        except NoOptionError:
+            if required:
+                raise ConfigurationException(
+                    'Missing required option {}'.format(option))
 
 
 def _populate_general(config):
@@ -148,37 +148,29 @@ def _populate_general(config):
     :type config: ConfigParser.read
     :param config: Config parser config object
     """
-    for section in config.sections():
-        if section == 'general':
-            CONF['general'] = {}
+    section = 'general'
+    if not section in config.sections():
+        return None
 
-            for option, required in GENERAL_OPTIONS:
-                try:
-                    if option == 'log-level':
-                        log_level = config.get(section, option).upper()
+    for option, required in GENERAL_OPTIONS:
+        try:
+            if option == 'log-level':
+                log_level = config.get(section, option).upper()
 
-                        log_levels = [
-                            'DEBUG',
-                            'INFO',
-                            'WARNING',
-                            'ERROR'
-                        ]
+                if log_level not in ['DEBUG', 'INFO', 'WARNING', 'ERROR']:
+                    LOGGER.warning(
+                        (
+                            'Invalid log level "{}". Using default log level.'
+                        ).format(log_level))
+                    log_level = 'DEBUG'
 
-                        if log_level not in log_levels:
-                            LOGGER.warning(
-                                (
-                                    'Invalid log level "{}". '
-                                    'Using default log level.'
-                                ).format(log_level))
-                            log_level = 'DEBUG'
-
-                        CONF['general'][option] = log_level
-                    else:
-                        CONF['general'][option] = config.get(section, option)
-                except NoOptionError:
-                    if required:
-                        raise ConfigurationException(
-                            'Missing required option {}'.format(option))
+                CONF['general'][option] = log_level
+            else:
+                CONF['general'][option] = config.get(section, option)
+        except NoOptionError:
+            if required:
+                raise ConfigurationException(
+                    'Missing required option {}'.format(option))
 
 
 def _populate_stacks(config):
