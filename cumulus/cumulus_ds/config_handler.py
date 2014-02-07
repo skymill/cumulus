@@ -96,7 +96,7 @@ def command_line_options():
     general_ag.add_argument(
         '--force',
         type=bool,
-        ddefault=False,
+        default=False,
         help='Skip any safety questions')
     actions_ag = parser.add_argument_group('Actions')
     actions_ag.add_argument(
