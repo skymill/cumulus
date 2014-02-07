@@ -1,4 +1,4 @@
-""" Manager """
+""" The deployment manager handles all deployments of CloudFormation stacks """
 import json
 import logging
 import os.path
