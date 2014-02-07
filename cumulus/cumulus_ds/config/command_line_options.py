@@ -44,8 +44,8 @@ GENERAL_AG.add_argument(
     help='Print cumulus version number')
 GENERAL_AG.add_argument(
     '--force',
-    type=bool,
     default=False,
+    action='store_true',
     help='Skip any safety questions')
 ACTIONS_AG = PARSER.add_argument_group('Actions')
 ACTIONS_AG.add_argument(

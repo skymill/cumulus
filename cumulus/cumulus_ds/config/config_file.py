@@ -1,19 +1,16 @@
-""" Configuration handler """
+""" Manage configuration file parsing """
 import logging
 import os
 import os.path
 from ConfigParser import SafeConfigParser, NoOptionError
 
+from cumulus_ds.config.command_line_options import ARGS as args
 from cumulus_ds.exceptions import ConfigurationException
-from cumulus_ds.config import command_line_options
 
-logger = logging.getLogger(__name__)
-
-environment = command_line_options.ARGS.environment
-args = command_line_options.ARGS
+LOGGER = logging.getLogger(__name__)
 
 # Initial configuration object
-conf = {
+CONF = {
     'general': {},
     'environments': {},
     'stacks': {},
@@ -22,24 +19,24 @@ conf = {
 
 # Options per section
 # [(option, required)]
-general_options = [
+GENERAL_OPTIONS = [
     ('log-level', False)
 ]
-stack_options = [
+STACK_OPTIONS = [
     ('template', True),
     ('disable-rollback', True),
     ('parameters', False),
     ('timeout-in-minutes', False),
     ('tags', False)
 ]
-bundle_options = [
+BUNDLE_OPTIONS = [
     ('paths', True),
     ('path-rewrites', False),
     ('pre-bundle-hook', False),
     ('post-bundle-hook', False),
     ('pre-built-bundle', False)
 ]
-env_options = [
+ENV_OPTIONS = [
     ('access-key-id', True),
     ('secret-access-key', True),
     ('bucket', True),
@@ -52,262 +49,12 @@ env_options = [
 ]
 
 
-def configure():
-    """ Constructor """
-    _read_configuration_files()
+def configure(config_file=None):
+    """ Populate the objects
 
-
-def get_config():
-    """ Returns the configuration object
-
-    :returns: dict
+    :type config_file: str or None
+    :param config_file: Configuration file to read from
     """
-    return conf
-
-
-def get_environment():
-    """ Returns the environment name
-
-    :returns: str or None
-    """
-    return environment
-
-
-def get_bundle_path_rewrites(bundle):
-    """ Returns a dict with all path rewrites
-
-    :type bundle: str
-    :param bundle: Bundle name
-    :returns: dict
-    """
-    try:
-        return conf['bundles'][bundle]['path-rewrites']
-    except KeyError:
-        return {}
-
-
-def get_bundle_paths(bundle):
-    """ Returns a list of bundle paths for a given bundle
-
-    :type bundle: str
-    :param bundle: Bundle name
-    :returns: list
-    """
-    try:
-        return conf['bundles'][bundle]['paths']
-    except KeyError:
-        logger.error('No paths defined for bundle "{}"'.format(bundle))
-        raise ConfigurationException(
-            'No paths defined for bundle "{}"'.format(bundle))
-
-
-def get_bundles():
-    """ Returns a list of bundles"""
-    try:
-        bundles = conf['environments'][environment]['bundles']
-    except KeyError:
-        logger.warning(
-            'No bundles found for environment {}'.format(environment))
-        return None
-
-    # Check that the bundles are configured
-    for bundle in bundles:
-        if not bundle:
-            bundles.remove(bundle)
-            continue
-
-        if bundle not in conf['bundles']:
-            bundles.remove(bundle)
-            logger.warning(
-                'No matching configuration for bundle "{}"!'.format(bundle))
-
-    return bundles
-
-
-def get_environment_option(option_name):
-    """ Returns version number
-
-    :returns: str
-    """
-    try:
-        return conf['environments'][environment][option_name]
-    except KeyError:
-        logger.error('No option {} in environment {}'.format(
-            option_name, environment))
-        return None
-
-
-def get_log_level():
-    """ Returns the log level
-
-    :returns: str
-    """
-    try:
-        return conf['general']['log-level']
-    except KeyError:
-        return 'DEBUG'
-
-
-def get_post_bundle_hook(bundle):
-    """ Returns the post bundle hook command or None
-
-    :type bundle: str
-    :param bundle: Bundle name
-    :returns: str or None
-    """
-    try:
-        return conf['bundles'][bundle]['post-bundle-hook']
-    except KeyError:
-        return None
-
-
-def get_post_deploy_hook():
-    """ Returns the post deploy hook command or None
-
-    :returns: str or None
-    """
-    try:
-        return conf['environments'][environment]['post-deploy-hook']
-    except KeyError:
-        return None
-
-
-def get_pre_built_bundle_path(bundle):
-    """ Return the path to the pre-built bundle
-
-    :type bundle: str
-    :param bundle: Bundle name
-    :returns: str -- Path to the pre-built bundle
-    """
-    try:
-        return str(conf['bundles'][bundle]['pre-built-bundle'])
-    except KeyError:
-        logger.error('No pre-built bundle path found for "{}"'.format(bundle))
-        raise ConfigurationException(
-            'No pre-built bundle path found for "{}"'.format(bundle))
-
-
-def get_pre_deploy_hook():
-    """ Returns the pre deploy hook command or None
-
-    :returns: str or None
-    """
-    try:
-        return conf['environments'][environment]['pre-deploy-hook']
-    except KeyError:
-        return None
-
-
-def get_pre_bundle_hook(bundle):
-    """ Returns the pre bundle hook command or None
-
-    :type bundle: str
-    :param bundle: Bundle name
-    :returns: str or None
-    """
-    try:
-        return conf['bundles'][bundle]['pre-bundle-hook']
-    except KeyError:
-        return None
-
-
-def get_stack_disable_rollback(stack):
-    """ See if we should disable rollback
-
-    :type stack: str
-    :param stack: Stack name
-    :returns: bool -- Disable rollback?
-    """
-    try:
-        return conf['stacks'][stack]['disable-rollback']
-    except KeyError:
-        raise ConfigurationException(
-            'Stack template not found in configuration')
-
-
-def get_stack_parameters(stack):
-    """ Return the stack parameters
-
-    :type stack: str
-    :param stack: Stack name
-    :returns: list -- All stack parameters
-    """
-    try:
-        return conf['stacks'][stack]['parameters']
-    except KeyError:
-        return []
-
-
-def get_stack_tags(stack):
-    """ Return the stack tags
-
-    :type stack: str
-    :param stack: Stack name
-    :returns: list -- All stack tags
-    """
-    try:
-        return conf['stacks'][stack]['tags']
-    except KeyError:
-        return None
-
-
-def get_stack_template(stack):
-    """ Return the path to the stack template
-
-    :type stack: str
-    :param stack: Stack name
-    :returns: str -- Stack template path
-    """
-    try:
-        return conf['stacks'][stack]['template']
-    except KeyError:
-        raise ConfigurationException(
-            'Stack template not found in configuration for stack {}'.format(
-                stack))
-
-
-def get_stack_timeout_in_minutes(stack):
-    """ Return stack creation timeout
-
-    :type stack: str
-    :param stack: Stack name
-    :returns: int -- Stack creation timeout in minutes
-    """
-    try:
-        timeout = int(conf['stacks'][stack]['timeout-in-minutes'])
-    except KeyError:
-        raise ConfigurationException(
-            'Stack timeout not found in configuration')
-
-    if timeout == 0:
-        return None
-    return timeout
-
-
-def get_stacks():
-    """ Returns a list of stacks """
-    try:
-        return conf['environments'][environment]['stacks']
-    except KeyError:
-        logger.warning(
-            'No stacks found for environment {}'.format(environment))
-        return None
-
-
-def has_pre_built_bundle(bundle):
-    """ Checks wether or not the bundle has a pre-built-bundle flag
-
-    :type bundle: str
-    :param bundle: Bundle name
-    :returns: bool -- True if there is a pre-built-bundle
-    """
-    if 'pre-built-bundle' in conf['bundles'][bundle]:
-        return True
-    return False
-
-
-def _read_configuration_files():
-    """ Read global configuration file """
     config_files = [
         '/etc/cumulus.conf',
         os.path.expanduser('~/.cumulus.conf'),
@@ -315,19 +62,19 @@ def _read_configuration_files():
     ]
 
     # Add custom configuration file path
-    if args.config:
-        if os.path.exists(os.path.expanduser(args.config)):
-            config_files = [os.path.expanduser(args.config)]
+    if config_file:
+        if os.path.exists(os.path.expanduser(config_file)):
+            config_files = [os.path.expanduser(config_file)]
         else:
-            logger.warning('Configuration file {} not found.'.format(
-                os.path.expanduser(args.config)))
+            LOGGER.warning('Configuration file {} not found.'.format(
+                os.path.expanduser(config_file)))
 
     # Read config file
     conf_file_found = False
     for conf_file in config_files:
         if os.path.exists(conf_file):
             conf_file_found = True
-            logger.info('Reading configuration from {}'.format(conf_file))
+            LOGGER.info('Reading configuration from {}'.format(conf_file))
     if not conf_file_found:
         raise ConfigurationException(
             'No configuration file found. Looked for {}'.format(
@@ -341,6 +88,8 @@ def _read_configuration_files():
     _populate_stacks(config)
     _populate_bundles(config)
 
+    return CONF
+
 
 def _populate_environments(config):
     """ Populate the environments config object
@@ -351,18 +100,18 @@ def _populate_environments(config):
     for section in config.sections():
         if section.startswith('environment: '):
             env = section.split(': ')[1]
-            if env != environment:
+            if env != args.environment:
                 continue
 
-            conf['environments'][env] = {}
+            CONF['environments'][env] = {}
 
-            for option, required in env_options:
+            for option, required in ENV_OPTIONS:
                 try:
                     if option == 'bundles':
                         bundles = []
                         for item in config.get(section, option).split(','):
                             bundles.append(item.strip())
-                        conf['environments'][env][option] = bundles
+                        CONF['environments'][env][option] = bundles
                     elif option == 'stacks':
                         stacks = []
                         for item in config.get(section, option).split(','):
@@ -373,16 +122,17 @@ def _populate_environments(config):
                             if args.stacks and item not in args.stacks:
                                 continue
 
-                            stacks.append('{}-{}'.format(environment, item))
-                        conf['environments'][env][option] = stacks
+                            stacks.append('{}-{}'.format(
+                                args.environment, item))
+                        CONF['environments'][env][option] = stacks
                     elif option == 'version':
                         if args.version:
-                            conf['environments'][env][option] = args.version
+                            CONF['environments'][env][option] = args.version
                         else:
-                            conf['environments'][env][option] = config.get(
+                            CONF['environments'][env][option] = config.get(
                                 section, option)
                     else:
-                        conf['environments'][env][option] = \
+                        CONF['environments'][env][option] = \
                             config.get(section, option)
                 except NoOptionError:
                     if required:
@@ -398,9 +148,9 @@ def _populate_general(config):
     """
     for section in config.sections():
         if section == 'general':
-            conf['general'] = {}
+            CONF['general'] = {}
 
-            for option, required in general_options:
+            for option, required in GENERAL_OPTIONS:
                 try:
                     if option == 'log-level':
                         log_level = config.get(section, option).upper()
@@ -413,16 +163,16 @@ def _populate_general(config):
                         ]
 
                         if log_level not in log_levels:
-                            logger.warning(
+                            LOGGER.warning(
                                 (
                                     'Invalid log level "{}". '
                                     'Using default log level.'
                                 ).format(log_level))
                             log_level = 'DEBUG'
 
-                        conf['general'][option] = log_level
+                        CONF['general'][option] = log_level
                     else:
-                        conf['general'][option] = config.get(section, option)
+                        CONF['general'][option] = config.get(section, option)
                 except NoOptionError:
                     if required:
                         raise ConfigurationException(
@@ -443,17 +193,17 @@ def _populate_stacks(config):
             if args.stacks and stack not in args.stacks:
                 continue
 
-            stack = '{}-{}'.format(environment, section.split(': ')[1])
+            stack = '{}-{}'.format(args.environment, section.split(': ')[1])
 
-            conf['stacks'][stack] = {}
+            CONF['stacks'][stack] = {}
 
-            for option, required in stack_options:
+            for option, required in STACK_OPTIONS:
                 try:
                     if option == 'disable-rollback':
-                        conf['stacks'][stack][option] = config.getboolean(
+                        CONF['stacks'][stack][option] = config.getboolean(
                             section, option)
                     elif option == 'template':
-                        conf['stacks'][stack][option] = os.path.expanduser(
+                        CONF['stacks'][stack][option] = os.path.expanduser(
                             config.get(section, option))
                     elif option == 'parameters':
                         try:
@@ -466,7 +216,7 @@ def _populate_stacks(config):
                             for parameter in raw_parameters:
                                 key, value = parameter.split('=')
                                 parameters.append((key.strip(), value.strip()))
-                            conf['stacks'][stack][option] = parameters
+                            CONF['stacks'][stack][option] = parameters
                         except ValueError:
                             raise ConfigurationException(
                                 'Error parsing parameters for stack {}'.format(
@@ -482,16 +232,16 @@ def _populate_stacks(config):
                             for tag in raw_tags:
                                 key, value = tag.split('=')
                                 tags[key.strip()] = value.strip()
-                            conf['stacks'][stack][option] = tags
+                            CONF['stacks'][stack][option] = tags
                         except ValueError:
                             raise ConfigurationException(
                                 'Error parsing tags for stack {}'.format(
                                     stack))
                     elif option == 'timeout-in-minutes':
-                        conf['stacks'][stack][option] = config.getint(
+                        CONF['stacks'][stack][option] = config.getint(
                             section, option)
                     else:
-                        conf['stacks'][stack][option] = config.get(
+                        CONF['stacks'][stack][option] = config.get(
                             section, option)
                 except NoOptionError:
                     if required:
@@ -500,19 +250,19 @@ def _populate_stacks(config):
                                 option))
 
                     if option == 'timeout-in-minutes':
-                        conf['stacks'][stack][option] = 0
+                        CONF['stacks'][stack][option] = 0
 
             # Add command line parameters
             try:
                 if args.parameters:
-                    if not 'parameters' in conf['stacks'][stack]:
-                        conf['stacks'][stack]['parameters'] = []
+                    if not 'parameters' in CONF['stacks'][stack]:
+                        CONF['stacks'][stack]['parameters'] = []
 
                     for raw_parameter in args.parameters.split(','):
                         stack_name, keyvalue = raw_parameter.split(':')
                         key, value = keyvalue.split('=')
                         if stack_name == stack:
-                            conf['stacks'][stack]['parameters'].append(
+                            CONF['stacks'][stack]['parameters'].append(
                                 (key, value))
             except ValueError:
                 raise ConfigurationException('Error parsing --parameters')
@@ -527,18 +277,18 @@ def _populate_bundles(config):
     for section in config.sections():
         if section.startswith('bundle: '):
             bundle = section.split(': ')[1]
-            conf['bundles'][bundle] = {}
+            CONF['bundles'][bundle] = {}
 
-            for option, required in bundle_options:
+            for option, required in BUNDLE_OPTIONS:
                 try:
                     if option == 'paths':
                         lines = config.get(section, option).strip().split('\n')
                         paths = []
                         for path in lines:
                             paths.append(os.path.expanduser(path.strip()))
-                        conf['bundles'][bundle]['paths'] = paths
+                        CONF['bundles'][bundle]['paths'] = paths
                     elif option == 'path-rewrites':
-                        conf['bundles'][bundle]['path-rewrites'] = []
+                        CONF['bundles'][bundle]['path-rewrites'] = []
                         lines = config.get(section, option).strip().split('\n')
 
                         for line in lines:
@@ -555,13 +305,13 @@ def _populate_bundles(config):
                             if destination[0] == '/':
                                 destination = destination[1:]
 
-                            conf['bundles'][bundle]['path-rewrites'].append({
+                            CONF['bundles'][bundle]['path-rewrites'].append({
                                 'target': target.strip(),
                                 'destination': destination.strip()
                             })
 
                     else:
-                        conf['bundles'][bundle][option] = config.get(
+                        CONF['bundles'][bundle][option] = config.get(
                             section, option)
                 except NoOptionError:
                     if (option == 'paths' and

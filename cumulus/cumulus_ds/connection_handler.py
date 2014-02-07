@@ -3,7 +3,7 @@ import boto
 import logging
 from boto import cloudformation
 
-import config_handler
+from cumulus_ds import config
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +15,9 @@ def connect_s3():
     """
     try:
         return boto.connect_s3(
-            aws_access_key_id=config_handler.get_environment_option(
+            aws_access_key_id=config.get_environment_option(
                 'access-key-id'),
-            aws_secret_access_key=config_handler.get_environment_option(
+            aws_secret_access_key=config.get_environment_option(
                 'secret-access-key'))
     except Exception as err:
         logger.error('A problem occurred connecting to AWS S3: {}'.format(err))
@@ -31,10 +31,10 @@ def connect_cloudformation():
     """
     try:
         return cloudformation.connect_to_region(
-            config_handler.get_environment_option('region'),
-            aws_access_key_id=config_handler.get_environment_option(
+            config.get_environment_option('region'),
+            aws_access_key_id=config.get_environment_option(
                 'access-key-id'),
-            aws_secret_access_key=config_handler.get_environment_option(
+            aws_secret_access_key=config.get_environment_option(
                 'secret-access-key'))
     except Exception as err:
         logger.error(
