@@ -1,8 +1,13 @@
 """ Manage configuration file parsing """
 import logging
 import os
-import os.path
+import sys
 from ConfigParser import SafeConfigParser, NoOptionError
+
+if sys.platform in ['win32', 'cygwin']:
+    import ntpath as ospath
+else:
+    import os.path as ospath
 
 from cumulus_ds.exceptions import ConfigurationException
 
@@ -60,22 +65,22 @@ def configure(args):
     """
     config_files = [
         '/etc/cumulus.conf',
-        os.path.expanduser('~/.cumulus.conf'),
+        ospath.expanduser('~/.cumulus.conf'),
         '{}/cumulus.conf'.format(os.curdir)
     ]
 
     # Add custom configuration file path
     if args.config:
-        if os.path.exists(os.path.expanduser(args.config)):
-            config_files = [os.path.expanduser(args.config)]
+        if ospath.exists(ospath.expanduser(args.config)):
+            config_files = [ospath.expanduser(args.config)]
         else:
             LOGGER.warning('Configuration file {} not found.'.format(
-                os.path.expanduser(args.config)))
+                ospath.expanduser(args.config)))
 
     # Read config file
     conf_file_found = False
     for conf_file in config_files:
-        if os.path.exists(conf_file):
+        if ospath.exists(conf_file):
             conf_file_found = True
             LOGGER.info('Reading configuration from {}'.format(conf_file))
     if not conf_file_found:
@@ -216,7 +221,7 @@ def _populate_stacks(args, config):
                         CONF['stacks'][stack][option] = config.getboolean(
                             section, option)
                     elif option == 'template':
-                        CONF['stacks'][stack][option] = os.path.expanduser(
+                        CONF['stacks'][stack][option] = ospath.expanduser(
                             config.get(section, option))
                     elif option == 'parameters':
                         try:
@@ -300,7 +305,7 @@ def _populate_bundles(args, config):
                         lines = config.get(section, option).strip().split('\n')
                         paths = []
                         for path in lines:
-                            paths.append(os.path.expanduser(path.strip()))
+                            paths.append(ospath.expanduser(path.strip()))
                         CONF['bundles'][bundle]['paths'] = paths
                     elif option == 'path-rewrites':
                         CONF['bundles'][bundle]['path-rewrites'] = []

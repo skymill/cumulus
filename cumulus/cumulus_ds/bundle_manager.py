@@ -1,13 +1,16 @@
 """ Bundling functions """
 import fnmatch
 import logging
-import ntpath
 import os
-import os.path
 import subprocess
 import sys
 import tempfile
 import zipfile
+
+if sys.platform in ['win32', 'cygwin']:
+    import ntpath as ospath
+else:
+    import os.path as ospath
 
 from cumulus_ds import connection_handler
 import cumulus_ds
@@ -91,17 +94,13 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
 
             # Exclude files with other target environments
             prefix = '__cumulus-{}__'.format(environment)
-
-            if sys.platform in ['win32', 'cygwin']:
-                basename = ntpath.basename(filename)
-            else:
-                basename = os.path.basename(filename)
+            basename = ospath.basename(filename)
 
             if basename.startswith('__cumulus-'):
                 if len(basename.split(prefix)) != 2:
                     logger.debug('Excluding file {}'.format(filename))
                     continue
-            elif prefix in filename.split(os.path.sep):
+            elif prefix in filename.split(ospath.sep):
                 logger.debug('Excluding file {}'.format(filename))
                 continue
 
@@ -128,7 +127,7 @@ def _find_files(directory, pattern):
     for root, dirs, files in os.walk(directory):
         for basename in files:
             if fnmatch.fnmatch(basename, pattern):
-                filename = os.path.join(root, basename)
+                filename = ospath.join(root, basename)
                 yield filename
 
 
@@ -205,9 +204,9 @@ def _upload_bundle(bundle_path, bundle_type):
     key = bucket.new_key(key_name)
 
     logger.info('Starting upload of {} to s3://{}/{}'.format(
-        os.path.basename(bundle_path), bucket.name, key_name))
+        ospath.basename(bundle_path), bucket.name, key_name))
 
     key.set_contents_from_filename(bundle_path, replace=True)
 
     logger.info('Completed upload of {} to s3://{}/{}'.format(
-        os.path.basename(bundle_path), bucket.name, key_name))
+        ospath.basename(bundle_path), bucket.name, key_name))

@@ -1,10 +1,15 @@
 """ The deployment manager handles all deployments of CloudFormation stacks """
 import json
 import logging
-import os.path
 import subprocess
+import sys
 import time
 from datetime import datetime, timedelta
+
+if sys.platform in ['win32', 'cygwin']:
+    import ntpath as ospath
+else:
+    import os.path as ospath
 
 import boto
 
@@ -275,7 +280,7 @@ def _get_json_from_template(template):
     :param template: Template path to use
     :returns: JSON object
     """
-    template_path = os.path.expandvars(os.path.expanduser(template))
+    template_path = ospath.expandvars(ospath.expanduser(template))
     LOGGER.debug('Parsing template file {}'.format(template_path))
 
     file_handle = open(template_path)

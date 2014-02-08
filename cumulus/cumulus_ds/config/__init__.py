@@ -1,8 +1,12 @@
 """ Configuration management """
 import logging
-import os
 import sys
 from ConfigParser import SafeConfigParser
+
+if sys.platform in ['win32', 'cygwin']:
+    import ntpath as ospath
+else:
+    import os.path as ospath
 
 from cumulus_ds.config import config_file
 from cumulus_ds.config.command_line_options import PARSER as parser
@@ -33,8 +37,8 @@ class Configuration:
         if self.args.cumulus_version:
             settings_conf = SafeConfigParser()
             settings_conf.read(
-                os.path.realpath(
-                    '{}/settings.conf'.format(os.path.dirname(__file__))))
+                ospath.realpath(
+                    '{}/settings.conf'.format(ospath.dirname(__file__))))
             print('Cumulus version {}'.format(
                 settings_conf.get('general', 'version')))
             sys.exit(0)
