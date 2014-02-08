@@ -9,8 +9,8 @@ import sys
 import tempfile
 import zipfile
 
-from cumulus_ds import config
 from cumulus_ds import connection_handler
+import cumulus_ds
 from cumulus_ds.exceptions import HookExecutionException, UnsupportedCompression
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def build_bundles():
     """ Build bundles for the environment """
-    bundle_types = config.get_bundles()
+    bundle_types = cumulus_ds.config.get_bundles()
 
     if not bundle_types:
         logger.warning(
@@ -29,8 +29,9 @@ def build_bundles():
         # Run pre-bundle-hook
         _pre_bundle_hook(bundle_type)
 
-        if config.has_pre_built_bundle(bundle_type):
-            bundle_path = config.get_pre_built_bundle_path(bundle_type)
+        if cumulus_ds.config.has_pre_built_bundle(bundle_type):
+            bundle_path = cumulus_ds.config.get_pre_built_bundle_path(
+                bundle_type)
             logger.info('Using pre-built bundle: {}'.format(bundle_path))
 
             try:
@@ -40,7 +41,7 @@ def build_bundles():
         else:
             logger.info('Building bundle {}'.format(bundle_type))
             logger.debug('Bundle paths: {}'.format(', '.join(
-                config.get_bundle_paths(bundle_type))))
+                cumulus_ds.config.get_bundle_paths(bundle_type))))
 
             tmptar = tempfile.NamedTemporaryFile(
                 suffix='.zip',
@@ -51,8 +52,8 @@ def build_bundles():
                 _bundle_zip(
                     tmptar,
                     bundle_type,
-                    config.get_environment(),
-                    config.get_bundle_paths(bundle_type))
+                    cumulus_ds.config.get_environment(),
+                    cumulus_ds.config.get_bundle_paths(bundle_type))
 
                 tmptar.close()
 
@@ -82,7 +83,7 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
     :param paths: List of paths to include
     """
     archive = zipfile.ZipFile(tmpfile, 'w')
-    path_rewrites = config.get_bundle_path_rewrites(bundle_type)
+    path_rewrites = cumulus_ds.config.get_bundle_path_rewrites(bundle_type)
 
     for path in paths:
         for filename in _find_files(path, '*.*'):
@@ -137,7 +138,7 @@ def _post_bundle_hook(bundle_name):
     :type bundle: str
     :param bundle: Bundle name
     """
-    command = config.get_post_bundle_hook(bundle_name)
+    command = cumulus_ds.config.get_post_bundle_hook(bundle_name)
 
     if not command:
         return None
@@ -157,7 +158,7 @@ def _pre_bundle_hook(bundle_name):
     :type bundle: str
     :param bundle: Bundle name
     """
-    command = config.get_pre_bundle_hook(bundle_name)
+    command = cumulus_ds.config.get_pre_bundle_hook(bundle_name)
 
     if not command:
         return None
@@ -185,7 +186,7 @@ def _upload_bundle(bundle_path, bundle_type):
         raise
 
     bucket = connection.get_bucket(
-        config.get_environment_option('bucket'))
+        cumulus_ds.config.get_environment_option('bucket'))
 
     if bundle_path.endswith('.zip'):
         compression = 'zip'
@@ -197,8 +198,8 @@ def _upload_bundle(bundle_path, bundle_type):
     key_name = (
         '{environment}/{version}/'
         'bundle-{environment}-{version}-{bundle_type}.{compression}').format(
-            environment=config.get_environment(),
-            version=config.get_environment_option('version'),
+            environment=cumulus_ds.config.get_environment(),
+            version=cumulus_ds.config.get_environment_option('version'),
             bundle_type=bundle_type,
             compression=compression)
     key = bucket.new_key(key_name)

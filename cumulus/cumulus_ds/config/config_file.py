@@ -4,7 +4,6 @@ import os
 import os.path
 from ConfigParser import SafeConfigParser, NoOptionError
 
-from cumulus_ds.config.command_line_options import ARGS as args
 from cumulus_ds.exceptions import ConfigurationException
 
 LOGGER = logging.getLogger(__name__)
@@ -51,7 +50,7 @@ ENV_OPTIONS = [
 ]
 
 
-def configure(config_file=None):
+def configure(args):
     """ Populate the objects
 
     :type config_file: str or None
@@ -64,12 +63,12 @@ def configure(config_file=None):
     ]
 
     # Add custom configuration file path
-    if config_file:
-        if os.path.exists(os.path.expanduser(config_file)):
-            config_files = [os.path.expanduser(config_file)]
+    if args.config:
+        if os.path.exists(os.path.expanduser(args.config)):
+            config_files = [os.path.expanduser(args.config)]
         else:
             LOGGER.warning('Configuration file {} not found.'.format(
-                os.path.expanduser(config_file)))
+                os.path.expanduser(args.config)))
 
     # Read config file
     conf_file_found = False
@@ -85,21 +84,21 @@ def configure(config_file=None):
     config = SafeConfigParser()
     config.read(config_files)
 
-    _populate_general(config)
-    _populate_environments(config)
-    _populate_stacks(config)
-    _populate_bundles(config)
+    _populate_general(args, config)
+    _populate_environments(args, config)
+    _populate_stacks(args, config)
+    _populate_bundles(args, config)
 
     return CONF
 
 
-def _populate_environments(config):
+def _populate_environments(args, config):
     """ Populate the environments config object
 
     :type config: ConfigParser.read
     :param config: Config parser config object
     """
-    section = '[environment: {}]'.format(args.environment)
+    section = 'environment: {}'.format(args.environment)
     environment = args.environment
     if not section in config.sections():
         raise ConfigurationException(
@@ -142,7 +141,7 @@ def _populate_environments(config):
                     'Missing required option {}'.format(option))
 
 
-def _populate_general(config):
+def _populate_general(args, config):
     """ Populate the general config object
 
     :type config: ConfigParser.read
@@ -173,7 +172,7 @@ def _populate_general(config):
                     'Missing required option {}'.format(option))
 
 
-def _populate_stacks(config):
+def _populate_stacks(args, config):
     """ Populate the stacks config object
 
     :type config: ConfigParser.read
@@ -274,7 +273,7 @@ def _populate_stacks(config):
                 raise ConfigurationException('Error parsing --parameters')
 
 
-def _populate_bundles(config):
+def _populate_bundles(args, config):
     """ Populate the bundles config object
 
     :type config: ConfigParser.read

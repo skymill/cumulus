@@ -1,15 +1,5 @@
 """ Command line options for Cumulus DS """
 import argparse
-import os
-import sys
-from ConfigParser import SafeConfigParser
-
-from cumulus_ds.exceptions import ConfigurationException
-
-# Get settings.conf
-SETTINGS = SafeConfigParser()
-SETTINGS.read(
-    os.path.realpath('{}/settings.conf'.format(os.path.dirname(__file__))))
 
 
 # Read arguments from the command line
@@ -78,14 +68,3 @@ ACTIONS_AG.add_argument(
     help=(
         'Undeploy (delete) all stacks in the environment. '
         'Use --force to skip the safety question.'))
-ARGS = PARSER.parse_args()
-
-# Make the stacks prettier
-if ARGS.stacks:
-    ARGS.stacks = [s.strip() for s in ARGS.stacks.split(',')]
-
-if ARGS.cumulus_version:
-    print('Cumulus version {}'.format(SETTINGS.get('general', 'version')))
-    sys.exit(0)
-elif not ARGS.environment:
-    raise ConfigurationException('--environment is required')

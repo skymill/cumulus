@@ -17,12 +17,13 @@ limitations under the License.
 """
 import logging
 
-from cumulus_ds import config
 from cumulus_ds import bundle_manager
+from cumulus_ds import config as cfg
 from cumulus_ds import deployment_manager
-from cumulus_ds.config import command_line_options
 
-logging_config = {
+config = cfg.Configuration()
+
+LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -82,37 +83,37 @@ logging_config = {
 }
 
 # Set log level
-logging_config['handlers']['default']['level'] = config.get_log_level()
+LOGGING_CONFIG['handlers']['default']['level'] = config.get_log_level()
 
-logging.config.dictConfig(logging_config)
-logger = logging.getLogger(__name__)
+logging.config.dictConfig(LOGGING_CONFIG)
+LOGGER = logging.getLogger(__name__)
 
 
 def main():
     """ Main function """
     try:
-        if command_line_options.ARGS.bundle:
+        if config.args.bundle:
             bundle_manager.build_bundles()
 
-        if command_line_options.ARGS.deploy:
+        if config.args.deploy:
             bundle_manager.build_bundles()
             deployment_manager.deploy()
 
-        if command_line_options.ARGS.deploy_without_bundling:
+        if config.args.deploy_without_bundling:
             deployment_manager.deploy()
 
-        if command_line_options.ARGS.list:
+        if config.args.list:
             deployment_manager.list_stacks()
 
-        if command_line_options.ARGS.undeploy:
-            deployment_manager.undeploy(force=command_line_options.ARGS.force)
+        if config.args.undeploy:
+            deployment_manager.undeploy(force=config.args.force)
 
-        if command_line_options.ARGS.validate_templates:
+        if config.args.validate_templates:
             deployment_manager.validate_templates()
 
-        if command_line_options.ARGS.events:
+        if config.args.events:
             deployment_manager.list_events()
 
     except Exception as error:
-        logger.error(error)
+        LOGGER.error(error)
         raise
