@@ -173,6 +173,8 @@ Stack naming
 
 CloudFormation stacks must have a unique name. Cumulus will therefore combine the environment name and the stack name from the configuration. The pattern is ``<environment>-<stack_name>``. So, if your environment is called ``production`` and your stack is ``webservers`` then your CloudFormation stack will be named ``production-webservers``.
 
+You can also optionally add a prefix or suffix to the stack name using the ``stack-name-prefix`` and/or ``stack-name-suffix`` options.
+
 Deploying an environment
 ------------------------
 

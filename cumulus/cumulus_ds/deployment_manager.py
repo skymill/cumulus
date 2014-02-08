@@ -91,19 +91,18 @@ def undeploy(force=False):
     choice = 'yes'
     if not force:
         choice = raw_input(message).lower()
-
-    if choice in ['yes', 'y']:
-        stacks = config.get_stacks()
-
-        if not stacks:
-            LOGGER.warning('No stacks to undeploy.')
+        if choice not in ['yes', 'y']:
+            print('Skipping undeployment.')
             return None
 
-        stacks.reverse()
-        for stack in stacks:
-            _delete_stack(stack)
-    else:
-        print('Skipping undeployment.')
+    stacks = config.get_stacks()
+
+    if not stacks:
+        LOGGER.warning('No stacks to undeploy.')
+        return None
+
+    for stack in stacks.reverse():
+        _delete_stack(stack)
 
 
 def validate_templates():
