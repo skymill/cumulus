@@ -30,6 +30,7 @@ except Exception as error:
 if __name__ == '__main__':
     try:
         cumulus_ds.main()
+        sys.exit(0)
     except cumulus_ds.exceptions.ConfigurationException:
         sys.exit(1)
     except cumulus_ds.exceptions.HookExecutionException:
@@ -37,8 +38,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         sys.exit(0)
     except Exception:
-        sys.exit(1)
-
-    sys.exit(0)
+        raise
 
 sys.exit(1)
