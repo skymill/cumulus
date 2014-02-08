@@ -72,10 +72,18 @@ def list_stacks():
     except Exception:
         raise
 
-    for stack in connection.list_stacks():
-        if (stack.stack_status != 'DELETE_COMPLETE' and
-                stack.stack_name in cumulus_ds.config.get_stacks()):
-            print('{:<30}{}'.format(stack.stack_name, stack.stack_status))
+    cf_stacks = connection.list_stacks()
+
+    for stack in cumulus_ds.config.get_stacks():
+        stack_found = False
+        for cf_stack in cf_stacks:
+            if stack == cf_stack.stack_name:
+                stack_found = True
+
+        if stack_found:
+            print('{:<30}{}'.format(stack, cf_stack.stack_status))
+        else:
+            print('{:<30}{}'.format(stack, 'NOT_RUNNING'))
 
 
 def undeploy(force=False):
