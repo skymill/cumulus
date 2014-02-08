@@ -53,6 +53,8 @@ ENV_OPTIONS = [
 def configure(args):
     """ Populate the objects
 
+    :type args: Namespace
+    :param args: Parsed arguments from argparse
     :type config_file: str or None
     :param config_file: Configuration file to read from
     """
@@ -95,6 +97,8 @@ def configure(args):
 def _populate_environments(args, config):
     """ Populate the environments config object
 
+    :type args: Namespace
+    :param args: Parsed arguments from argparse
     :type config: ConfigParser.read
     :param config: Config parser config object
     """
@@ -144,6 +148,8 @@ def _populate_environments(args, config):
 def _populate_general(args, config):
     """ Populate the general config object
 
+    :type args: Namespace
+    :param args: Parsed arguments from argparse
     :type config: ConfigParser.read
     :param config: Config parser config object
     """
@@ -175,6 +181,8 @@ def _populate_general(args, config):
 def _populate_stacks(args, config):
     """ Populate the stacks config object
 
+    :type args: Namespace
+    :param args: Parsed arguments from argparse
     :type config: ConfigParser.read
     :param config: Config parser config object
     """
@@ -276,6 +284,8 @@ def _populate_stacks(args, config):
 def _populate_bundles(args, config):
     """ Populate the bundles config object
 
+    :type args: Namespace
+    :param args: Parsed arguments from argparse
     :type config: ConfigParser.read
     :param config: Config parser config object
     """
