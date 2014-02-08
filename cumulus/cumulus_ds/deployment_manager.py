@@ -27,6 +27,7 @@ def deploy():
     if not stacks:
         LOGGER.warning('No stacks configured, nothing to deploy')
         return
+
     for stack in stacks:
         _ensure_stack(
             stack,
