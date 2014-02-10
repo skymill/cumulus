@@ -111,10 +111,11 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
                         arcname = arcname.replace(
                             rewrite['target'],
                             rewrite['destination'])
-                        logger.debug('Replaced "{}" with "{}" in bundle {}'.format(
-                            rewrite['target'],
-                            rewrite['destination'],
-                            bundle_type))
+                        logger.debug(
+                            'Replaced "{}" with "{}" in bundle {}'.format(
+                                rewrite['target'],
+                                rewrite['destination'],
+                                bundle_type))
                 except IndexError:
                     pass
 
