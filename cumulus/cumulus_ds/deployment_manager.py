@@ -110,12 +110,13 @@ def undeploy(force=False):
             return None
 
     stacks = cumulus_ds.config.get_stacks()
+    stacks.reverse()
 
     if not stacks:
         LOGGER.warning('No stacks to undeploy.')
         return None
 
-    for stack in stacks.reverse():
+    for stack in stacks:
         _delete_stack(stack)
 
 
