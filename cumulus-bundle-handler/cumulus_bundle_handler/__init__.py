@@ -32,7 +32,7 @@ CONFIG.read(CONFIG_PATH)
 # Configure logging
 LOGGING_CONFIG = {
     'version': 1,
-    'disable_existing_LOGGERs': False,
+    'disable_existing_loggers': False,
     'formatters': {
         'standard': {
             'format': (
