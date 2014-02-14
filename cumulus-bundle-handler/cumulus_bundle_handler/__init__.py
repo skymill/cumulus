@@ -9,6 +9,8 @@ import tempfile
 import zipfile
 from ConfigParser import SafeConfigParser, NoOptionError
 
+from cumulus_bundle_handler.command_line_options import ARGS as args
+
 try:
     from boto import s3
 except ImportError:
@@ -100,7 +102,10 @@ def main():
         LOGGER.error('Missing "bundle-types" in metadata.conf')
         sys.exit(1)
 
-    _remove_old_files()
+    if args.keep_old_files:
+        LOGGER.info('Keeping files from previous deployment')
+    else:
+        _remove_old_files()
 
     for bundle_type in bundle_types:
         _download_and_unpack_bundle(bundle_type.strip())
