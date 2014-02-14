@@ -2,6 +2,7 @@ Cumulus Deployment Suite
 ========================
 
 **Cumulus**
+
 .. image:: https://pypip.in/v/cumulus/badge.png
     :target: https://pypi.python.org/pypi/cumulus/
     :alt: Latest Version
@@ -13,6 +14,7 @@ Cumulus Deployment Suite
     :alt: License
 
 **Cumulus Bundle Handler**
+
 .. image:: https://pypip.in/v/cumulus-bundle-handler/badge.png
     :target: https://pypi.python.org/pypi/cumulus-bundle-handler/
     :alt: Latest Version
