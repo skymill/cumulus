@@ -1,14 +1,26 @@
 Cumulus Deployment Suite
 ========================
 
-.. image:: https://pypip.in/v/PYPI_PKG_NAME/badge.png
-    :target: https://pypi.python.org/pypi/PYPI_PKG_NAME/
+**Cumulus**
+.. image:: https://pypip.in/v/cumulus/badge.png
+    :target: https://pypi.python.org/pypi/cumulus/
     :alt: Latest Version
-.. image:: https://pypip.in/d/PYPI_PKG_NAME/badge.png
-    :target: https://pypi.python.org/pypi//PYPI_PKG_NAME/
+.. image:: https://pypip.in/d/cumulus/badge.png
+    :target: https://pypi.python.org/pypi/cumulus/
     :alt: Downloads
-.. image:: https://pypip.in/license/PYPI_PKG_NAME/badge.png
-    :target: https://pypi.python.org/pypi/PYPI_PKG_NAME/
+.. image:: https://pypip.in/license/cumulus/badge.png
+    :target: https://pypi.python.org/pypi/cumulus/
+    :alt: License
+
+**Cumulus Bundle Handler**
+.. image:: https://pypip.in/v/cumulus-bundle-handler/badge.png
+    :target: https://pypi.python.org/pypi/cumulus-bundle-handler/
+    :alt: Latest Version
+.. image:: https://pypip.in/d/cumulus-bundle-handler/badge.png
+    :target: https://pypi.python.org/pypi/cumulus-bundle-handler/
+    :alt: Downloads
+.. image:: https://pypip.in/license/cumulus-bundle-handler/badge.png
+    :target: https://pypi.python.org/pypi/cumulus-bundle-handler/
     :alt: License
 
 Cumulus is a deployment suite used to deploy and manage environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
