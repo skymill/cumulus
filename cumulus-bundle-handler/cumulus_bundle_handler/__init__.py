@@ -3,35 +3,19 @@ import logging
 import logging.config
 import os
 import sys
-import tempfile
-import zipfile
-from ConfigParser import SafeConfigParser, NoOptionError
 
+if sys.platform in ['win32', 'cygwin']:
+    import ntpath as ospath
+else:
+    import os.path as ospath
+
+from cumulus_bundle_handler import config
+from cumulus_bundle_handler import bundle_manager
 from cumulus_bundle_handler import script_executor
 from cumulus_bundle_handler.command_line_options import ARGS as args
 
-try:
-    from boto import s3
-except ImportError:
-    print('Could not import boto. Try installing it with "pip install boto"')
-    sys.exit(1)
-
-CONFIG = SafeConfigParser()
-
-if sys.platform in ['win32', 'cygwin']:
-    CONFIG_PATH = 'C:\\cumulus\\conf\\metadata.conf'
-else:
-    CONFIG_PATH = '/etc/cumulus/metadata.conf'
-
-if not os.path.exists(CONFIG_PATH):
-    print('Error: Configuration file not found: {}'.format(CONFIG_PATH))
-    sys.exit(1)
-
-CONFIG.read(CONFIG_PATH)
-
-
 # Configure logging
-LOGGING_CONFIG = {
+LOG_CONF = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -74,21 +58,17 @@ LOGGING_CONFIG = {
 
 # Change the log file path on Windows systems
 if sys.platform in ['win32', 'cygwin']:
-    if not os.path.exists('C:\\cumulus\\logs'):
+    if not ospath.exists('C:\\cumulus\\logs'):
         os.makedirs('C:\\cumulus\\logs')
-    LOGGING_CONFIG['handlers']['file']['filename'] = \
+    LOG_CONF['handlers']['file']['filename'] = \
         'C:\\cumulus\\logs\\cumulus-bundle-handler.log'
 
 # Read log level from the metadata.conf
-try:
-    LOGGING_CONFIG['handlers']['console']['level'] = CONFIG.get(
-        'metadata', 'log-level').upper()
-    LOGGING_CONFIG['handlers']['file']['level'] = CONFIG.get(
-        'metadata', 'log-level').upper()
-except NoOptionError:
-    pass
+if config.get('log-level'):
+    LOG_CONF['handlers']['console']['level'] = config.get('log-level').upper()
+    LOG_CONF['handlers']['file']['level'] = config.get('log-level').upper()
 
-logging.config.dictConfig(LOGGING_CONFIG)
+logging.config.dictConfig(LOG_CONF)
 LOGGER = logging.getLogger('cumulus_bundle_handler')
 
 
@@ -96,7 +76,7 @@ def main():
     """ Main function """
     script_executor.run_init_scripts(kill=True, start=False, other=True)
 
-    bundle_types = CONFIG.get('metadata', 'bundle-types').split(',')
+    bundle_types = config.get('metadata', 'bundle-types').split(',')
     if not bundle_types:
         LOGGER.error('Missing "bundle-types" in metadata.conf')
         sys.exit(1)
@@ -107,145 +87,22 @@ def main():
         _remove_old_files()
 
     for bundle_type in bundle_types:
-        _download_and_unpack_bundle(bundle_type.strip())
+        bundle_manager.download_and_unpack_bundle(bundle_type.strip())
 
     script_executor.run_init_scripts(kill=False, start=True, other=True)
 
     LOGGER.info("Done updating host")
 
 
-def _download_and_unpack_bundle(bundle_type):
-    """ Download the bundle from AWS S3
-
-    :type bundle_type: str
-    :param bundle_type: Bundle type to download
-    """
-    key = _get_key(bundle_type)
-
-    # If the bundle does not exist
-    if not key:
-        LOGGER.error('No bundle found. Exiting.')
-        sys.exit(0)
-
-    bundle = tempfile.NamedTemporaryFile(
-        suffix='.zip',
-        delete=False)
-    bundle.close()
-    LOGGER.info("Downloading s3://{}/{} to {}".format(
-        CONFIG.get('metadata', 'bundle-bucket'),
-        key.name,
-        bundle.name))
-    key.get_contents_to_filename(bundle.name)
-
-    extraction_path = _get_extraction_path(bundle_type)
-
-    # Unpack the bundle
-    archive = zipfile.ZipFile(bundle.name, 'r')
-    _store_bundle_files(archive.namelist(), extraction_path)
-
-    try:
-        LOGGER.info('Unpacking {} to {}'.format(bundle.name, extraction_path))
-        archive.extractall(extraction_path)
-    except Exception as err:
-        LOGGER.error('Error when unpacking bundle: {}'.format(err))
-    finally:
-        archive.close()
-
-    # Remove the downloaded package
-    LOGGER.info("Removing temporary file {}".format(bundle.name))
-    os.remove(bundle.name)
-
-
-def _get_extraction_path(bundle_type):
-    """ Returns the path to where the bundle should be extracted
-
-    :type bundle_type: str
-    :param bundle_type: Bundle type to download
-    :returns: str -- Path
-    """
-    path = '/'
-    if sys.platform in ['win32', 'cygwin']:
-        path = 'C:\\'
-
-    if not os.path.exists(path):
-        LOGGER.debug('Created extraction path {}'.format(path))
-        os.makedirs(path)
-
-    try:
-        bundle_paths = CONFIG.get('metadata', 'bundle-extraction-paths')\
-            .split('\n')
-
-        for line in bundle_paths:
-            if not line:
-                continue
-
-            try:
-                for_bundle_type, extraction_path = line.split('->')
-                for_bundle_type = for_bundle_type.strip()
-                extraction_path = extraction_path.strip()
-
-                if for_bundle_type == bundle_type:
-                    path = extraction_path
-
-            except ValueError:
-                LOGGER.error(
-                    'Error parsing bundle-extraction-paths: {}'.format(line))
-                sys.exit(1)
-
-    except NoOptionError:
-        pass
-
-    LOGGER.debug('Determined bundle extraction path to {} for {}'.format(
-        path, bundle_type))
-
-    return path
-
-
-def _get_key(bundle_type):
-    """ Returns the bundle key
-
-    :type bundle_type: str
-    :param bundle_type: Bundle type to download
-    :returns: boto.s3.key -- S3 key object
-    """
-    LOGGER.debug("Connecting to AWS S3")
-    connection = s3.connect_to_region(
-        CONFIG.get('metadata', 'region'),
-        aws_access_key_id=CONFIG.get('metadata', 'access-key-id'),
-        aws_secret_access_key=CONFIG.get('metadata', 'secret-access-key'))
-
-    # Get the relevant bucket
-    bucket_name = CONFIG.get('metadata', 'bundle-bucket')
-    LOGGER.debug('Using bucket {}'.format(bucket_name))
-    bucket = connection.get_bucket(bucket_name)
-
-    # Download the bundle
-    key_name = (
-        '{env}/{version}/bundle-{env}-{version}-{bundle}.zip'.format(
-            env=CONFIG.get('metadata', 'environment'),
-            version=CONFIG.get('metadata', 'version'),
-            bundle=bundle_type))
-    LOGGER.debug('Looking for bundle {}'.format(key_name))
-    key = bucket.get_key(key_name)
-
-    # When we have found a key, don't look any more
-    if key:
-        LOGGER.debug('Found bundle: {}'.format(key_name))
-        return key
-
-    LOGGER.debug('Bundle not found: {}'.format(key_name))
-    return None
-
-
 def _remove_old_files():
     """ Remove files from previous bundle """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
     if sys.platform in ['win32', 'cygwin']:
-        if not os.path.exists('C:\\cumulus\\cache'):
+        if not ospath.exists('C:\\cumulus\\cache'):
             os.makedirs('C:\\cumulus\\cache')
         cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
 
-    if not os.path.exists(cache_file):
+    if not ospath.exists(cache_file):
         LOGGER.info('No previous bundle files to clean up')
         return
 
@@ -255,29 +112,29 @@ def _remove_old_files():
         for line in file_handle.readlines():
             line = line.replace('\n', '')
 
-            if not os.path.exists(line):
+            if not ospath.exists(line):
                 continue
 
-            if os.path.isdir(line):
+            if ospath.isdir(line):
                 try:
                     os.removedirs(line)
                     LOGGER.debug('Removing directory {}'.format(line))
                 except OSError:
                     pass
-            elif os.path.isfile(line):
+            elif ospath.isfile(line):
                 LOGGER.debug('Removing file {}'.format(line))
                 os.remove(line)
 
                 try:
-                    os.removedirs(os.path.dirname(line))
+                    os.removedirs(ospath.dirname(line))
                 except OSError:
                     pass
-            elif os.path.islink(line):
+            elif ospath.islink(line):
                 LOGGER.debug('Removing link {}'.format(line))
                 os.remove(line)
 
                 try:
-                    os.removedirs(os.path.dirname(line))
+                    os.removedirs(ospath.dirname(line))
                 except OSError:
                     pass
             else:
@@ -285,35 +142,3 @@ def _remove_old_files():
 
     # Remove the cache file when done
     os.remove(cache_file)
-
-
-def _store_bundle_files(filenames, extraction_path):
-    """ Store a list of bundle paths
-
-    :type filenames: list
-    :param filenames: List of full paths for all paths in the bundle'
-    :type extraction_path: str
-    :param extraction_path: Path to prefix all filenames with
-    """
-    cache_file = '/var/local/cumulus-bundle-handler.cache'
-    if sys.platform in ['win32', 'cygwin']:
-        if not os.path.exists('C:\\cumulus\\cache'):
-            os.makedirs('C:\\cumulus\\cache')
-        cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
-
-    file_handle = open(cache_file, 'a')
-    try:
-        for filename in filenames:
-            if not filename:
-                continue
-
-            if sys.platform in ['win32', 'cygwin']:
-                filename = '{}\\{}'.format(extraction_path, filename)
-            else:
-                filename = '{}/{}'.format(extraction_path, filename)
-
-            file_handle.write('{}\n'.format(filename))
-
-        LOGGER.debug('Stored bundle information in {}'.format(cache_file))
-    finally:
-        file_handle.close()
