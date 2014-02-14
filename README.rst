@@ -1,6 +1,16 @@
 Cumulus Deployment Suite
 ========================
 
+.. image:: https://pypip.in/v/PYPI_PKG_NAME/badge.png
+    :target: https://pypi.python.org/pypi/PYPI_PKG_NAME/
+    :alt: Latest Version
+.. image:: https://pypip.in/d/PYPI_PKG_NAME/badge.png
+    :target: https://pypi.python.org/pypi//PYPI_PKG_NAME/
+    :alt: Downloads
+.. image:: https://pypip.in/license/PYPI_PKG_NAME/badge.png
+    :target: https://pypi.python.org/pypi/PYPI_PKG_NAME/
+    :alt: License
+
 Cumulus is a deployment suite used to deploy and manage environments built with AWS CloudFormation. Cumulus will help you bundle your code and configuration and unpack the bundle to new instances on CloudFormation.
 
 Documentation
