@@ -350,37 +350,34 @@ def _print_event_log_event(event):
     else:
         status = event.resource_status
 
-    row = (
-        '{timestamp:<20} | {type:<45} | '
-        '{logical_id:<42} | {status:<33} ').format(
-            timestamp=datetime.strftime(
-                event.timestamp,
-                '%Y-%m-%dT%H:%M:%S'),
-            type=event.resource_type,
-            logical_id=event.logical_resource_id,
-            status=status.replace('_', ' '))
+    row = '{timestamp:<19}'.format(
+        timestamp=datetime.strftime(event.timestamp, '%Y-%m-%dT%H:%M:%S'))
+    row += ' | {type:<45}'.format(type=event.resource_type)
+    row += ' | {logical_id:<42}'.format(logical_id=event.logical_resource_id)
 
-    if TERMINAL_WIDTH >= 160:
+    if TERMINAL_WIDTH >= 190:
         if event.resource_status_reason:
             reason = event.resource_status_reason
         else:
             reason = ''
 
-        row += '| {}'.format(reason)
+        row += ' | {reason:<36}'.format(reason=reason)
+
+    row += ' | {status:<33}'.format(status=status.replace('_', ' ').lower())
 
     print(row)
 
 
 def _print_event_log_separator():
     """ Print separator line for the event log """
-    row = (
-        '---------------------+---------------'
-        '--------------------------------+----------'
-        '----------------------------------+--------'
-        '------------------')
+    row = '--------------------'  # Timestamp
+    row += '+-----------------------------------------------'  # Resource type
+    row += '+--------------------------------------------'  # Logical ID
 
-    if TERMINAL_WIDTH >= 160:
-        row += '+-------------------------------------'
+    if TERMINAL_WIDTH >= 190:
+        row += '+--------------------------------------'  # Reason
+
+    row += '+--------------------------------'  # Status
 
     print(row)
 
@@ -389,16 +386,12 @@ def _print_event_log_title():
     """ Print event log title row on stdout """
     _print_event_log_separator()
 
-    row = (
-        '{timestamp:<20} | {type:<45} | '
-        '{logical_id:<42} | {status:<25}'.format(
-            timestamp='Timestamp',
-            type='Resource type',
-            logical_id='Logical ID',
-            status='Status'))
-
-    if TERMINAL_WIDTH >= 160:
-        row += '| Reason'
+    row = '{timestamp:<19}'.format(timestamp='Timestamp')
+    row += ' | {type:<45}'.format(type='Resource type')
+    row += ' | {logical_id:<42}'.format(logical_id='Logical ID')
+    if TERMINAL_WIDTH >= 190:
+        row += ' | {reason:<36}'.format(reason='Reason')
+    row += ' | {status:<25}'.format(status='Status')
 
     print(row)
 
