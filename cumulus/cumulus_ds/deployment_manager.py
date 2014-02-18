@@ -351,7 +351,7 @@ def _print_event_log_event(event):
         status = event.resource_status
 
     row = '{timestamp:<19}'.format(
-        timestamp=datetime.strftime(event.timestamp, '%Y-%m-%dT%H:%M:%S'))
+        timestamp=datetime.strftime(event.timestamp, '%Y-%m-%d %H:%M:%S'))
     row += ' | {type:<45}'.format(type=event.resource_type)
     row += ' | {logical_id:<42}'.format(logical_id=event.logical_resource_id)
 
