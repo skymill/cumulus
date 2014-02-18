@@ -188,6 +188,11 @@ def _upload_bundle(bundle_path, bundle_type):
     bucket = connection.get_bucket(
         cumulus_ds.config.get_environment_option('bucket'))
 
+    # Check that the bundle actually exists
+    if not ospath.exists(bundle_path):
+        logger.error('File not found: {}'.format(bundle_path))
+        sys.exit(1)
+
     if bundle_path.endswith('.zip'):
         compression = 'zip'
     else:
