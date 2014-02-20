@@ -75,5 +75,4 @@ def get(option):
     if option in CONFIG:
         return CONFIG[option]
 
-    LOGGER.error('Fetching non-existing option {}'.format(option))
-    sys.exit(1)
+    return
