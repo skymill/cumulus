@@ -78,7 +78,7 @@ def main():
     """ Main function """
     script_executor.run_init_scripts(kill=True, start=False, other=True)
 
-    bundle_types = config.get('metadata', 'bundle-types').split(',')
+    bundle_types = config.get('bundle-types').split(',')
     if not bundle_types:
         LOGGER.error('Missing "bundle-types" in metadata.conf')
         sys.exit(1)

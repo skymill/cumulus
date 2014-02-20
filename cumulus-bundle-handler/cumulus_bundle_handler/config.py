@@ -16,6 +16,7 @@ CONFIG = {
     'secret-access-key': None,
     'bundle-extraction-paths': None,
     'bundle-bucket': None,
+    'bundle-types': None,
     'environment': None,
     'version': None,
 }
@@ -25,6 +26,7 @@ REQUIRED_OPTIONS = {
     'access-key-id': None,
     'secret-access-key': None,
     'bundle-bucket': None,
+    'bundle-types': None,
     'environment': None,
     'version': None
 }
@@ -74,5 +76,3 @@ def get(option):
     """
     if option in CONFIG:
         return CONFIG[option]
-
-    return
