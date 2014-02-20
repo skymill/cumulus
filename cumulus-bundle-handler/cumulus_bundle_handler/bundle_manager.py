@@ -16,7 +16,7 @@ except ImportError:
 LOGGER = logging.getLogger('cumulus_bundle_handler')
 
 
-def _download_and_unpack_bundle(bundle_type):
+def download_and_unpack_bundle(bundle_type):
     """ Download the bundle from AWS S3
 
     :type bundle_type: str
