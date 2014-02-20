@@ -8,6 +8,7 @@ Cumulus release notes
 
 - `Write event status reason in terminal output #110 <https://github.com/skymill/cumulus/issues/110>`__
 - `Make it possible to force undeployment #105 <https://github.com/skymill/cumulus/issues/105>`__
+- `Update CBH init script naming standard #102 <https://github.com/skymill/cumulus/issues/102>`__
 - `Break out Cumulus Bundle Handler to it's own module #90 <https://github.com/skymill/cumulus/issues/90>`__
 - Bug fix: `Catch missing pre-built bundles cleanly #109 <https://github.com/skymill/cumulus/issues/109>`__
 - Bug fix: `Proper error message when CBH can't find the config #101 <https://github.com/skymill/cumulus/issues/101>`__
