@@ -16,11 +16,11 @@ def run_init_scripts(start=False, kill=False, other=False):
     """ Execute scripts in /etc/cumulus-init.d or C:\\cumulus\\init.d
 
     :type start: bool
-    :param start: Run scripts starting with "pre"
+    :param start: Run scripts starting with S
     :type kill: bool
-    :param kill: Run scripts starting with "post"
+    :param kill: Run scripts starting with K
     :type others: bool
-    :param others: Run scripts not starting with "pre" or "post"
+    :param others: Run scripts not starting with S or K
     """
     init_dir = '/etc/cumulus-init.d'
     if sys.platform in ['win32', 'cygwin']:
@@ -40,17 +40,17 @@ def run_init_scripts(start=False, kill=False, other=False):
 
     if start:
         for filename in filenames:
-            if ospath.basename(filename).startswith('pre'):
+            if ospath.basename(filename)[0] == 'S':
                 _run_command(ospath.abspath(filename))
 
     if kill:
         for filename in filenames:
-            if ospath.basename(filename).startswith('post'):
+            if ospath.basename(filename)[0] == 'K':
                 _run_command(ospath.abspath(filename))
 
     if other:
         for filename in filenames:
-            if ospath.basename(filename).startswith(('pre', 'post')):
+            if ospath.basename(filename)[0] not in ['K', 'S']:
                 _run_command(ospath.abspath(filename))
 
 
