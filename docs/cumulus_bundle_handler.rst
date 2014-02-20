@@ -25,9 +25,9 @@ The Cumulus Bundle Handler supports scripts to be executed:
 All init script should reside in ``/etc/cumulus-init.d`` on Linux systems and
 in ``C:\cumulus\init.d`` on Windows systems and must be executable.
 
-* Scripts starting with ``pre`` are executed *after* the bundle is extracted
-* Scripts starting with ``post`` are executed *before* the bundle is extracted
-* Scripts starting with anything else than ``pre`` or ``post`` are executed both before and after the bundle is extracted
+* Scripts starting with ``K`` (capital K) are executed *before* the bundle is extracted
+* Scripts starting with ``S`` (capital S) are executed *after* the bundle is extracted
+* Scripts starting with anything else than ``S`` or ``K`` are executed both before and after the bundle is extracted
 
 Configuration file
 ------------------
