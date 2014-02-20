@@ -4,7 +4,7 @@ from setuptools import setup
 from ConfigParser import SafeConfigParser
 
 settings = SafeConfigParser()
-settings.read(os.path.realpath('lib/settings.conf'))
+settings.read(os.path.realpath('cumulus_bundle_handler/settings.conf'))
 
 
 setup(
