@@ -1,39 +1,29 @@
 """ Cumulus Deployment Suite
 
-The MIT License (MIT)
+APACHE LICENSE 2.0
+Copyright 2013-2014 Skymill Solutions
 
-Copyright (c) 2013 Sebastian Dahlgren & Skymill Solutions
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+   http://www.apache.org/licenses/LICENSE-2.0
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
-import config_handler
 import logging
 
-import bundle_manager
-import deployment_manager
+from cumulus_ds import bundle_manager
+from cumulus_ds import config as cfg
+from cumulus_ds import deployment_manager
 
-try:
-    config_handler.command_line_options()
-    config_handler.configure()
-except Exception:
-    raise
+config = cfg.Configuration()
 
-logging_config = {
+LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -93,37 +83,37 @@ logging_config = {
 }
 
 # Set log level
-logging_config['handlers']['default']['level'] = config_handler.get_log_level()
+LOGGING_CONFIG['handlers']['default']['level'] = config.get_log_level()
 
-logging.config.dictConfig(logging_config)
-logger = logging.getLogger(__name__)
+logging.config.dictConfig(LOGGING_CONFIG)
+LOGGER = logging.getLogger(__name__)
 
 
 def main():
     """ Main function """
     try:
-        if config_handler.args.bundle:
+        if config.args.bundle:
             bundle_manager.build_bundles()
 
-        if config_handler.args.deploy:
+        if config.args.deploy:
             bundle_manager.build_bundles()
             deployment_manager.deploy()
 
-        if config_handler.args.deploy_without_bundling:
+        if config.args.deploy_without_bundling:
             deployment_manager.deploy()
 
-        if config_handler.args.list:
+        if config.args.list:
             deployment_manager.list_stacks()
 
-        if config_handler.args.undeploy:
-            deployment_manager.undeploy()
+        if config.args.undeploy:
+            deployment_manager.undeploy(force=config.args.force)
 
-        if config_handler.args.validate_templates:
+        if config.args.validate_templates:
             deployment_manager.validate_templates()
 
-        if config_handler.args.events:
+        if config.args.events:
             deployment_manager.list_events()
 
     except Exception as error:
-        logger.error(error)
+        LOGGER.error(error)
         raise

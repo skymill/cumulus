@@ -1,0 +1,371 @@
+{
+  "Description" : "Web servers for On-demand Download Service (ODDS)",
+
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Parameters" : {
+
+    "InstanceType" : {
+      "Description" : "EC2 instance type for web servers",
+      "Type" : "String",
+      "AllowedValues" : [ "t1.micro" ],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "Project" : {
+      "Description" : "Project name",
+      "Type" : "String"
+    },
+
+    "KeyPairName" : {
+      "Description" : "Key pair to use",
+      "Type" : "String"
+    },
+
+    "CumulusEnvironment": {
+      "Description" : "Cumulus environment name",
+      "Type": "String"
+    },
+
+    "CumulusBundleBucket": {
+      "Description" : "Cumulus bundle bucket name",
+      "Type": "String"
+    },
+
+    "CumulusVersion": {
+      "Description" : "Version of the software",
+      "Type": "String"
+    }
+
+  },
+
+  "Mappings" : {
+
+    "AWSInstanceType2Arch" : {
+      "t1.micro": { "Arch" : "64" }
+    },
+
+    "AWSRegionArch2AMI": {
+      "us-east-1": {
+        "32" : "NOT_YET_SUPPORTED",
+        "64" : "ami-ad184ac4",
+        "64HVM" : "NOT_YET_SUPPORTED"
+      }
+    }
+  },
+
+  "Resources" : {
+    "WebServerLaunchConfiguration" : {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+
+      "Properties": {
+        "ImageId" : {
+          "Fn::FindInMap" : [
+            "AWSRegionArch2AMI",
+            { "Ref" : "AWS::Region" },
+            { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] }
+          ]
+        },
+        "InstanceType"   : { "Ref" : "InstanceType" },
+        "SecurityGroups" : [ {"Ref" : "WebServerSecurityGroup"} ],
+        "KeyName"        : { "Ref" : "KeyPairName" },
+        "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+          "#!/bin/bash -v\n",
+
+          "# Install cfn bootstraping tools\n",
+          "apt-get update\n",
+          "apt-get -y install python-setuptools python-pip\n",
+          "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
+
+          "# Helper function\n",
+          "function error_exit\n",
+          "{\n",
+          "  /usr/local/bin/cfn-signal -e 1 -r \"$1\" '", { "Ref" : "WaitHandle" }, "'\n",
+          "  exit 1\n",
+          "}\n",
+
+          "# Make sure we have the latest cumulus-bundle-handler\n",
+          "pip install --upgrade cumulus-bundle-handler || error_exit 'Failed upgrading cumulus-bundle-handler to the latest version'\n",
+
+          "# Install software\n",
+          "/usr/local/bin/cfn-init -v -c cumulusConfigSet -s ", { "Ref" : "AWS::StackName" }, " -r WebServerLaunchConfiguration ",
+          "    --access-key ",  { "Ref" : "WebServerKeys" },
+          "    --secret-key ", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]},
+          "    --region ", { "Ref" : "AWS::Region" }, " >> /var/log/cfn-init.log || error_exit 'Failed to run cfn-init'\n",
+
+          "# Start up the cfn-hup daemon to listen for changes to the Web Server metadata\n",
+          "/usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'\n",
+
+          "# All is well so signal success\n",
+          "/usr/local/bin/cfn-signal -e 0 -r \"Webserver setup complete\" '", { "Ref" : "WaitHandle" }, "'\n"
+
+        ]]}}
+      },
+      "Metadata" : {
+        "AWS::CloudFormation::Init" : {
+          "configSets" : {
+            "cumulusConfigSet": [
+              "fileConfig",
+              "packageConfig",
+              "serviceConfig",
+              "commandConfig"
+            ]
+          },
+
+          "fileConfig" : {
+            "files" : {
+              "/etc/cumulus/metadata.conf" : {
+                "content" : { "Fn::Join" : ["", [
+                  "[metadata]\n",
+                  "access-key-id: ", { "Ref" : "WebServerKeys" }, "\n",
+                  "secret-access-key: ", { "Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"] }, "\n",
+                  "region: ", { "Ref" : "AWS::Region" }, "\n",
+                  "bundle-bucket: ", { "Ref" : "CumulusBundleBucket" }, "\n",
+                  "environment: ", { "Ref" : "CumulusEnvironment" }, "\n",
+                  "bundle-types: webserver\n",
+                  "version: ", { "Ref" : "CumulusVersion" }, "\n"
+                ]]},
+                "mode"  : "000644",
+                "owner" : "root",
+                "group" : "root"
+              },
+
+              "/etc/cfn/cfn-credentials" : {
+                "content" : { "Fn::Join" : ["", [
+                  "AWSAccessKeyId=", { "Ref" : "WebServerKeys" }, "\n",
+                  "AWSSecretKey=", {"Fn::GetAtt": ["WebServerKeys", "SecretAccessKey"]}, "\n"
+                ]]},
+                "mode"    : "000400",
+                "owner"   : "root",
+                "group"   : "root"
+              },
+
+              "/etc/cfn/cfn-hup.conf" : {
+                "content" : { "Fn::Join" : ["", [
+                  "[main]\n",
+                  "stack=", { "Ref" : "AWS::StackName" }, "\n",
+                  "credential-file=/etc/cfn/cfn-credentials\n",
+                  "region=", { "Ref" : "AWS::Region" }, "\n",
+                  "interval=1\n"
+                ]]},
+                "mode"    : "000400",
+                "owner"   : "root",
+                "group"   : "root"
+              },
+
+              "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
+                "content": { "Fn::Join" : ["", [
+                  "[cfn-auto-reloader-hook]\n",
+                  "triggers=post.update\n",
+                  "path=Resources.WebServerLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
+                  "action=cfn-init -c cumulusConfigSet -s ",
+                      { "Ref" : "AWS::StackName" }, " -r WebServerLaunchConfiguration ",
+                       " --credential-file /etc/cfn/cfn-credentials ",
+                       " --region ", { "Ref" : "AWS::Region" }, "\n"
+                ]]}
+              }
+            }
+          },
+
+          "packageConfig" : {
+            "packages" : {
+              "apt" : {
+                "apache2" : []
+              }
+            }
+          },
+
+          "serviceConfig" : {
+            "services" : {
+              "sysvinit" : {
+                "apache2" : {
+                  "enabled" : "true",
+                  "ensureRunning" : "true"
+                }
+              }
+            }
+          },
+
+          "commandConfig" : {
+            "commands" : {
+              "cumulus-bundle-handler" : {
+                "command" : "cumulus-bundle-handler",
+                "ignoreErrors" : false
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "WebServerAutoScalingGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": [ "us-east-1a", "us-east-1b" ],
+        "LaunchConfigurationName": { "Ref": "WebServerLaunchConfiguration" },
+        "MinSize": "2",
+        "MaxSize": "8",
+        "Tags" : [
+          {
+            "Key"   : "Name",
+            "Value" : { "Ref" : "AWS::StackName" },
+            "PropagateAtLaunch" : "true"
+          },
+          {
+            "Key"   : "Project",
+            "Value" : { "Ref" : "Project" },
+            "PropagateAtLaunch" : "true"
+          }
+        ],
+        "LoadBalancerNames" : [ { "Ref" : "WebServerELB" } ]
+      }
+    },
+
+    "WebServerELB" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "AvailabilityZones" : [ "us-east-1a", "us-east-1b" ],
+        "Listeners" : [
+          {
+            "LoadBalancerPort" : "80",
+            "InstancePort" : "80",
+            "Protocol" : "HTTP"
+          }
+        ],
+        "HealthCheck" : {
+          "Target" : "HTTP:80/index.html",
+          "HealthyThreshold" : "3",
+          "UnhealthyThreshold" : "5",
+          "Interval" : "30",
+          "Timeout" : "5"
+        }
+      }
+    },
+
+    "WebServerUser" : {
+      "Type" : "AWS::IAM::User",
+      "Properties" : {
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "cloudformation",
+            "PolicyDocument": { "Statement":[{
+              "Effect":"Allow",
+              "Action":[
+                "cloudformation:DescribeStackResource",
+                "s3:*"
+              ],
+              "Resource":"*"
+            }]}
+          }
+        ]
+      }
+    },
+
+    "WebServerKeys" : {
+      "Type" : "AWS::IAM::AccessKey",
+      "Properties" : {
+        "UserName" : {"Ref": "WebServerUser"}
+      }
+    },
+
+    "WaitHandle" : {
+      "Type" : "AWS::CloudFormation::WaitConditionHandle"
+    },
+
+    "WaitCondition" : {
+      "Type" : "AWS::CloudFormation::WaitCondition",
+      "DependsOn" : "WebServerAutoScalingGroup",
+      "Properties" : {
+        "Handle" : {"Ref" : "WaitHandle"},
+        "Timeout" : "600"
+      }
+    },
+
+    "WebServerScaleUpPolicy" : {
+      "Type" : "AWS::AutoScaling::ScalingPolicy",
+      "Properties" : {
+        "AdjustmentType" : "ChangeInCapacity",
+        "AutoScalingGroupName" : { "Ref" : "WebServerAutoScalingGroup" },
+        "Cooldown" : "60",
+        "ScalingAdjustment" : "1"
+      }
+    },
+    "WebServerScaleDownPolicy" : {
+      "Type" : "AWS::AutoScaling::ScalingPolicy",
+      "Properties" : {
+        "AdjustmentType" : "ChangeInCapacity",
+        "AutoScalingGroupName" : { "Ref" : "WebServerAutoScalingGroup" },
+        "Cooldown" : "60",
+        "ScalingAdjustment" : "-1"
+      }
+    },
+
+    "CPUAlarmHigh": {
+     "Type": "AWS::CloudWatch::Alarm",
+     "Properties": {
+        "AlarmDescription": "Scale-up if CPU > 90% for 10 minutes",
+        "MetricName": "CPUUtilization",
+        "Namespace": "AWS/EC2",
+        "Statistic": "Average",
+        "Period": "300",
+        "EvaluationPeriods": "2",
+        "Threshold": "90",
+        "AlarmActions": [ { "Ref": "WebServerScaleUpPolicy" } ],
+        "Dimensions": [
+          {
+            "Name": "AutoScalingGroupName",
+            "Value": { "Ref": "WebServerAutoScalingGroup" }
+          }
+        ],
+        "ComparisonOperator": "GreaterThanThreshold"
+      }
+    },
+
+    "CPUAlarmLow": {
+     "Type": "AWS::CloudWatch::Alarm",
+     "Properties": {
+        "AlarmDescription": "Scale-down if CPU < 50% for 10 minutes",
+        "MetricName": "CPUUtilization",
+        "Namespace": "AWS/EC2",
+        "Statistic": "Average",
+        "Period": "300",
+        "EvaluationPeriods": "2",
+        "Threshold": "50",
+        "AlarmActions": [ { "Ref": "WebServerScaleDownPolicy" } ],
+        "Dimensions": [
+          {
+            "Name": "AutoScalingGroupName",
+            "Value": { "Ref": "WebServerAutoScalingGroup" }
+          }
+        ],
+        "ComparisonOperator": "LessThanThreshold"
+      }
+    },
+
+    "WebServerSecurityGroup" : {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription": "Security group for Cumulus web servers",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ],
+        "Tags" : [
+          { "Key": "Name",    "Value" : { "Ref" : "AWS::StackName" } },
+          { "Key": "Project", "Value" : { "Ref" : "Project" } }
+        ]
+      }
+    }
+  }
+}

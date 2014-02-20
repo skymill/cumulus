@@ -1,0 +1,5 @@
+recursive-include cumulus_bundle_handler *
+include cumulus-bundle-handler
+include LICENSE
+include README
+

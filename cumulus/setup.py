@@ -11,13 +11,13 @@ setup(
     name='cumulus',
     version=settings.get('general', 'version'),
     license='Proprietary',
-    description='Cumulus AWS deployment tools',
+    description='Cumulus Deployment Suite for Amazon Web Services',
     author='Sebastian Dahlgren',
     author_email='sebastian.dahlgren@skymill.se',
     url='http://www.skymillsolutions.com',
     keywords="cumulus cloudformation amazon web services",
     platforms=['Any'],
-    packages=['lib'],
+    packages=['cumulus_ds'],
     scripts=['cumulus'],
     include_package_data=True,
     zip_safe=False,
@@ -27,7 +27,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
-        'License :: Other/Proprietary License',
+        'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python'
     ]

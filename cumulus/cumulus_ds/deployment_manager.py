@@ -1,18 +1,28 @@
-""" Manager """
+""" The deployment manager handles all deployments of CloudFormation stacks """
 import json
 import logging
-import os.path
 import subprocess
+import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
+
+if sys.platform in ['win32', 'cygwin']:
+    import ntpath as ospath
+else:
+    import os.path as ospath
 
 import boto
 
-from lib import config_handler
-from lib import connection_handler
-from lib.exceptions import InvalidTemplateException, HookExecutionException
+import cumulus_ds
+from cumulus_ds import connection_handler
+from cumulus_ds import terminal_size
+from cumulus_ds.exceptions import (
+    InvalidTemplateException,
+    HookExecutionException)
 
 LOGGER = logging.getLogger(__name__)
+
+TERMINAL_WIDTH, _ = terminal_size.get_terminal_size()
 
 
 def deploy():
@@ -20,20 +30,22 @@ def deploy():
     # Run pre-deploy-hook
     _pre_deploy_hook()
 
-    stacks = config_handler.get_stacks()
+    stacks = cumulus_ds.config.get_stacks()
+
     if not stacks:
         LOGGER.warning('No stacks configured, nothing to deploy')
         return
+
     for stack in stacks:
         _ensure_stack(
             stack,
-            config_handler.get_stack_template(stack),
-            disable_rollback=config_handler.get_stack_disable_rollback(
+            cumulus_ds.config.get_stack_template(stack),
+            disable_rollback=cumulus_ds.config.get_stack_disable_rollback(
                 stack),
-            parameters=config_handler.get_stack_parameters(stack),
-            timeout_in_minutes=config_handler.get_stack_timeout_in_minutes(
+            parameters=cumulus_ds.config.get_stack_parameters(stack),
+            timeout_in_minutes=cumulus_ds.config.get_stack_timeout_in_minutes(
                 stack),
-            tags=config_handler.get_stack_tags(stack))
+            tags=cumulus_ds.config.get_stack_tags(stack))
 
     # Run post-deploy-hook
     _post_deploy_hook()
@@ -46,15 +58,15 @@ def list_events():
     except Exception:
         raise
 
-    for stack_name in config_handler.get_stacks():
+    for stack_name in cumulus_ds.config.get_stacks():
         stack = _get_stack_by_name(stack_name)
-        written_events = []
 
         if not stack:
             break
 
         _print_event_log_title()
 
+        written_events = []
         for event in reversed(con.describe_stack_events(stack.stack_id)):
             if event.event_id not in written_events:
                 written_events.append(event.event_id)
@@ -68,26 +80,47 @@ def list_stacks():
     except Exception:
         raise
 
-    for stack in connection.list_stacks():
-        if (stack.stack_status != 'DELETE_COMPLETE' and
-                stack.stack_name in config_handler.get_stacks()):
-            print('{:<30}{}'.format(stack.stack_name, stack.stack_status))
+    cf_stacks = connection.list_stacks()
+
+    for stack in cumulus_ds.config.get_stacks():
+        stack_found = False
+        for cf_stack in cf_stacks:
+            if stack == cf_stack.stack_name:
+                stack_found = True
+
+        if stack_found:
+            print('{:<30}{}'.format(stack, cf_stack.stack_status))
+        else:
+            print('{:<30}{}'.format(stack, 'NOT_RUNNING'))
 
 
-def undeploy():
-    """ Undeploy an environment """
+def undeploy(force=False):
+    """ Undeploy an environment
+
+    :type force: bool
+    :param force: Skip the safety question
+    """
     message = (
         'This will DELETE all stacks in the environment. '
         'This action cannot be undone. '
         'Are you sure you want to do continue? [N/y] ')
-    choice = raw_input(message).lower()
-    if choice in ['yes', 'y']:
-        stacks = config_handler.get_stacks()
-        stacks.reverse()
-        for stack in stacks:
-            _delete_stack(stack)
-    else:
-        print('Skipping undeployment.')
+
+    choice = 'yes'
+    if not force:
+        choice = raw_input(message).lower()
+        if choice not in ['yes', 'y']:
+            print('Skipping undeployment.')
+            return None
+
+    stacks = cumulus_ds.config.get_stacks()
+    stacks.reverse()
+
+    if not stacks:
+        LOGGER.warning('No stacks to undeploy.')
+        return None
+
+    for stack in stacks:
+        _delete_stack(stack)
 
 
 def validate_templates():
@@ -97,8 +130,8 @@ def validate_templates():
     except Exception:
         raise
 
-    for stack in config_handler.get_stacks():
-        template = config_handler.get_stack_template(stack)
+    for stack in cumulus_ds.config.get_stacks():
+        template = cumulus_ds.config.get_stack_template(stack)
 
         result = connection.validate_template(
             _get_json_from_template(template))
@@ -137,15 +170,15 @@ def _ensure_stack(
     cumulus_parameters = [
         (
             'CumulusBundleBucket',
-            config_handler.get_environment_option('bucket')
+            cumulus_ds.config.get_environment_option('bucket')
         ),
         (
             'CumulusEnvironment',
-            config_handler.get_environment()
+            cumulus_ds.config.get_environment()
         ),
         (
             'CumulusVersion',
-            config_handler.get_environment_option('version')
+            cumulus_ds.config.get_environment_option('version')
         )
     ]
 
@@ -161,7 +194,7 @@ def _ensure_stack(
     try:
         if _stack_exists(stack_name):
             LOGGER.debug('Updating existing stack to version {}'.format(
-                config_handler.get_environment_option('version')))
+                cumulus_ds.config.get_environment_option('version')))
 
             if template[0:4] == 'http':
                 connection.update_stack(
@@ -185,7 +218,7 @@ def _ensure_stack(
             _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
             LOGGER.debug('Creating new stack with version {}'.format(
-                config_handler.get_environment_option('version')))
+                cumulus_ds.config.get_environment_option('version')))
             if template[0:4] == 'http':
                 connection.create_stack(
                     stack_name,
@@ -205,7 +238,7 @@ def _ensure_stack(
                     timeout_in_minutes=timeout_in_minutes,
                     tags=tags)
 
-        _wait_for_stack_complete(stack_name, filter_type='CREATE')
+            _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
     except ValueError as error:
         raise InvalidTemplateException(
@@ -251,7 +284,7 @@ def _get_json_from_template(template):
     :param template: Template path to use
     :returns: JSON object
     """
-    template_path = os.path.expandvars(os.path.expanduser(template))
+    template_path = ospath.expandvars(ospath.expanduser(template))
     LOGGER.debug('Parsing template file {}'.format(template_path))
 
     file_handle = open(template_path)
@@ -283,7 +316,7 @@ def _get_stack_by_name(stack_name):
 
 def _pre_deploy_hook():
     """ Execute a pre-deploy-hook """
-    command = config_handler.get_pre_deploy_hook()
+    command = cumulus_ds.config.get_pre_deploy_hook()
 
     if not command:
         return None
@@ -317,42 +350,57 @@ def _print_event_log_event(event):
     else:
         status = event.resource_status
 
-    print((
-        '{timestamp:<20} | {type:<45} | '
-        '{logical_id:<42} | {status:<25}').format(
-            timestamp=datetime.strftime(
-                event.timestamp,
-                '%Y-%m-%dT%H:%M:%S'),
-            type=event.resource_type,
-            logical_id=event.logical_resource_id,
-            status=status))
+    row = '{timestamp:<19}'.format(
+        timestamp=datetime.strftime(event.timestamp, '%Y-%m-%d %H:%M:%S'))
+    row += ' | {type:<45}'.format(type=event.resource_type)
+    row += ' | {logical_id:<42}'.format(logical_id=event.logical_resource_id)
+
+    if TERMINAL_WIDTH >= 190:
+        if event.resource_status_reason:
+            reason = event.resource_status_reason
+        else:
+            reason = ''
+
+        row += ' | {reason:<36}'.format(reason=reason)
+
+    row += ' | {status:<33}'.format(status=status.replace('_', ' ').lower())
+
+    print(row)
 
 
 def _print_event_log_separator():
     """ Print separator line for the event log """
-    print((
-        '---------------------+---------------'
-        '--------------------------------+----------'
-        '----------------------------------+--------'
-        '------------'))
+    row = '--------------------'  # Timestamp
+    row += '+-----------------------------------------------'  # Resource type
+    row += '+--------------------------------------------'  # Logical ID
+
+    if TERMINAL_WIDTH >= 190:
+        row += '+--------------------------------------'  # Reason
+
+    row += '+--------------------------------'  # Status
+
+    print(row)
 
 
 def _print_event_log_title():
     """ Print event log title row on stdout """
     _print_event_log_separator()
-    print((
-        '{timestamp:<20} | {type:<45} | '
-        '{logical_id:<42} | {status:<25}'.format(
-            timestamp='Timestamp',
-            type='Resource type',
-            logical_id='Logical ID',
-            status='Status')))
+
+    row = '{timestamp:<19}'.format(timestamp='Timestamp')
+    row += ' | {type:<45}'.format(type='Resource type')
+    row += ' | {logical_id:<42}'.format(logical_id='Logical ID')
+    if TERMINAL_WIDTH >= 190:
+        row += ' | {reason:<36}'.format(reason='Reason')
+    row += ' | {status:<25}'.format(status='Status')
+
+    print(row)
+
     _print_event_log_separator()
 
 
 def _post_deploy_hook():
     """ Execute a post-deploy-hook """
-    command = config_handler.get_post_deploy_hook()
+    command = cumulus_ds.config.get_post_deploy_hook()
 
     if not command:
         return None
@@ -397,6 +445,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
     :param filter_type: Filter events by type. Supported values are None,
         CREATE, DELETE, UPDATE. Rollback events are always shown.
     """
+    start_time = datetime.utcnow() - timedelta(0, 10)
     complete = False
     complete_statuses = [
         'CREATE_FAILED',
@@ -426,7 +475,12 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
             _print_event_log_title()
 
         for event in reversed(con.describe_stack_events(stack.stack_id)):
+            # Don't print written events
             if event.event_id in written_events:
+                continue
+
+            # Don't print old events
+            if event.timestamp < start_time:
                 continue
 
             written_events.append(event.event_id)
