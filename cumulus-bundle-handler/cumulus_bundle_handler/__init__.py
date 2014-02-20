@@ -9,11 +9,6 @@ if sys.platform in ['win32', 'cygwin']:
 else:
     import os.path as ospath
 
-from cumulus_bundle_handler import config
-from cumulus_bundle_handler import bundle_manager
-from cumulus_bundle_handler import script_executor
-from cumulus_bundle_handler.command_line_options import ARGS as args
-
 # Configure logging
 LOG_CONF = {
     'version': 1,
@@ -62,6 +57,13 @@ if sys.platform in ['win32', 'cygwin']:
         os.makedirs('C:\\cumulus\\logs')
     LOG_CONF['handlers']['file']['filename'] = \
         'C:\\cumulus\\logs\\cumulus-bundle-handler.log'
+logging.config.dictConfig(LOG_CONF)
+
+from cumulus_bundle_handler import config
+from cumulus_bundle_handler import bundle_manager
+from cumulus_bundle_handler import script_executor
+from cumulus_bundle_handler.command_line_options import ARGS as args
+
 
 # Read log level from the metadata.conf
 if config.get('log-level'):
