@@ -9,8 +9,7 @@ settings.read(os.path.realpath('lib/settings.conf'))
 
 setup(
     name='cumulus',
-    #version=settings.get('general', 'version'),
-    version='0.9.4',
+    version=settings.get('general', 'version'),
     license='Proprietary',
     description='Cumulus Deployment Suite for Amazon Web Services',
     author='Sebastian Dahlgren',

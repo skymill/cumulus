@@ -9,8 +9,7 @@ settings.read(os.path.realpath('lib/settings.conf'))
 
 setup(
     name='cumulus-bundle-handler',
-    #version=settings.get('general', 'version'),
-    version='0.9.15',
+    version=settings.get('general', 'version'),
     license='Proprietary',
     description='Cumulus AWS deployment tools',
     author='Sebastian Dahlgren',
