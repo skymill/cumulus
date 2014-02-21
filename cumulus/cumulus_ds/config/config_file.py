@@ -63,11 +63,16 @@ def configure(args):
     :type config_file: str or None
     :param config_file: Configuration file to read from
     """
-    config_files = [
-        '/etc/cumulus.conf',
-        ospath.expanduser('~/.cumulus.conf'),
-        '{}/cumulus.conf'.format(os.curdir)
-    ]
+    config_files = []
+
+    if sys.platform in ['win32', 'cygwin']:
+        config_files.append('C:\\cumulus.conf')
+        config_files.append(ospath.expanduser('~\\.cumulus.conf'))
+        config_files.append('{}\\cumulus.conf'.format(os.curdir))
+    else:
+        config_files.append('/etc/cumulus.conf')
+        config_files.append(ospath.expanduser('~/.cumulus.conf'))
+        config_files.append('{}/cumulus.conf'.format(os.curdir))
 
     # Add custom configuration file path
     if args.config:
