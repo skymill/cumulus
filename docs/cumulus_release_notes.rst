@@ -194,3 +194,14 @@ Minor improvements:
 Initial release with some basic functions and concepts.
 
 - Basic bundling and stack management features implemented
+
+
+Cumulus Bundle Handler release notes
+====================================
+
+1.0.1
+-----
+
+**Release date:** 2014-02-21
+
+- Bugfix: `Bundle extraction paths are not determined properly #111 <https://github.com/skymill/cumulus/issues/111>`__
