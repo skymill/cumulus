@@ -124,6 +124,7 @@ Option                  Type               Required Comment
 ``pre-bundle-hook``     String             No       Command to execute before bundling
 ``post-bundle-hook``    String             No       Command to execute after bundling
 ``paths``               Line sep. string   Yes      Paths to include in the bundle. Each path should be declared on a new line.
+``path-rewrites``       Line sep. string   No       Replace parts of the paths. Will make a string replace before bundling. Format: ``/example/path/ -> /`` (will replace ``/example/path/`` will be replaced by ``/``)
 ``pre-build-bundle``    String             No       Path to a pre-built bundle. This option will make the `paths` redundant.
 ======================= ================== ======== ==========================================
 
