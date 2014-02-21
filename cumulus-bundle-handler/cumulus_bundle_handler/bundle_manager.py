@@ -75,7 +75,7 @@ def _get_extraction_path(bundle_type):
 
     bundle_paths = config.get('bundle-extraction-paths').split('\n')
 
-    if not bundle_paths:
+    if bundle_paths:
         for line in bundle_paths:
             if not line:
                 continue
