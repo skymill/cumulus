@@ -6,11 +6,6 @@ import sys
 import time
 from datetime import datetime, timedelta
 
-if sys.platform in ['win32', 'cygwin']:
-    import ntpath as ospath
-else:
-    import os.path as ospath
-
 import boto
 
 import cumulus_ds
@@ -23,6 +18,11 @@ from cumulus_ds.exceptions import (
 LOGGER = logging.getLogger(__name__)
 
 TERMINAL_WIDTH, _ = terminal_size.get_terminal_size()
+
+if sys.platform in ['win32', 'cygwin']:
+    import ntpath as ospath
+else:
+    import os.path as ospath
 
 
 def deploy():
