@@ -106,15 +106,20 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
 
             # Do all rewrites
             for rewrite in path_rewrites:
+                target = rewrite['target'].replace('\\\\', '\\')
+                destination = rewrite['destination'].replace('\\\\', '\\')
+
+                print('Matching "{}" with "{}"'.format(arcname[:len(target)], target))
+
                 try:
-                    if arcname[:len(rewrite['target'])] == rewrite['target']:
+                    if arcname[:len(target)] == target:
                         arcname = arcname.replace(
-                            rewrite['target'],
-                            rewrite['destination'])
+                            target,
+                            destination)
                         logger.debug(
                             'Replaced "{}" with "{}" in bundle {}'.format(
-                                rewrite['target'],
-                                rewrite['destination'],
+                                target,
+                                destination,
                                 bundle_type))
                 except IndexError:
                     pass
