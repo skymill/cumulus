@@ -1,6 +1,13 @@
 Cumulus release notes
 =====================
 
+1.0.2
+-----
+
+**Release date:** 2014-02-24
+
+- `Ensure removed backslashes in Windows rewrites #113 <https://github.com/skymill/cumulus/issues/113>`__
+
 1.0.1
 -----
 
