@@ -1,6 +1,14 @@
 Cumulus release notes
 =====================
 
+1.0.1
+-----
+
+**Release date:** 2014-02-24
+
+- `Update default cumulus.conf paths for Windows #112 <https://github.com/skymill/cumulus/issues/112>`__
+- Minor fixes
+
 1.0.0 (First open source release)
 ---------------------------------
 

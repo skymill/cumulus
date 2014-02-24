@@ -66,7 +66,7 @@ class Configuration:
         try:
             return self.config['bundles'][bundle]['path-rewrites']
         except KeyError:
-            return {}
+            return []
 
     def get_bundle_paths(self, bundle):
         """ Returns a list of bundle paths for a given bundle
