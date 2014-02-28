@@ -10,7 +10,7 @@ settings.read(os.path.realpath('cumulus_ds/settings.conf'))
 setup(
     name='cumulus',
     version=settings.get('general', 'version'),
-    license='Proprietary',
+    license='Apache Software License',
     description='Cumulus Deployment Suite for Amazon Web Services',
     author='Sebastian Dahlgren',
     author_email='sebastian.dahlgren@skymill.se',
