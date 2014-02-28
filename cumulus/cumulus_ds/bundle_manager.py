@@ -109,8 +109,6 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
                 target = rewrite['target'].replace('\\\\', '\\')
                 destination = rewrite['destination'].replace('\\\\', '\\')
 
-                print('Matching "{}" with "{}"'.format(arcname[:len(target)], target))
-
                 try:
                     if arcname[:len(target)] == target:
                         arcname = arcname.replace(
