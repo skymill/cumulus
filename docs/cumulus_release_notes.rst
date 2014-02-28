@@ -221,6 +221,13 @@ Initial release with some basic functions and concepts.
 Cumulus Bundle Handler release notes
 ====================================
 
+1.0.2
+-----
+
+**Release date:** 2014-02-28
+
+- Fixed licensing. Removed old references to proprietary
+
 1.0.1
 -----
 
