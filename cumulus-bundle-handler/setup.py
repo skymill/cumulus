@@ -10,7 +10,7 @@ settings.read(os.path.realpath('cumulus_bundle_handler/settings.conf'))
 setup(
     name='cumulus-bundle-handler',
     version=settings.get('general', 'version'),
-    license='Proprietary',
+    license='Apache Software License',
     description='Cumulus AWS deployment tools',
     author='Sebastian Dahlgren',
     author_email='sebastian.dahlgren@skymill.se',
