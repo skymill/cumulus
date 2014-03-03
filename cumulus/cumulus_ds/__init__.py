@@ -59,22 +59,27 @@ LOGGING_CONFIG = {
             'level': logging.CRITICAL,
             'propagate': False
         },
-        'lib.bundle_manager': {
+        'cumulus_ds.bundle_manager': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
         },
-        'lib.config_handler': {
+        'cumulus_ds.config_handler': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
         },
-        'lib.connection_handler': {
+        'cumulus_ds.connection_handler': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
         },
-        'lib.deployment_manager': {
+        'cumulus_ds.deployment_manager': {
+            'handlers': ['default'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+        'cumulus_ds.helpers.stack': {
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
