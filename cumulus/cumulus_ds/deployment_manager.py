@@ -32,11 +32,9 @@ def deploy():
         ensure_stack(
             stack_name,
             template=config.get_stack_template(stack_name),
-            disable_rollback=config.get_stack_disable_rollback(
-                stack_name),
+            disable_rollback=config.get_stack_disable_rollback(stack_name),
             parameters=config.get_stack_parameters(stack_name),
-            timeout_in_minutes=config.get_stack_timeout_in_minutes(
-                stack_name),
+            timeout_in_minutes=config.get_stack_timeout_in_minutes(stack_name),
             tags=config.get_stack_tags(stack_name))
 
     # Run post-deploy-hook

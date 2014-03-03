@@ -58,24 +58,10 @@ def ensure_stack(
         stack. Currently, the only valid capability is ‘CAPABILITY_IAM’
     """
     cumulus_parameters = [
-        (
-            'CumulusBundleBucket',
-            config.get_environment_option('bucket')
-        ),
-        (
-            'CumulusEnvironment',
-            config.get_environment()
-        ),
-        (
-            'CumulusVersion',
-            config.get_environment_option('version')
-        )
+        ('CumulusBundleBucket', config.get_environment_option('bucket')),
+        ('CumulusEnvironment', config.get_environment()),
+        ('CumulusVersion', config.get_environment_option('version'))
     ]
-
-    try:
-        connection = connection_handler.connect_cloudformation()
-    except Exception:
-        raise
 
     LOGGER.info('Ensuring stack {} with template {}'.format(
         stack_name, template))
@@ -90,7 +76,7 @@ def ensure_stack(
                 config.get_environment_option('version')))
 
             if template[0:4] == 'http':
-                connection.update_stack(
+                CONNECTION.update_stack(
                     stack_name,
                     parameters=cumulus_parameters + parameters,
                     template_url=template,
@@ -99,7 +85,7 @@ def ensure_stack(
                     timeout_in_minutes=timeout_in_minutes,
                     tags=tags)
             else:
-                connection.update_stack(
+                CONNECTION.update_stack(
                     stack_name,
                     parameters=cumulus_parameters + parameters,
                     template_body=_get_json_from_template(template),
@@ -113,7 +99,7 @@ def ensure_stack(
             LOGGER.debug('Creating new stack with version {}'.format(
                 config.get_environment_option('version')))
             if template[0:4] == 'http':
-                connection.create_stack(
+                CONNECTION.create_stack(
                     stack_name,
                     parameters=cumulus_parameters + parameters,
                     template_url=template,
@@ -122,7 +108,7 @@ def ensure_stack(
                     timeout_in_minutes=timeout_in_minutes,
                     tags=tags)
             else:
-                connection.create_stack(
+                CONNECTION.create_stack(
                     stack_name,
                     parameters=cumulus_parameters + parameters,
                     template_body=_get_json_from_template(template),
