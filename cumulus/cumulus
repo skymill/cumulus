@@ -27,6 +27,8 @@ if __name__ == '__main__':
     try:
         cumulus_ds.main()
         sys.exit(0)
+    except cumulus_ds.exceptions.ChecksumMismatchException:
+        sys.exit(1)
     except cumulus_ds.exceptions.ConfigurationException:
         sys.exit(1)
     except cumulus_ds.exceptions.HookExecutionException:

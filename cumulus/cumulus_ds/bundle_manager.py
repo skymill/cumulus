@@ -1,5 +1,6 @@
 """ Bundling functions """
 import fnmatch
+import hashlib
 import logging
 import os
 import subprocess
@@ -14,7 +15,10 @@ else:
 
 from cumulus_ds import connection_handler
 from cumulus_ds.config import CONFIG as config
-from cumulus_ds.exceptions import HookExecutionException, UnsupportedCompression
+from cumulus_ds.exceptions import (
+    ChecksumMismatchException,
+    HookExecutionException,
+    UnsupportedCompression)
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +139,26 @@ def _find_files(directory, pattern):
                 yield filename
 
 
+def _generate_local_md5hash(filename):
+    """ Get the MD5 hash of a local file
+
+    :type filename: str
+    :param filename: Path to the file to read
+    :returns: str -- MD5 of the file
+    """
+    if not ospath.exists(filename):
+        logger.warning(
+            'Unable to generate MD5 of local file {}. '
+            'File does not exist.'.format(filename))
+        return None
+
+    hash = hashlib.md5(open(filename).read()).hexdigest()
+    logger.debug('Generated md5 checksum for {} ({})'.format(
+        ospath.basename(filename), hash))
+
+    return hash
+
+
 def _post_bundle_hook(bundle_name):
     """ Execute a post-bundle-hook
 
@@ -203,6 +227,8 @@ def _upload_bundle(bundle_path, bundle_type):
             'Unknown compression format for {}. '
             'We are currently only supporting .zip'.format(bundle_path))
 
+    local_hash = _generate_local_md5hash(bundle_path)
+
     key_name = (
         '{environment}/{version}/'
         'bundle-{environment}-{version}-{bundle_type}.{compression}').format(
@@ -219,3 +245,13 @@ def _upload_bundle(bundle_path, bundle_type):
 
     logger.info('Completed upload of {} to s3://{}/{}'.format(
         ospath.basename(bundle_path), bucket.name, key_name))
+
+    # Compare MD5 checksums
+    if local_hash != key.md5:
+        logger.debug('Uploaded bundle checksum OK ({})'.format(key.md5))
+    else:
+        logger.error('Mismatching md5 checksum {} ({}) and {} ({})'.format(
+            bundle_path, local_hash, key_name, key.md5))
+        raise ChecksumMismatchException(
+            'Mismatching md5 checksum {} ({}) and {} ({})'.format(
+                bundle_path, local_hash, key_name, key.md5))
