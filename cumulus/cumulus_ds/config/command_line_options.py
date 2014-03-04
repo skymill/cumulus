@@ -59,6 +59,10 @@ ACTIONS_AG.add_argument(
     action='count',
     help='List stacks for each environment')
 ACTIONS_AG.add_argument(
+    '--output',
+    action='count',
+    help='Show output for all stacks')
+ACTIONS_AG.add_argument(
     '--validate-templates',
     action='count',
     help='Validate all templates for the environment')

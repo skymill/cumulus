@@ -18,10 +18,8 @@ limitations under the License.
 import logging
 
 from cumulus_ds import bundle_manager
-from cumulus_ds import config as cfg
 from cumulus_ds import deployment_manager
-
-config = cfg.Configuration()
+from cumulus_ds.config import CONFIG as config
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -118,6 +116,9 @@ def main():
 
         if config.args.events:
             deployment_manager.list_events()
+
+        if config.args.outputs:
+            deployment_manager.list_outputs()
 
     except Exception as error:
         LOGGER.error(error)

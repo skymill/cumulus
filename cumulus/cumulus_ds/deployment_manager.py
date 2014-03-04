@@ -2,13 +2,14 @@
 import logging
 import subprocess
 
-from cumulus_ds import config
 from cumulus_ds import terminal_size
+from cumulus_ds.config import CONFIG as config
 from cumulus_ds.helpers.stack import (
     delete_stack,
     ensure_stack,
     list_events_all_stacks,
     list_all_stacks,
+    print_output_all_stacks,
     validate_templates_all_stacks)
 from cumulus_ds.exceptions import HookExecutionException
 
@@ -44,6 +45,11 @@ def deploy():
 def list_events():
     """ List events """
     list_events_all_stacks()
+
+
+def list_outputs():
+    """ List all outputs for all stacks """
+    print_output_all_stacks()
 
 
 def list_stacks():

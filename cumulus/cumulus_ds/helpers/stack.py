@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 import boto
 
 from cumulus_ds import connection_handler
-from cumulus_ds import config
 from cumulus_ds import terminal_size
+from cumulus_ds.config import CONFIG as config
 from cumulus_ds.exceptions import InvalidTemplateException
 
 if sys.platform in ['win32', 'cygwin']:
@@ -55,7 +55,7 @@ def ensure_stack(
     :parameter timeout_in_minutes: Timeout the stack creation after x minutes
     :type capabilities: list
     :parameter capabilities: The list of capabilities you want to allow in the
-        stack. Currently, the only valid capability is ‘CAPABILITY_IAM’
+        stack. Currently, the only valid capability is 'CAPABILITY_IAM'
     """
     cumulus_parameters = [
         ('CumulusBundleBucket', config.get_environment_option('bucket')),
@@ -144,6 +144,8 @@ def ensure_stack(
             'Adding parameter "{}" with value "{}" to CF template'.format(
                 parameter[0], parameter[1]))
 
+    _print_stack_output(stack_name)
+
 
 def get_stack_by_name(stack_name):
     """ Returns a stack given its name
@@ -158,25 +160,6 @@ def get_stack_by_name(stack_name):
             return stack
 
     return None
-
-
-def get_stack_outputs(stack_name_or_id):
-    """ Get a list of stack output values
-
-    :type connection: boto.cloudformation.connection
-    :param connection: CloudFormation connection object
-    :type stack_name_or_id: str
-    :param stack_name_or_id: Stack name or id
-    :returns: list -- List of (key, value)
-    """
-    try:
-        stack = CONNECTION.describe_stacks(stack_name_or_id)[0]
-    except IndexError:
-        LOGGER.debug(
-            'No stack with name or id {} found'.format(stack_name_or_id))
-        return []
-
-    return stack.outputs
 
 
 def list_events_all_stacks():
@@ -212,6 +195,12 @@ def list_all_stacks():
             print('{:<30}{}'.format(stack, 'NOT_RUNNING'))
 
 
+def print_output_all_stacks():
+    """ Print the output for all stacks """
+    for stack in config.get_stacks():
+        _print_stack_output(stack)
+
+
 def stack_exists(stack_name):
     """ Check if a stack exists
 
@@ -219,12 +208,7 @@ def stack_exists(stack_name):
     :param stack_name: Stack name
     :returns: bool
     """
-    try:
-        connection = connection_handler.connect_cloudformation()
-    except Exception:
-        raise
-
-    for stack in connection.list_stacks():
+    for stack in CONNECTION.list_stacks():
         if (stack.stack_status != 'DELETE_COMPLETE' and
                 stack.stack_name == stack_name):
             return True
@@ -240,6 +224,23 @@ def validate_templates_all_stacks():
         result = CONNECTION.validate_template(_get_json_from_template(template))
         if result:
             LOGGER.info('Template {} is valid!'.format(template))
+
+
+def _get_stack_outputs(stack_name_or_id):
+    """ Get a list of stack output values
+
+    :type stack_name_or_id: str
+    :param stack_name_or_id: Stack name or id
+    :returns: list -- List of (key, value)
+    """
+    try:
+        stack = CONNECTION.describe_stacks(stack_name_or_id)[0]
+    except IndexError:
+        LOGGER.debug(
+            'No stack with name or id {} found'.format(stack_name_or_id))
+        return []
+
+    return stack.outputs
 
 
 def _get_json_from_template(template):
@@ -327,6 +328,24 @@ def _print_event_log_title():
     _print_event_log_separator()
 
 
+def _print_stack_output(stack_name_or_id):
+    """ Print the stack output for a given stack
+
+    :type stack_name_or_id: str
+    :param stack_name_or_id: Stack name
+    """
+    for output in _get_stack_outputs(stack_name_or_id):
+        print(
+            '--------------------------------------------------------'
+            '--------------------------------------------------------')
+        print('{key:<20} | {value:<45}'.format(
+            key=output.key,
+            value=output.value))
+        print(
+            '--------------------------------------------------------'
+            '--------------------------------------------------------')
+
+
 def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
     """ Wait until the stack create/update has been completed
 
@@ -351,10 +370,6 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
         'UPDATE_ROLLBACK_FAILED',
         'UPDATE_ROLLBACK_COMPLETE'
     ]
-    try:
-        con = connection_handler.connect_cloudformation()
-    except Exception:
-        raise
 
     written_events = []
 
@@ -367,7 +382,7 @@ def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
         if not written_events:
             _print_event_log_title()
 
-        for event in reversed(con.describe_stack_events(stack.stack_id)):
+        for event in reversed(CONNECTION.describe_stack_events(stack.stack_id)):
             # Don't print written events
             if event.event_id in written_events:
                 continue

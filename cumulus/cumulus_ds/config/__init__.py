@@ -274,3 +274,6 @@ class Configuration:
         if 'pre-built-bundle' in self.config['bundles'][bundle]:
             return True
         return False
+
+
+CONFIG = Configuration()
