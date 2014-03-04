@@ -38,7 +38,7 @@ class Configuration:
             settings_conf = SafeConfigParser()
             settings_conf.read(
                 ospath.realpath(
-                    '{}/settings.conf'.format(ospath.dirname(__file__))))
+                    '{}/../settings.conf'.format(ospath.dirname(__file__))))
             print('Cumulus version {}'.format(
                 settings_conf.get('general', 'version')))
             sys.exit(0)
