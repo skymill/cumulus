@@ -159,6 +159,38 @@ def _generate_local_md5hash(filename):
     return hash
 
 
+def _key_exists(bucket_name, key_name, checksum=None):
+    """ Check if the given key exists in AWS S3.
+
+    If checksum is given, also check if the md5 checksum is the same
+
+    :type bucket_name: str
+    :param bucket_name: S3 bucket name
+    :type key_name: str
+    :param key_name: S3 key name
+    :type checksum: str
+    :param checksum: MD5 checksum
+    :returns: bool -- True if the key exists
+    """
+    try:
+        connection = connection_handler.connect_s3()
+    except Exception:
+        raise
+
+    bucket = connection.get_bucket(bucket_name)
+
+    key = bucket.get_key(key_name)
+    if not key:
+        return False
+
+    if checksum:
+        if key.etag.replace('"', '') == checksum:
+            return True
+        return False
+
+    return True
+
+
 def _post_bundle_hook(bundle_name):
     """ Execute a post-bundle-hook
 
@@ -227,6 +259,7 @@ def _upload_bundle(bundle_path, bundle_type):
             'Unknown compression format for {}. '
             'We are currently only supporting .zip'.format(bundle_path))
 
+    # Generate a md5 checksum for the local bundle
     local_hash = _generate_local_md5hash(bundle_path)
 
     key_name = (
@@ -236,6 +269,18 @@ def _upload_bundle(bundle_path, bundle_type):
             version=config.get_environment_option('version'),
             bundle_type=bundle_type,
             compression=compression)
+
+    # Do not upload bundles if the key already exists and has the same
+    # md5 checksum
+    if _key_exists(
+            config.get_environment_option('bucket'),
+            key_name,
+            checksum=local_hash):
+        logger.info(
+            'This bundle is already uploaded to AWS S3. Skipping upload.')
+        return
+
+    # Get the key object
     key = bucket.new_key(key_name)
 
     logger.info('Starting upload of {} to s3://{}/{}'.format(
@@ -247,7 +292,7 @@ def _upload_bundle(bundle_path, bundle_type):
         ospath.basename(bundle_path), bucket.name, key_name))
 
     # Compare MD5 checksums
-    if local_hash != key.md5:
+    if local_hash == key.md5:
         logger.debug('Uploaded bundle checksum OK ({})'.format(key.md5))
     else:
         logger.error('Mismatching md5 checksum {} ({}) and {} ({})'.format(
