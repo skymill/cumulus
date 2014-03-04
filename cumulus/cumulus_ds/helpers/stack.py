@@ -57,14 +57,19 @@ def ensure_stack(
     :parameter capabilities: The list of capabilities you want to allow in the
         stack. Currently, the only valid capability is 'CAPABILITY_IAM'
     """
+    LOGGER.info('Ensuring stack {} with template {}'.format(
+        stack_name, template))
+
     cumulus_parameters = [
         ('CumulusBundleBucket', config.get_environment_option('bucket')),
         ('CumulusEnvironment', config.get_environment()),
         ('CumulusVersion', config.get_environment_option('version'))
     ]
 
-    LOGGER.info('Ensuring stack {} with template {}'.format(
-        stack_name, template))
+    for parameter in cumulus_parameters + parameters:
+        LOGGER.debug(
+            'Adding parameter "{}" with value "{}" to CF template'.format(
+                parameter[0], parameter[1]))
 
     if timeout_in_minutes:
         LOGGER.debug('Will time out stack creation after {:d} minutes'.format(
@@ -138,11 +143,6 @@ def ensure_stack(
 
         LOGGER.error('Boto exception {}: {}'.format(code, message))
         return
-
-    for parameter in cumulus_parameters + parameters:
-        LOGGER.debug(
-            'Adding parameter "{}" with value "{}" to CF template'.format(
-                parameter[0], parameter[1]))
 
     _print_stack_output(stack_name)
 
