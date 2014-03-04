@@ -152,7 +152,7 @@ def _generate_local_md5hash(filename):
             'File does not exist.'.format(filename))
         return None
 
-    hash = hashlib.md5(open(filename).read()).hexdigest()
+    hash = hashlib.md5(open(filename, 'rb').read()).hexdigest()
     logger.debug('Generated md5 checksum for {} ({})'.format(
         ospath.basename(filename), hash))
 
