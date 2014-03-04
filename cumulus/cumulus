@@ -20,11 +20,7 @@ limitations under the License.
 
 import sys
 
-try:
-    import cumulus_ds
-except Exception as error:
-    print('Configuration error: {}'.format(error))
-    sys.exit(1)
+import cumulus_ds
 
 
 if __name__ == '__main__':
