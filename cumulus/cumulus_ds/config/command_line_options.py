@@ -59,7 +59,7 @@ ACTIONS_AG.add_argument(
     action='count',
     help='List stacks for each environment')
 ACTIONS_AG.add_argument(
-    '--output',
+    '--outputs',
     action='count',
     help='Show output for all stacks')
 ACTIONS_AG.add_argument(

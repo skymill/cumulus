@@ -333,17 +333,31 @@ def _print_stack_output(stack_name_or_id):
 
     :type stack_name_or_id: str
     :param stack_name_or_id: Stack name
+    :returns: None
     """
-    for output in _get_stack_outputs(stack_name_or_id):
-        print(
-            '--------------------------------------------------------'
-            '--------------------------------------------------------')
+    LOGGER.info('Printing output for stack "{}"'.format(stack_name_or_id))
+    outputs = _get_stack_outputs(stack_name_or_id)
+
+    if not outputs:
+        LOGGER.info('No outputs found for stack "{}"'.format(stack_name_or_id))
+        return
+
+    print(
+        '---------------------+----------------------------------'
+        '--------------------------------------------------------')
+    print('{key_title:<20} | {value_title:<45}'.format(
+        key_title='Tag',
+        value_title='Value'))
+    print(
+        '---------------------+----------------------------------'
+        '--------------------------------------------------------')
+    for output in outputs:
         print('{key:<20} | {value:<45}'.format(
             key=output.key,
             value=output.value))
-        print(
-            '--------------------------------------------------------'
-            '--------------------------------------------------------')
+    print(
+        '---------------------+----------------------------------'
+        '--------------------------------------------------------')
 
 
 def _wait_for_stack_complete(stack_name, check_interval=5, filter_type=None):
