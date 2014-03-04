@@ -20,17 +20,15 @@ limitations under the License.
 
 import sys
 
-try:
-    import cumulus_ds
-except Exception as error:
-    print('Configuration error: {}'.format(error))
-    sys.exit(1)
+import cumulus_ds
 
 
 if __name__ == '__main__':
     try:
         cumulus_ds.main()
         sys.exit(0)
+    except cumulus_ds.exceptions.ChecksumMismatchException:
+        sys.exit(1)
     except cumulus_ds.exceptions.ConfigurationException:
         sys.exit(1)
     except cumulus_ds.exceptions.HookExecutionException:

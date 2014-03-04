@@ -1,3 +1,8 @@
+class ChecksumMismatchException(Exception):
+    """ A checksum check has failed """
+    pass
+
+
 class ConfigurationException(Exception):
     """ Configuration exception """
     pass

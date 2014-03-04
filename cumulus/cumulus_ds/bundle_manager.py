@@ -1,5 +1,6 @@
 """ Bundling functions """
 import fnmatch
+import hashlib
 import logging
 import os
 import subprocess
@@ -13,15 +14,18 @@ else:
     import os.path as ospath
 
 from cumulus_ds import connection_handler
-import cumulus_ds
-from cumulus_ds.exceptions import HookExecutionException, UnsupportedCompression
+from cumulus_ds.config import CONFIG as config
+from cumulus_ds.exceptions import (
+    ChecksumMismatchException,
+    HookExecutionException,
+    UnsupportedCompression)
 
 logger = logging.getLogger(__name__)
 
 
 def build_bundles():
     """ Build bundles for the environment """
-    bundle_types = cumulus_ds.config.get_bundles()
+    bundle_types = config.get_bundles()
 
     if not bundle_types:
         logger.warning(
@@ -32,8 +36,8 @@ def build_bundles():
         # Run pre-bundle-hook
         _pre_bundle_hook(bundle_type)
 
-        if cumulus_ds.config.has_pre_built_bundle(bundle_type):
-            bundle_path = cumulus_ds.config.get_pre_built_bundle_path(
+        if config.has_pre_built_bundle(bundle_type):
+            bundle_path = config.get_pre_built_bundle_path(
                 bundle_type)
             logger.info('Using pre-built bundle: {}'.format(bundle_path))
 
@@ -44,7 +48,7 @@ def build_bundles():
         else:
             logger.info('Building bundle {}'.format(bundle_type))
             logger.debug('Bundle paths: {}'.format(', '.join(
-                cumulus_ds.config.get_bundle_paths(bundle_type))))
+                config.get_bundle_paths(bundle_type))))
 
             tmptar = tempfile.NamedTemporaryFile(
                 suffix='.zip',
@@ -55,8 +59,8 @@ def build_bundles():
                 _bundle_zip(
                     tmptar,
                     bundle_type,
-                    cumulus_ds.config.get_environment(),
-                    cumulus_ds.config.get_bundle_paths(bundle_type))
+                    config.get_environment(),
+                    config.get_bundle_paths(bundle_type))
 
                 tmptar.close()
 
@@ -86,7 +90,7 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
     :param paths: List of paths to include
     """
     archive = zipfile.ZipFile(tmpfile, 'w')
-    path_rewrites = cumulus_ds.config.get_bundle_path_rewrites(bundle_type)
+    path_rewrites = config.get_bundle_path_rewrites(bundle_type)
 
     for path in paths:
         for filename in _find_files(path, '*.*'):
@@ -108,8 +112,6 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
             for rewrite in path_rewrites:
                 target = rewrite['target'].replace('\\\\', '\\')
                 destination = rewrite['destination'].replace('\\\\', '\\')
-
-                print('Matching "{}" with "{}"'.format(arcname[:len(target)], target))
 
                 try:
                     if arcname[:len(target)] == target:
@@ -137,13 +139,65 @@ def _find_files(directory, pattern):
                 yield filename
 
 
+def _generate_local_md5hash(filename):
+    """ Get the MD5 hash of a local file
+
+    :type filename: str
+    :param filename: Path to the file to read
+    :returns: str -- MD5 of the file
+    """
+    if not ospath.exists(filename):
+        logger.warning(
+            'Unable to generate MD5 of local file {}. '
+            'File does not exist.'.format(filename))
+        return None
+
+    hash = hashlib.md5(open(filename, 'rb').read()).hexdigest()
+    logger.debug('Generated md5 checksum for {} ({})'.format(
+        ospath.basename(filename), hash))
+
+    return hash
+
+
+def _key_exists(bucket_name, key_name, checksum=None):
+    """ Check if the given key exists in AWS S3.
+
+    If checksum is given, also check if the md5 checksum is the same
+
+    :type bucket_name: str
+    :param bucket_name: S3 bucket name
+    :type key_name: str
+    :param key_name: S3 key name
+    :type checksum: str
+    :param checksum: MD5 checksum
+    :returns: bool -- True if the key exists
+    """
+    try:
+        connection = connection_handler.connect_s3()
+    except Exception:
+        raise
+
+    bucket = connection.get_bucket(bucket_name)
+
+    key = bucket.get_key(key_name)
+    if not key:
+        return False
+
+    if checksum:
+        if key.etag.replace('"', '') == checksum:
+            return True
+        return False
+
+    return True
+
+
 def _post_bundle_hook(bundle_name):
     """ Execute a post-bundle-hook
 
     :type bundle: str
     :param bundle: Bundle name
     """
-    command = cumulus_ds.config.get_post_bundle_hook(bundle_name)
+    command = config.get_post_bundle_hook(bundle_name)
 
     if not command:
         return None
@@ -163,7 +217,7 @@ def _pre_bundle_hook(bundle_name):
     :type bundle: str
     :param bundle: Bundle name
     """
-    command = cumulus_ds.config.get_pre_bundle_hook(bundle_name)
+    command = config.get_pre_bundle_hook(bundle_name)
 
     if not command:
         return None
@@ -191,7 +245,7 @@ def _upload_bundle(bundle_path, bundle_type):
         raise
 
     bucket = connection.get_bucket(
-        cumulus_ds.config.get_environment_option('bucket'))
+        config.get_environment_option('bucket'))
 
     # Check that the bundle actually exists
     if not ospath.exists(bundle_path):
@@ -205,13 +259,28 @@ def _upload_bundle(bundle_path, bundle_type):
             'Unknown compression format for {}. '
             'We are currently only supporting .zip'.format(bundle_path))
 
+    # Generate a md5 checksum for the local bundle
+    local_hash = _generate_local_md5hash(bundle_path)
+
     key_name = (
         '{environment}/{version}/'
         'bundle-{environment}-{version}-{bundle_type}.{compression}').format(
-            environment=cumulus_ds.config.get_environment(),
-            version=cumulus_ds.config.get_environment_option('version'),
+            environment=config.get_environment(),
+            version=config.get_environment_option('version'),
             bundle_type=bundle_type,
             compression=compression)
+
+    # Do not upload bundles if the key already exists and has the same
+    # md5 checksum
+    if _key_exists(
+            config.get_environment_option('bucket'),
+            key_name,
+            checksum=local_hash):
+        logger.info(
+            'This bundle is already uploaded to AWS S3. Skipping upload.')
+        return
+
+    # Get the key object
     key = bucket.new_key(key_name)
 
     logger.info('Starting upload of {} to s3://{}/{}'.format(
@@ -221,3 +290,13 @@ def _upload_bundle(bundle_path, bundle_type):
 
     logger.info('Completed upload of {} to s3://{}/{}'.format(
         ospath.basename(bundle_path), bucket.name, key_name))
+
+    # Compare MD5 checksums
+    if local_hash == key.md5:
+        logger.debug('Uploaded bundle checksum OK ({})'.format(key.md5))
+    else:
+        logger.error('Mismatching md5 checksum {} ({}) and {} ({})'.format(
+            bundle_path, local_hash, key_name, key.md5))
+        raise ChecksumMismatchException(
+            'Mismatching md5 checksum {} ({}) and {} ({})'.format(
+                bundle_path, local_hash, key_name, key.md5))
