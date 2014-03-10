@@ -198,13 +198,13 @@ def _populate_stacks(args, config):
     """
     for section in config.sections():
         if section.startswith('stack: '):
-            stack = section.split(': ')[1]
+            stack = section.split(': ', 1)[1]
 
             # If --stacks has been used, do only add those stacks
             if args.stacks and stack not in args.stacks:
                 continue
 
-            stack = '{}-{}'.format(args.environment, section.split(': ')[1])
+            stack = '{}-{}'.format(args.environment, stack)
 
             # Only add stacks that belong to the current environment
             if stack not in CONF['environments'][args.environment]['stacks']:
@@ -241,7 +241,7 @@ def _populate_stacks(args, config):
 
                             parameters = []
                             for parameter in raw_parameters:
-                                key, value = parameter.split('=')
+                                key, value = parameter.split('=', 1)
                                 parameters.append((key.strip(), value.strip()))
                             CONF['stacks'][stack][option] = parameters
                         except ValueError:
@@ -257,7 +257,7 @@ def _populate_stacks(args, config):
 
                             tags = {}
                             for tag in raw_tags:
-                                key, value = tag.split('=')
+                                key, value = tag.split('=', 1)
                                 tags[key.strip()] = value.strip()
                             CONF['stacks'][stack][option] = tags
                         except ValueError:
@@ -287,7 +287,7 @@ def _populate_stacks(args, config):
 
                     for raw_parameter in args.parameters.split(','):
                         stack_name, keyvalue = raw_parameter.split(':')
-                        key, value = keyvalue.split('=')
+                        key, value = keyvalue.split('=', 1)
                         if stack_name == stack:
                             CONF['stacks'][stack]['parameters'].append(
                                 (key, value))
@@ -322,7 +322,7 @@ def _populate_bundles(args, config):
 
                         for line in lines:
                             try:
-                                target, destination = line.split('->')
+                                target, destination = line.split('->', 1)
                             except ValueError:
                                 raise ConfigurationException(
                                     'Invalid path-rewrites for '
