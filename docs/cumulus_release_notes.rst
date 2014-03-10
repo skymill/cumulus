@@ -1,6 +1,13 @@
 Cumulus release notes
 =====================
 
+1.1.1
+-----
+
+**Release date:** 2014-03-10
+
+- Bug fix: `Stacks are added without the environment context #117 <https://github.com/skymill/cumulus/issues/117>`__
+
 1.1.0
 -----
 
@@ -10,6 +17,7 @@ Cumulus release notes
 - CloudFormation output is now shown after template deployment and if you issue the ``--outputs`` command (`#114 <https://github.com/skymill/cumulus/issues/114>`__)
 - Cumulus will only upload bundles to S3 if it does not exist or if the md5 checksum is updated (`#99 <https://github.com/skymill/cumulus/issues/99>`__)
 - Bug fix: `--cumulus-version is broken #116 <https://github.com/skymill/cumulus/issues/116>`__
+
 1.0.3
 -----
 
