@@ -1,6 +1,13 @@
 Cumulus release notes
 =====================
 
+1.1.2
+-----
+
+**Release date:** 2014-03-10
+
+- Bug fix: Fixed ugly output of CloudFormation outputs
+
 1.1.1
 -----
 
