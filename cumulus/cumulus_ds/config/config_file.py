@@ -206,6 +206,10 @@ def _populate_stacks(args, config):
 
             stack = '{}-{}'.format(args.environment, section.split(': ')[1])
 
+            # Only add stacks that belong to the current environment
+            if stack not in CONF['environments'][args.environment]['stacks']:
+                continue
+
             # Prepend a stack name prefix
             if 'stack-name-prefix' in CONF['environments'][args.environment]:
                 stack = '{}-{}'.format(
