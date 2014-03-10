@@ -1,6 +1,13 @@
 Cumulus release notes
 =====================
 
+1.1.3
+-----
+
+**Release date:** 2014-03-10
+
+- Bug fix: `Exception when parsing parameters containing "=" #118 <https://github.com/skymill/cumulus/issues/118>`__
+
 1.1.2
 -----
 
