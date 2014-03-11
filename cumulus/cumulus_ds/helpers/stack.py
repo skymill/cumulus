@@ -351,12 +351,13 @@ def _print_stack_output(stack_name_or_id):
     :param stack_name_or_id: Stack name
     :returns: None
     """
-    LOGGER.debug('Printing output for stack "{}"'.format(stack_name_or_id))
     outputs = _get_stack_outputs(stack_name_or_id)
 
     if not outputs:
         LOGGER.debug('No outputs found for stack "{}"'.format(stack_name_or_id))
         return
+
+    LOGGER.info('Output data from stack "{}"'.format(stack_name_or_id))
 
     print(
         '--------------------+----------------------------------'
