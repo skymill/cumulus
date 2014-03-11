@@ -36,7 +36,7 @@ LOGGING_CONFIG = {
     },
     'handlers': {
         'default': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'standard'
         },
@@ -49,7 +49,7 @@ LOGGING_CONFIG = {
     'loggers': {
         '': {
             'handlers': ['default'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True
         },
         'boto': {
