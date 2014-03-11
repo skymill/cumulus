@@ -1,10 +1,10 @@
 Cumulus release notes
 =====================
 
-NEXT
-----
+1.2.0
+-----
 
-**Release date:** Not set
+**Release date:** 2014-03-11
 
 - `Support both / and \ in bundle paths and path rewrites #120 <https://github.com/skymill/cumulus/issues/120>`__
 - `Make INFO the default log level in Cumulus #119 <https://github.com/skymill/cumulus/issues/119>`__
