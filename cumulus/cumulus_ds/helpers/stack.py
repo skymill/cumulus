@@ -21,6 +21,26 @@ LOGGER = logging.getLogger(__name__)
 CONNECTION = connection_handler.connect_cloudformation()
 TERMINAL_WIDTH, _ = terminal_size.get_terminal_size()
 
+# Valid statuses for instances that are actually running
+# all statuses except (DELETE_COMPLETE)
+RUNNING_STATUSES = [
+    'CREATE_IN_PROGRESS',
+    'CREATE_FAILED',
+    'CREATE_COMPLETE',
+    'ROLLBACK_IN_PROGRESS',
+    'ROLLBACK_FAILED',
+    'ROLLBACK_COMPLETE',
+    'DELETE_IN_PROGRESS',
+    'DELETE_FAILED',
+    'UPDATE_IN_PROGRESS',
+    'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
+    'UPDATE_COMPLETE',
+    'UPDATE_ROLLBACK_IN_PROGRESS',
+    'UPDATE_ROLLBACK_FAILED',
+    'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
+    'UPDATE_ROLLBACK_COMPLETE'
+]
+
 
 def delete_stack(stack):
     """ Delete an existing stack
@@ -128,20 +148,18 @@ def ensure_stack(
         raise InvalidTemplateException(
             'Malformatted template: {}'.format(error))
     except boto.exception.BotoServerError as error:
-        code = eval(error.error_message)['Error']['Code']
-        message = eval(error.error_message)['Error']['Message']
+        if (error.error_code == 'ValidationError' and
+                error.error_message == 'No updates are to be performed.'):
+            # Do not raise this exception if it is due to lack of updates
+            # We do not want to fail any other stack updates after this
+            # stack
+            LOGGER.warning(
+                'No CloudFormation updates are to be '
+                'performed for {}'.format(stack_name))
+            return
 
-        if code == 'ValidationError':
-            if message == 'No updates are to be performed.':
-                # Do not raise this exception if it is due to lack of updates
-                # We do not want to fail any other stack updates after this
-                # stack
-                LOGGER.warning(
-                    'No CloudFormation updates are to be '
-                    'performed for {}'.format(stack_name))
-                return
-
-        LOGGER.error('Boto exception {}: {}'.format(code, message))
+        LOGGER.error('Boto exception {}: {}'.format(
+            error.error_code, error.error_message))
         return
 
     _print_stack_output(stack_name)
@@ -154,9 +172,8 @@ def get_stack_by_name(stack_name):
     :param stack_name: Stack name
     :returns: stack or None
     """
-    for stack in CONNECTION.list_stacks():
-        if (stack.stack_status != 'DELETE_COMPLETE' and
-                stack.stack_name == stack_name):
+    for stack in CONNECTION.list_stacks(RUNNING_STATUSES):
+        if stack.stack_name == stack_name:
             return stack
 
     return None
@@ -208,9 +225,8 @@ def stack_exists(stack_name):
     :param stack_name: Stack name
     :returns: bool
     """
-    for stack in CONNECTION.list_stacks():
-        if (stack.stack_status != 'DELETE_COMPLETE' and
-                stack.stack_name == stack_name):
+    for stack in CONNECTION.list_stacks(RUNNING_STATUSES):
+        if stack.stack_name == stack_name:
             return True
 
     return False
