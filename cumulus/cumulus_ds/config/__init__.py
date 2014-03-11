@@ -124,7 +124,7 @@ class Configuration:
         try:
             return self.config['general']['log-level']
         except KeyError:
-            return 'DEBUG'
+            return 'INFO'
 
     def get_post_bundle_hook(self, bundle):
         """ Returns the post bundle hook command or None

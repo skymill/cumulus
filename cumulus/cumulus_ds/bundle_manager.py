@@ -47,7 +47,7 @@ def build_bundles():
                 raise
         else:
             logger.info('Building bundle {}'.format(bundle_type))
-            logger.debug('Bundle paths: {}'.format(', '.join(
+            logger.info('Bundle paths: {}'.format(', '.join(
                 config.get_bundle_paths(bundle_type))))
 
             tmptar = tempfile.NamedTemporaryFile(
@@ -76,6 +76,8 @@ def build_bundles():
         # Run post-bundle-hook
         _post_bundle_hook(bundle_type)
 
+        logger.info('Done bundling {}'.format(bundle_type))
+
 
 def _bundle_zip(tmpfile, bundle_type, environment, paths):
     """ Create a zip archive
@@ -89,10 +91,12 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
     :type paths: list
     :param paths: List of paths to include
     """
+    logger.info('Generating zip file for {}'.format(bundle_type))
     archive = zipfile.ZipFile(tmpfile, 'w')
     path_rewrites = config.get_bundle_path_rewrites(bundle_type)
 
     for path in paths:
+        path = _convert_paths_to_local_format(path)
         for filename in _find_files(path, '*.*'):
             arcname = filename
 
@@ -110,8 +114,10 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
 
             # Do all rewrites
             for rewrite in path_rewrites:
-                target = rewrite['target'].replace('\\\\', '\\')
-                destination = rewrite['destination'].replace('\\\\', '\\')
+                target = _convert_paths_to_local_format(
+                    rewrite['target'].replace('\\\\', '\\'))
+                destination = _convert_paths_to_local_format(
+                    rewrite['destination'].replace('\\\\', '\\'))
 
                 try:
                     if arcname[:len(target)] == target:
@@ -129,6 +135,24 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
             archive.write(filename, arcname, zipfile.ZIP_DEFLATED)
 
     archive.close()
+
+
+def _convert_paths_to_local_format(path):
+    """ Convert paths to have the local path separator
+
+    On Windows systems: Convert any / to \\
+    On Other systems: Convert any \ to /
+
+    :type path: str
+    :param path: Path to operate open
+    :returns: str -- Altered version of path
+    """
+    if sys.platform in ['win32', 'cygwin']:
+        path = path.split('/')
+    else:
+        path = path.split('\\')
+
+    return ospath.sep.join(path)
 
 
 def _find_files(directory, pattern):
@@ -284,12 +308,12 @@ def _upload_bundle(bundle_path, bundle_type):
     key = bucket.new_key(key_name)
 
     logger.info('Starting upload of {} to s3://{}/{}'.format(
-        ospath.basename(bundle_path), bucket.name, key_name))
+        bundle_type, bucket.name, key_name))
 
     key.set_contents_from_filename(bundle_path, replace=True)
 
     logger.info('Completed upload of {} to s3://{}/{}'.format(
-        ospath.basename(bundle_path), bucket.name, key_name))
+        bundle_type, bucket.name, key_name))
 
     # Compare MD5 checksums
     if local_hash == key.md5:
