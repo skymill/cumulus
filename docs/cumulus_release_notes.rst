@@ -1,6 +1,13 @@
 Cumulus release notes
 =====================
 
+1.2.1
+-----
+
+**Release date:** 2014-03-12
+
+- Bug fix: `Cumulus misses stacks if the stack history is very long #121 <https://github.com/skymill/cumulus/issues/121>`__
+
 1.2.0
 -----
 
