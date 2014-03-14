@@ -275,6 +275,13 @@ Initial release with some basic functions and concepts.
 Cumulus Bundle Handler release notes
 ====================================
 
+1.0.3
+-----
+
+**Release date:** 2014-03-14
+
+- Bugfix: `CBH does not preserve the file permissions on extraction #124 <https://github.com/skymill/cumulus/issues/124>`__
+
 1.0.2
 -----
 
