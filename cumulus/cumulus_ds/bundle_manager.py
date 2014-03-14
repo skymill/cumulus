@@ -1,5 +1,4 @@
 """ Bundling functions """
-import fnmatch
 import hashlib
 import logging
 import os
@@ -97,7 +96,7 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
 
     for path in paths:
         path = _convert_paths_to_local_format(path)
-        for filename in _find_files(path, '*.*'):
+        for filename in _find_files(path):
             arcname = filename
 
             # Exclude files with other target environments
@@ -155,12 +154,11 @@ def _convert_paths_to_local_format(path):
     return ospath.sep.join(path)
 
 
-def _find_files(directory, pattern):
+def _find_files(directory):
     for root, dirs, files in os.walk(directory):
         for basename in files:
-            if fnmatch.fnmatch(basename, pattern):
-                filename = ospath.join(root, basename)
-                yield filename
+            filename = ospath.join(root, basename)
+            yield filename
 
 
 def _generate_local_md5hash(filename):
