@@ -1,6 +1,13 @@
 Cumulus release notes
 =====================
 
+1.2.2
+-----
+
+**Release date:** 2014-03-14
+
+- Bugfix: `Error in pattern matching when bundling #123 <https://github.com/skymill/cumulus/issues/123>`__
+
 1.2.1
 -----
 
@@ -267,13 +274,6 @@ Initial release with some basic functions and concepts.
 
 Cumulus Bundle Handler release notes
 ====================================
-
-1.0.3
------
-
-**Release date:** 2014-03-14
-
-- Bugfix: `Error in pattern matching when bundling #123 <https://github.com/skymill/cumulus/issues/123>`__
 
 1.0.2
 -----
