@@ -48,6 +48,11 @@ def download_and_unpack_bundle(bundle_type):
     try:
         LOGGER.info('Unpacking {} to {}'.format(bundle.name, extraction_path))
         archive.extractall(extraction_path)
+        for info in archive.infolist():
+            archive.extract(info, extraction_path)
+            os.chmod(
+                os.path.join(extraction_path, info.filename),
+                info.external_attr >> 16)
     except Exception as err:
         LOGGER.error('Error when unpacking bundle: {}'.format(err))
     finally:
