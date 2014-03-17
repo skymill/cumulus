@@ -212,7 +212,7 @@ def _populate_general(args, config):
                     log_level = 'DEBUG'
 
                 CONF['general'][option] = log_level
-            if option == 'include':
+            elif option == 'include':
                 # The include option is read earlier
                 continue
             else:
