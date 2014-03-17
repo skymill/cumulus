@@ -12,7 +12,7 @@ Example ``cumulus.conf``
 
 All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and
 ``./cumulus.conf`` in order. You can also specify a custom configuration file
-with ``--config``.
+using ``--config``.
 
 Below is a full example configuration:
 ::
@@ -72,6 +72,7 @@ not environment or stack specific.
 Option                  Type               Required Comment
 ======================= ================== ======== ==========================================
 ``log-level``           String             No       Log level (one of: ``debug``, ``info``, ``warning`` and ``error``)
+``include``             CommaSeparatedList No       List of config files to include
 ======================= ================== ======== ==========================================
 
 
