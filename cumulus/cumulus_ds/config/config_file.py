@@ -63,24 +63,25 @@ def configure(args):
     :type config_file: str or None
     :param config_file: Configuration file to read from
     """
-    config_files = []
-
-    if sys.platform in ['win32', 'cygwin']:
-        config_files.append('C:\\cumulus.conf')
-        config_files.append(ospath.expanduser('~\\.cumulus.conf'))
-        config_files.append('{}\\cumulus.conf'.format(os.curdir))
-    else:
-        config_files.append('/etc/cumulus.conf')
-        config_files.append(ospath.expanduser('~/.cumulus.conf'))
-        config_files.append('{}/cumulus.conf'.format(os.curdir))
-
     # Add custom configuration file path
+    config_files = []
     if args.config:
-        if ospath.exists(ospath.expanduser(args.config)):
-            config_files = [ospath.expanduser(args.config)]
+        for config in args.config:
+            config = ospath.expanduser(config)
+            if ospath.exists(config):
+                config_files.append(config)
+                LOGGER.info('Added "{}" to config file list'.format(config))
+                continue
+            LOGGER.warning('Configuration file {} not found.'.format(config))
+    else:
+        if sys.platform in ['win32', 'cygwin']:
+            config_files.append('C:\\cumulus.conf')
+            config_files.append(ospath.expanduser('~\\.cumulus.conf'))
+            config_files.append('{}\\cumulus.conf'.format(os.curdir))
         else:
-            LOGGER.warning('Configuration file {} not found.'.format(
-                ospath.expanduser(args.config)))
+            config_files.append('/etc/cumulus.conf')
+            config_files.append(ospath.expanduser('~/.cumulus.conf'))
+            config_files.append('{}/cumulus.conf'.format(os.curdir))
 
     # Read config file
     conf_file_found = False

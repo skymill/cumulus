@@ -34,6 +34,10 @@ class Configuration:
         if self.args.stacks:
             self.args.stacks = [s.strip() for s in self.args.stacks.split(',')]
 
+        # Split configuration paths
+        if self.args.config:
+            self.args.config = [c.strip() for c in self.args.config.split(',')]
+
         if self.args.cumulus_version:
             settings_conf = SafeConfigParser()
             settings_conf.read(

@@ -27,7 +27,7 @@ GENERAL_AG.add_argument(
     ))
 GENERAL_AG.add_argument(
     '--config',
-    help='Path to configuration file.')
+    help='Path to configuration file. Can be a comma separated list of files.')
 GENERAL_AG.add_argument(
     '--cumulus-version',
     action='count',
