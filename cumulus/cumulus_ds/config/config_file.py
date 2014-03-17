@@ -97,10 +97,13 @@ def configure(args):
     config = SafeConfigParser()
     config.read(config_files)
 
-    _populate_general(args, config)
-    _populate_environments(args, config)
-    _populate_stacks(args, config)
-    _populate_bundles(args, config)
+    try:
+        _populate_general(args, config)
+        _populate_environments(args, config)
+        _populate_stacks(args, config)
+        _populate_bundles(args, config)
+    except ConfigurationException:
+        raise
 
     return CONF
 

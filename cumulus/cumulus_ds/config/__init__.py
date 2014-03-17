@@ -51,7 +51,11 @@ class Configuration:
 
     def _parse_configuration_file(self):
         """ Parse the configuration file """
-        self.config = config_file.configure(self.args)
+        try:
+            self.config = config_file.configure(self.args)
+        except ConfigurationException as error:
+            print('Error parsing configuration: {}'.format(error))
+            sys.exit(1)
 
     def get_environment(self):
         """ Returns the environment name
