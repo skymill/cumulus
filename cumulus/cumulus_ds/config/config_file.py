@@ -2,7 +2,7 @@
 import logging
 import os
 import sys
-from ConfigParser import SafeConfigParser, NoOptionError
+from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 
 if sys.platform in ['win32', 'cygwin']:
     import ntpath as ospath
@@ -24,7 +24,8 @@ CONF = {
 # Options per section
 # [(option, required)]
 GENERAL_OPTIONS = [
-    ('log-level', False)
+    ('log-level', False),
+    ('include', False)
 ]
 STACK_OPTIONS = [
     ('template', True),
@@ -83,6 +84,9 @@ def configure(args):
             config_files.append(ospath.expanduser('~/.cumulus.conf'))
             config_files.append('{}/cumulus.conf'.format(os.curdir))
 
+    # Get the include option from the general section
+    config_files = __get_include_files(config_files) + config_files
+
     # Read config file
     conf_file_found = False
     for conf_file in config_files:
@@ -106,6 +110,30 @@ def configure(args):
         raise
 
     return CONF
+
+
+def __get_include_files(config_files):
+    """ Read the 'include' option in the 'general' section
+
+    This will return a list of include files
+
+    :type config_files: str
+    :param config_files: List of configuration files to include
+    :returns: list -- List of include config files
+    """
+    config = SafeConfigParser()
+    config.read(config_files)
+
+    try:
+        return [
+            ospath.expanduser(c.strip())
+            for c in config.get('general', 'include').split(',')
+        ]
+    except NoOptionError:
+        return []
+    except NoSectionError:
+        return []
+    return []
 
 
 def _populate_environments(args, config):
@@ -184,6 +212,9 @@ def _populate_general(args, config):
                     log_level = 'DEBUG'
 
                 CONF['general'][option] = log_level
+            if option == 'include':
+                # The include option is read earlier
+                continue
             else:
                 CONF['general'][option] = config.get(section, option)
         except NoOptionError:
