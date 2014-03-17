@@ -1,6 +1,16 @@
 Cumulus release notes
 =====================
 
+1.3.0
+-----
+
+**Release date:** 2014-03-17
+
+- New ``include`` statement for config file inheritance `#128 <https://github.com/skymill/cumulus/issues/128>`__
+- Support for multiple config files in ``--config`` `#129 <https://github.com/skymill/cumulus/issues/129>`__
+- Print configuration errors prettier `#125 <https://github.com/skymill/cumulus/issues/125>`__
+- Catch error when template does not exist `#122 <https://github.com/skymill/cumulus/issues/122>`__
+
 1.2.2
 -----
 

@@ -2,7 +2,7 @@
 import logging
 import os
 import sys
-from ConfigParser import SafeConfigParser, NoOptionError
+from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 
 if sys.platform in ['win32', 'cygwin']:
     import ntpath as ospath
@@ -24,7 +24,8 @@ CONF = {
 # Options per section
 # [(option, required)]
 GENERAL_OPTIONS = [
-    ('log-level', False)
+    ('log-level', False),
+    ('include', False)
 ]
 STACK_OPTIONS = [
     ('template', True),
@@ -63,24 +64,28 @@ def configure(args):
     :type config_file: str or None
     :param config_file: Configuration file to read from
     """
-    config_files = []
-
-    if sys.platform in ['win32', 'cygwin']:
-        config_files.append('C:\\cumulus.conf')
-        config_files.append(ospath.expanduser('~\\.cumulus.conf'))
-        config_files.append('{}\\cumulus.conf'.format(os.curdir))
-    else:
-        config_files.append('/etc/cumulus.conf')
-        config_files.append(ospath.expanduser('~/.cumulus.conf'))
-        config_files.append('{}/cumulus.conf'.format(os.curdir))
-
     # Add custom configuration file path
+    config_files = []
     if args.config:
-        if ospath.exists(ospath.expanduser(args.config)):
-            config_files = [ospath.expanduser(args.config)]
+        for config in args.config:
+            config = ospath.expanduser(config)
+            if ospath.exists(config):
+                config_files.append(config)
+                LOGGER.info('Added "{}" to config file list'.format(config))
+                continue
+            LOGGER.warning('Configuration file {} not found.'.format(config))
+    else:
+        if sys.platform in ['win32', 'cygwin']:
+            config_files.append('C:\\cumulus.conf')
+            config_files.append(ospath.expanduser('~\\.cumulus.conf'))
+            config_files.append('{}\\cumulus.conf'.format(os.curdir))
         else:
-            LOGGER.warning('Configuration file {} not found.'.format(
-                ospath.expanduser(args.config)))
+            config_files.append('/etc/cumulus.conf')
+            config_files.append(ospath.expanduser('~/.cumulus.conf'))
+            config_files.append('{}/cumulus.conf'.format(os.curdir))
+
+    # Get the include option from the general section
+    config_files = __get_include_files(config_files) + config_files
 
     # Read config file
     conf_file_found = False
@@ -96,12 +101,39 @@ def configure(args):
     config = SafeConfigParser()
     config.read(config_files)
 
-    _populate_general(args, config)
-    _populate_environments(args, config)
-    _populate_stacks(args, config)
-    _populate_bundles(args, config)
+    try:
+        _populate_general(args, config)
+        _populate_environments(args, config)
+        _populate_stacks(args, config)
+        _populate_bundles(args, config)
+    except ConfigurationException:
+        raise
 
     return CONF
+
+
+def __get_include_files(config_files):
+    """ Read the 'include' option in the 'general' section
+
+    This will return a list of include files
+
+    :type config_files: str
+    :param config_files: List of configuration files to include
+    :returns: list -- List of include config files
+    """
+    config = SafeConfigParser()
+    config.read(config_files)
+
+    try:
+        return [
+            ospath.expanduser(c.strip())
+            for c in config.get('general', 'include').split(',')
+        ]
+    except NoOptionError:
+        return []
+    except NoSectionError:
+        return []
+    return []
 
 
 def _populate_environments(args, config):
@@ -180,6 +212,9 @@ def _populate_general(args, config):
                     log_level = 'DEBUG'
 
                 CONF['general'][option] = log_level
+            elif option == 'include':
+                # The include option is read earlier
+                continue
             else:
                 CONF['general'][option] = config.get(section, option)
         except NoOptionError:

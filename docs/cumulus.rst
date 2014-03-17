@@ -12,7 +12,7 @@ Example ``cumulus.conf``
 
 All configuration is read form ``/etc/cumulus.conf``, ``~/.cumulus.conf`` and
 ``./cumulus.conf`` in order. You can also specify a custom configuration file
-with ``--config``.
+using ``--config``.
 
 Below is a full example configuration:
 ::
@@ -72,6 +72,7 @@ not environment or stack specific.
 Option                  Type               Required Comment
 ======================= ================== ======== ==========================================
 ``log-level``           String             No       Log level (one of: ``debug``, ``info``, ``warning`` and ``error``)
+``include``             CommaSeparatedList No       List of config files to include
 ======================= ================== ======== ==========================================
 
 
@@ -136,8 +137,9 @@ Below is a listing of the ``cumulus`` command line options.
 
     usage: cumulus [-h] [-e ENVIRONMENT] [-s STACKS] [--version VERSION]
                    [--parameters PARAMETERS] [--config CONFIG] [--cumulus-version]
-                   [--bundle] [--deploy] [--deploy-without-bundling] [--events]
-                   [--list] [--validate-templates] [--undeploy]
+                   [--force] [--bundle] [--deploy] [--deploy-without-bundling]
+                   [--events] [--list] [--outputs] [--validate-templates]
+                   [--undeploy]
 
     Cumulus cloud management tool
 
@@ -155,8 +157,10 @@ Below is a listing of the ``cumulus`` command line options.
       --parameters PARAMETERS
                             CloudFormation parameters. On the form: stack_name:par
                             ameter_name=value,stack_name=parameter_name=value
-      --config CONFIG       Path to configuration file.
+      --config CONFIG       Path to configuration file. Can be a comma separated
+                            list of files.
       --cumulus-version     Print cumulus version number
+      --force               Skip any safety questions
 
     Actions:
       --bundle              Build and upload bundles to AWS S3
@@ -166,8 +170,10 @@ Below is a listing of the ``cumulus`` command line options.
                             first
       --events              List events for the stack
       --list                List stacks for each environment
+      --outputs             Show output for all stacks
       --validate-templates  Validate all templates for the environment
-      --undeploy            Undeploy (DELETE) all stacks in the environment
+      --undeploy            Undeploy (delete) all stacks in the environment. Use
+                            --force to skip the safety question.
 
 Stack naming
 ------------

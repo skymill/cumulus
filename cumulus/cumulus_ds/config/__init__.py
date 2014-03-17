@@ -34,6 +34,10 @@ class Configuration:
         if self.args.stacks:
             self.args.stacks = [s.strip() for s in self.args.stacks.split(',')]
 
+        # Split configuration paths
+        if self.args.config:
+            self.args.config = [c.strip() for c in self.args.config.split(',')]
+
         if self.args.cumulus_version:
             settings_conf = SafeConfigParser()
             settings_conf.read(
@@ -47,7 +51,11 @@ class Configuration:
 
     def _parse_configuration_file(self):
         """ Parse the configuration file """
-        self.config = config_file.configure(self.args)
+        try:
+            self.config = config_file.configure(self.args)
+        except ConfigurationException as error:
+            print('Error parsing configuration: {}'.format(error))
+            sys.exit(1)
 
     def get_environment(self):
         """ Returns the environment name
