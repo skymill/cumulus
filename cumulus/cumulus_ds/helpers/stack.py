@@ -144,6 +144,9 @@ def ensure_stack(
 
             _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
+    except IOError as error:
+        LOGGER.error("Error reading template file: {}".format(error))
+        return
     except ValueError as error:
         raise InvalidTemplateException(
             'Malformatted template: {}'.format(error))
@@ -269,9 +272,11 @@ def _get_json_from_template(template):
     template_path = ospath.expandvars(ospath.expanduser(template))
     LOGGER.debug('Parsing template file {}'.format(template_path))
 
-    file_handle = open(template_path)
-    json_data = json.dumps(json.loads(file_handle.read()))
-    file_handle.close()
+    try:
+        with open(template_path) as file_handle:
+            json_data = json.dumps(json.loads(file_handle.read()))
+    except IOError:
+        raise
 
     return json_data
 
