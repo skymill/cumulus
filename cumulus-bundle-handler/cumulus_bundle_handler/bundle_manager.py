@@ -7,6 +7,11 @@ import zipfile
 
 from cumulus_bundle_handler import config
 
+if sys.platform in ['win32', 'cygwin']:
+    import ntpath as ospath
+else:
+    import os.path as ospath
+
 try:
     from boto import s3
 except ImportError:
@@ -50,9 +55,10 @@ def download_and_unpack_bundle(bundle_type):
         archive.extractall(extraction_path)
         for info in archive.infolist():
             archive.extract(info, extraction_path)
-            os.chmod(
-                os.path.join(extraction_path, info.filename),
-                info.external_attr >> 16)
+            if not ospath.isdir(ospath.join(extraction_path, info.filename)):
+                os.chmod(
+                    ospath.join(extraction_path, info.filename),
+                    info.external_attr >> 16)
     except Exception as err:
         LOGGER.error('Error when unpacking bundle: {}'.format(err))
     finally:
@@ -74,7 +80,7 @@ def _get_extraction_path(bundle_type):
     if sys.platform in ['win32', 'cygwin']:
         path = 'C:\\'
 
-    if not os.path.exists(path):
+    if not ospath.exists(path):
         LOGGER.debug('Created extraction path {}'.format(path))
         os.makedirs(path)
 
@@ -150,7 +156,7 @@ def _store_bundle_files(filenames, extraction_path):
     """
     cache_file = '/var/local/cumulus-bundle-handler.cache'
     if sys.platform in ['win32', 'cygwin']:
-        if not os.path.exists('C:\\cumulus\\cache'):
+        if not ospath.exists('C:\\cumulus\\cache'):
             os.makedirs('C:\\cumulus\\cache')
         cache_file = 'C:\\cumulus\\cache\\cumulus-bundle-handler.cache'
 
