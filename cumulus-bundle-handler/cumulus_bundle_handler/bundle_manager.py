@@ -55,9 +55,10 @@ def download_and_unpack_bundle(bundle_type):
         archive.extractall(extraction_path)
         for info in archive.infolist():
             archive.extract(info, extraction_path)
-            os.chmod(
-                ospath.join(extraction_path, info.filename),
-                info.external_attr >> 16)
+            if not ospath.isdir(ospath.join(extraction_path, info.filename)):
+                os.chmod(
+                    ospath.join(extraction_path, info.filename),
+                    info.external_attr >> 16)
     except Exception as err:
         LOGGER.error('Error when unpacking bundle: {}'.format(err))
     finally:
