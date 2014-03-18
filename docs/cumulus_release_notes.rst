@@ -285,6 +285,14 @@ Initial release with some basic functions and concepts.
 Cumulus Bundle Handler release notes
 ====================================
 
+1.0.4
+-----
+
+**Release date:** 2014-03-18
+
+- Fixed potential issue with path joins on Windows
+- Fixed wrong permission on extracted directories
+
 1.0.3
 -----
 
