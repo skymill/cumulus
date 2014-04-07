@@ -44,7 +44,7 @@ BUNDLE_OPTIONS = [
 ENV_OPTIONS = [
     ('access-key-id', True),
     ('secret-access-key', True),
-    ('bucket', True),
+    ('bucket', False),
     ('region', True),
     ('stacks', True),
     ('bundles', True),

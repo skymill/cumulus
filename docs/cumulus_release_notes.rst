@@ -1,6 +1,13 @@
 Cumulus release notes
 =====================
 
+1.3.1
+-----
+
+**Release date:** 2014-04-07
+
+- Only directories allowed in bundle paths `#132 <https://github.com/skymill/cumulus/issues/132>`__
+
 1.3.0
 -----
 
