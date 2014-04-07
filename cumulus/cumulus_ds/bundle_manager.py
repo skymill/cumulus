@@ -96,7 +96,14 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
 
     for path in paths:
         path = _convert_paths_to_local_format(path)
-        for filename in _find_files(path):
+
+        if ospath.isdir(path):
+            # Extract all file names from directory
+            filenames = _find_files(path)
+        else:
+            filenames = [path]
+
+        for filename in filenames:
             arcname = filename
 
             # Exclude files with other target environments
@@ -131,6 +138,7 @@ def _bundle_zip(tmpfile, bundle_type, environment, paths):
                 except IndexError:
                     pass
 
+            logger.debug('Adding: {}'.format(filename))
             archive.write(filename, arcname, zipfile.ZIP_DEFLATED)
 
     archive.close()
@@ -155,6 +163,11 @@ def _convert_paths_to_local_format(path):
 
 
 def _find_files(directory):
+    """ Get a list of files in directory
+
+    :type directory: str
+    :param directory: Path to a directory
+    """
     for root, dirs, files in os.walk(directory):
         for basename in files:
             filename = ospath.join(root, basename)
