@@ -1,6 +1,13 @@
 Cumulus release notes
 =====================
 
+1.3.2
+-----
+
+**Release date:** 2014-04-14
+
+- Follow symlinks when creating bundles `#133 <https://github.com/skymill/cumulus/issues/133>`__
+
 1.3.1
 -----
 
