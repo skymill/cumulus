@@ -168,7 +168,7 @@ def _find_files(directory):
     :type directory: str
     :param directory: Path to a directory
     """
-    for root, dirs, files in os.walk(directory):
+    for root, dirs, files in os.walk(directory, followlinks=True):
         for basename in files:
             filename = ospath.join(root, basename)
             yield filename
