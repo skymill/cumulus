@@ -1,6 +1,14 @@
 Cumulus release notes
 =====================
 
+1.4.0
+-----
+
+**Release date:** 2014-04-17
+
+- Add support for ``--redeploy`` `#134 <https://github.com/skymill/cumulus/issues/134>`__
+- Fix event order when using ``--deploy`` and ``--undeploy`` in combination `#135 <https://github.com/skymill/cumulus/issues/135>`__
+
 1.3.2
 -----
 
