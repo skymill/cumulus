@@ -138,8 +138,8 @@ Below is a listing of the ``cumulus`` command line options.
     usage: cumulus [-h] [-e ENVIRONMENT] [-s STACKS] [--version VERSION]
                    [--parameters PARAMETERS] [--config CONFIG] [--cumulus-version]
                    [--force] [--bundle] [--deploy] [--deploy-without-bundling]
-                   [--events] [--list] [--outputs] [--validate-templates]
-                   [--undeploy]
+                   [--redeploy] [--events] [--list] [--outputs]
+                   [--validate-templates] [--undeploy]
 
     Cumulus cloud management tool
 
@@ -168,6 +168,7 @@ Below is a listing of the ``cumulus`` command line options.
       --deploy-without-bundling
                             Deploy all stacks in the environment, without bundling
                             first
+      --redeploy            Undeploy and deploy the stack(s). Implies bundling.
       --events              List events for the stack
       --list                List stacks for each environment
       --outputs             Show output for all stacks

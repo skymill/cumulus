@@ -98,6 +98,9 @@ def main():
         if config.args.bundle:
             bundle_manager.build_bundles()
 
+        if config.args.undeploy:
+            deployment_manager.undeploy(force=config.args.force)
+
         if config.args.deploy:
             bundle_manager.build_bundles()
             deployment_manager.deploy()
@@ -108,9 +111,6 @@ def main():
         if config.args.list:
             deployment_manager.list_stacks()
 
-        if config.args.undeploy:
-            deployment_manager.undeploy(force=config.args.force)
-
         if config.args.validate_templates:
             deployment_manager.validate_templates()
 
@@ -119,6 +119,11 @@ def main():
 
         if config.args.outputs:
             deployment_manager.list_outputs()
+
+        if config.args.redeploy:
+            deployment_manager.undeploy(force=True)
+            bundle_manager.build_bundles()
+            deployment_manager.deploy()
 
     except Exception as error:
         LOGGER.error(error)
