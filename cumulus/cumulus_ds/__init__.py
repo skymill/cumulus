@@ -120,6 +120,11 @@ def main():
         if config.args.outputs:
             deployment_manager.list_outputs()
 
+        if config.args.redeploy:
+            deployment_manager.undeploy(force=True)
+            bundle_manager.build_bundles()
+            deployment_manager.deploy()
+
     except Exception as error:
         LOGGER.error(error)
         raise

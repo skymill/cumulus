@@ -62,6 +62,7 @@ def undeploy(force=False):
 
     :type force: bool
     :param force: Skip the safety question
+    :returns: bool -- True if the delete of all stacks was successful
     """
     message = (
         'This will DELETE all stacks in the environment. '
@@ -82,8 +83,14 @@ def undeploy(force=False):
         LOGGER.warning('No stacks to undeploy.')
         return None
 
+    delete_successful = True
     for stack in stacks:
-        delete_stack(stack)
+        status = delete_stack(stack)
+        if status != 'DELETE_COMPLETE':
+            LOGGER.warning('The stack finished with status {}'.format(status))
+            delete_successful = False
+
+    return delete_successful
 
 
 def validate_templates():

@@ -51,6 +51,10 @@ ACTIONS_AG.add_argument(
     action='count',
     help='Deploy all stacks in the environment, without bundling first')
 ACTIONS_AG.add_argument(
+    '--redeploy',
+    action='count',
+    help='Undeploy and deploy the stack(s). Implies bundling.')
+ACTIONS_AG.add_argument(
     '--events',
     action='count',
     help='List events for the stack')

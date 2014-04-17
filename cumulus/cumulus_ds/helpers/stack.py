@@ -119,7 +119,8 @@ def ensure_stack(
                     timeout_in_minutes=timeout_in_minutes,
                     tags=tags)
 
-            _wait_for_stack_complete(stack_name, filter_type='UPDATE')
+            stack_status = \
+                _wait_for_stack_complete(stack_name, filter_type='UPDATE')
         else:
             LOGGER.debug('Creating new stack with version {}'.format(
                 config.get_environment_option('version')))
@@ -142,7 +143,8 @@ def ensure_stack(
                     timeout_in_minutes=timeout_in_minutes,
                     tags=tags)
 
-            _wait_for_stack_complete(stack_name, filter_type='CREATE')
+            stack_status = \
+                _wait_for_stack_complete(stack_name, filter_type='CREATE')
 
     except IOError as error:
         LOGGER.error("Error reading template file: {}".format(error))
@@ -166,6 +168,8 @@ def ensure_stack(
         return
 
     _print_stack_output(stack_name)
+
+    return stack_status
 
 
 def get_stack_by_name(stack_name):
