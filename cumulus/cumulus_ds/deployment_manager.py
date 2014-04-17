@@ -83,14 +83,8 @@ def undeploy(force=False):
         LOGGER.warning('No stacks to undeploy.')
         return None
 
-    delete_successful = True
     for stack in stacks:
-        status = delete_stack(stack)
-        if status != 'DELETE_COMPLETE':
-            LOGGER.warning('The stack finished with status {}'.format(status))
-            delete_successful = False
-
-    return delete_successful
+        delete_stack(stack)
 
 
 def validate_templates():
