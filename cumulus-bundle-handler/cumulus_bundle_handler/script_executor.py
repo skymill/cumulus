@@ -34,7 +34,7 @@ def run_init_scripts(start=False, kill=False, other=False):
     LOGGER.info('Running init scripts from {}'.format(init_dir))
 
     filenames = []
-    for filename in os.listdir(init_dir):
+    for filename in sorted(os.listdir(init_dir)):
         if ospath.isfile(ospath.join(init_dir, filename)):
             filenames.append(ospath.join(init_dir, filename))
 
