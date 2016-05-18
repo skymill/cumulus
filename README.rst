@@ -3,25 +3,25 @@ Cumulus Deployment Suite
 
 **Cumulus**
 
-.. image:: https://pypip.in/v/cumulus/badge.png
+.. image:: https://img.shields.io/pypi/v/cumulus.svg
     :target: https://pypi.python.org/pypi/cumulus/
     :alt: Latest Version
-.. image:: https://pypip.in/d/cumulus/badge.png
+.. image:: https://img.shields.io/pypi/dm/cumulus.svg
     :target: https://pypi.python.org/pypi/cumulus/
     :alt: Downloads
-.. image:: https://pypip.in/license/cumulus/badge.png
+.. image:: https://img.shields.io/pypi/l/cumulus.svg
     :target: https://pypi.python.org/pypi/cumulus/
     :alt: License
 
 **Cumulus Bundle Handler**
 
-.. image:: https://pypip.in/v/cumulus-bundle-handler/badge.png
+.. image:: https://img.shields.io/pypi/v/cumulus-bundle-handler.svg
     :target: https://pypi.python.org/pypi/cumulus-bundle-handler/
     :alt: Latest Version
-.. image:: https://pypip.in/d/cumulus-bundle-handler/badge.png
+.. image:: https://img.shields.io/pypi/dm/cumulus-bundle-handler.svg
     :target: https://pypi.python.org/pypi/cumulus-bundle-handler/
     :alt: Downloads
-.. image:: https://pypip.in/license/cumulus-bundle-handler/badge.png
+.. image:: https://img.shields.io/pypi/l/cumulus-bundle-handler.svg
     :target: https://pypi.python.org/pypi/cumulus-bundle-handler/
     :alt: License
 

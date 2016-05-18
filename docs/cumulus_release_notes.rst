@@ -307,6 +307,13 @@ Initial release with some basic functions and concepts.
 Cumulus Bundle Handler release notes
 ====================================
 
+1.0.5
+-----
+
+**Release date:** 2016-05-17
+
+- Fixed script execution ordering issue, now properly honors numbering (S01-script1, S05-script2, S30-script3)
+
 1.0.4
 -----
 
